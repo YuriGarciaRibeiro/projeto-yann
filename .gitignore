@@ -32,6 +32,16 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# local agent state
+.superpowers/
+
+# local media exports
+*.mp4
+*.webm
+*.mov
+*.avi
 
 # vercel
 .vercel

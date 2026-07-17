@@ -1,8 +1,42 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --black: #050505;
+  --ink: #101010;
+  --charcoal: #1c1c1c;
+  --graphite: #3f3f3f;
+  --mid-gray: #777777;
+  --silver: #b7b7b7;
+  --line: #d8d8d8;
+  --paper: #f4f4f2;
+  --white: #ffffff;
+  --background: var(--paper);
+  --foreground: var(--ink);
+
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-geist-sans), Arial, sans-serif;
+  --text-display-xl: clamp(4rem, 10vw, 9rem);
+  --text-display-lg: clamp(3.25rem, 7vw, 7rem);
+  --text-h1: clamp(2.75rem, 5.5vw, 5.5rem);
+  --text-h2: clamp(2.25rem, 4vw, 4rem);
+  --text-h3: clamp(1.75rem, 2.8vw, 2.75rem);
+  --text-body-lg: clamp(1.125rem, 1.4vw, 1.375rem);
+  --text-body: clamp(1rem, 1.1vw, 1.125rem);
+  --text-small: 0.8125rem;
+  --text-label: 0.6875rem;
+
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+  --space-40: 10rem;
+
+  --duration-fast: 220ms;
+  --duration-base: 360ms;
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @theme inline {
@@ -12,15 +46,114 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+.hero-scroll-range,
+.project-scroll-range {
+  min-height: 100svh;
+}
+
+.project-scrub-flow {
+  position: relative;
+  isolation: isolate;
+}
+
+.project-scrub-flow::before,
+.project-scrub-flow::after {
+  content: "";
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  z-index: -1;
+}
+
+.project-scrub-flow::before {
+  background: linear-gradient(180deg, rgb(5 5 5 / 0.72), rgb(5 5 5 / 0));
+  height: clamp(4rem, 12vw, 10rem);
+  top: 0;
+  transform: translateY(-1px);
+}
+
+.project-scrub-flow::after {
+  background: linear-gradient(180deg, rgb(5 5 5 / 0), rgb(5 5 5 / 0.74));
+  bottom: 0;
+  height: clamp(4rem, 12vw, 10rem);
+  transform: translateY(1px);
+}
+
+.project-parallax-overlap {
+  margin-top: -8svh;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
+  .hero-scroll-range:has(.scrub-media),
+  .project-scroll-range:has(.scrub-media) {
+    min-height: var(--scrub-scroll-height, 280svh);
+  }
+
+  .hero-scroll-stage,
+  .project-scroll-stage {
+    height: 100svh;
+  }
+
+  .project-parallax-overlap {
+    margin-top: -12svh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .hero-scroll-stage,
+  .project-scroll-stage {
+    position: relative;
+  }
+
+  .project-parallax-overlap {
+    margin-top: 0;
+  }
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--white);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes project-preloader {
+  0% {
+    transform: translateX(-110%);
+  }
+
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+:where(a, button, input, textarea, select):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

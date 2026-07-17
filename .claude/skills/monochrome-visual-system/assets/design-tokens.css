@@ -1,0 +1,46 @@
+:root {
+  color-scheme: light dark;
+
+  --color-black: #050505;
+  --color-ink: #101010;
+  --color-charcoal: #1c1c1c;
+  --color-graphite: #3f3f3f;
+  --color-mid-gray: #777777;
+  --color-silver: #b7b7b7;
+  --color-line: #d8d8d8;
+  --color-paper: #f4f4f2;
+  --color-white: #ffffff;
+
+  --surface-editorial: var(--color-paper);
+  --surface-editorial-clean: var(--color-white);
+  --surface-cinematic: var(--color-black);
+  --surface-cinematic-raised: var(--color-charcoal);
+
+  --text-on-light: var(--color-ink);
+  --text-on-light-secondary: var(--color-graphite);
+  --text-on-light-muted: var(--color-mid-gray);
+  --text-on-dark: var(--color-white);
+  --text-on-dark-secondary: rgb(255 255 255 / 72%);
+
+  --border-on-light: var(--color-line);
+  --border-on-dark: rgb(255 255 255 / 20%);
+
+  --overlay-video-left:
+    linear-gradient(
+      90deg,
+      rgb(0 0 0 / 54%) 0%,
+      rgb(0 0 0 / 22%) 38%,
+      transparent 70%
+    );
+
+  --overlay-video-bottom:
+    linear-gradient(
+      0deg,
+      rgb(0 0 0 / 48%) 0%,
+      transparent 45%
+    );
+
+  --radius-none: 0;
+  --radius-control: 2px;
+  --radius-max: 4px;
+}

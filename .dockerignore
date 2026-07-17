@@ -1,0 +1,19 @@
+.env
+.env.*
+!.env.example
+.git
+.next
+.superpowers
+node_modules
+npm-debug.log*
+Dockerfile
+README.md
+SALA 02.mp4
+*.mp4
+*.webm
+*.mov
+*.avi
+coverage
+dist
+tmp
+temp

@@ -1,0 +1,2 @@
+ALTER TABLE "site_profile" ADD COLUMN "portrait_image_asset_id" uuid;--> statement-breakpoint
+ALTER TABLE "site_profile" ADD CONSTRAINT "site_profile_portrait_image_asset_id_media_assets_id_fk" FOREIGN KEY ("portrait_image_asset_id") REFERENCES "public"."media_assets"("id") ON DELETE set null ON UPDATE no action;
