@@ -78,6 +78,10 @@ function getString(formData: FormData, name: string) {
   return String(formData.get(name) ?? "").trim();
 }
 
+function getBoolean(formData: FormData, name: string) {
+  return formData.getAll(name).some((value) => value === "true" || value === "on");
+}
+
 function nullableString(value: string) {
   return value.length > 0 ? value : null;
 }
@@ -153,7 +157,7 @@ function getProjectFormValues(formData: FormData): ProjectFormValues {
     fallbackImageAssetId: getString(formData, "fallbackImageAssetId"),
     heroVideoAssetId: getString(formData, "heroVideoAssetId"),
     id: getString(formData, "id"),
-    isPublished: formData.get("isPublished") === "on",
+    isPublished: getBoolean(formData, "isPublished"),
     location: getString(formData, "location"),
     shortDescription: getString(formData, "shortDescription"),
     slug: getString(formData, "slug"),
@@ -185,20 +189,6 @@ function getProjectUpsertInput(values: ProjectFormValues): {
 
   if (!values.clientArchitectName) {
     fieldErrors.clientArchitectName = "Informe o nome do arquiteto responsável.";
-  }
-
-  if (values.isPublished) {
-    const hasContactMethod = [
-      values.clientArchitectEmail,
-      values.clientArchitectPhone,
-      values.clientArchitectWebsite,
-      values.clientArchitectInstagram,
-    ].some(Boolean);
-
-    if (!hasContactMethod) {
-      fieldErrors.clientArchitectEmail =
-        "Para publicar, informe pelo menos um contato: e-mail, telefone, site ou Instagram.";
-    }
   }
 
   if (Object.keys(fieldErrors).length > 0) {
@@ -353,7 +343,7 @@ export async function saveProjectAction(formData: FormData) {
       clientArchitectWebsite: nullableString(getString(formData, "clientArchitectWebsite")),
       fallbackImageAssetId: nullableString(getString(formData, "fallbackImageAssetId")),
       heroVideoAssetId: nullableString(getString(formData, "heroVideoAssetId")),
-      isPublished: formData.get("isPublished") === "on",
+      isPublished: getBoolean(formData, "isPublished"),
       location: getString(formData, "location"),
       shortDescription: getString(formData, "shortDescription"),
       slug,

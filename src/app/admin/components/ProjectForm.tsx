@@ -208,12 +208,14 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
           className="flex min-h-11 items-center gap-3 text-sm"
           htmlFor={`${idPrefix}-isPublished`}
         >
+            <input name="isPublished" type="hidden" value="false" />
             <input
               className="size-4 accent-neutral-950"
               defaultChecked={values ? values.isPublished : (project?.isPublished ?? false)}
               id={`${idPrefix}-isPublished`}
               name="isPublished"
               type="checkbox"
+              value="true"
             />
             Publicado
           </label>

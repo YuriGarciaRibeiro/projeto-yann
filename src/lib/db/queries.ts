@@ -165,26 +165,6 @@ function normalizeInstagramValue(value: string | null | undefined) {
   return `https://instagram.com/${handle}`;
 }
 
-function assertProjectHasContactMethod(input: {
-  clientArchitectEmail?: string | null;
-  clientArchitectInstagram?: string | null;
-  clientArchitectPhone?: string | null;
-  clientArchitectWebsite?: string | null;
-}) {
-  const hasContactMethod = [
-    input.clientArchitectEmail,
-    input.clientArchitectPhone,
-    input.clientArchitectWebsite,
-    input.clientArchitectInstagram,
-  ].some((value) => Boolean(value?.trim()));
-
-  if (!hasContactMethod) {
-    throw new Error(
-      "Published projects require at least one client architect contact method.",
-    );
-  }
-}
-
 export async function getAdminUserByEmail(email: string) {
   const db = getDb();
 
@@ -342,10 +322,6 @@ export async function upsertProject(input: ProjectUpsert) {
       "Client architect website",
     ),
   };
-
-  if (normalizedProjectValues.isPublished) {
-    assertProjectHasContactMethod(normalizedProjectValues);
-  }
 
   await validateProjectMediaAssets(input);
 
