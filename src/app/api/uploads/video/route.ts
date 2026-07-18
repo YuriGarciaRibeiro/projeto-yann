@@ -14,7 +14,7 @@ import { createMediaAsset } from "@/lib/db/queries";
 import { mediaUsageScopes, type MediaUsageScope } from "@/lib/db/schema";
 import {
   createMediaStorageKey,
-  getPublicMediaUrl,
+  getMediaDeliveryUrl,
   putMediaObject,
   validateMediaUploadInput,
 } from "@/lib/storage/s3";
@@ -204,7 +204,7 @@ export async function POST(request: Request) {
       sizeBytes: scrubBuffer.byteLength,
       storageKey: scrubStorageKey,
       usageScope,
-      url: getPublicMediaUrl(scrubStorageKey),
+      url: getMediaDeliveryUrl(scrubStorageKey),
       videoVariant: "scrub",
     });
     await createMediaAsset({
@@ -214,7 +214,7 @@ export async function POST(request: Request) {
       sizeBytes: standardBuffer.byteLength,
       storageKey: standardStorageKey,
       usageScope,
-      url: getPublicMediaUrl(standardStorageKey),
+      url: getMediaDeliveryUrl(standardStorageKey),
       videoVariant: "standard",
     });
 

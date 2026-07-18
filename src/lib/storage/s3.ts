@@ -1,4 +1,10 @@
-import { HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { env } from "@/lib/env";
@@ -114,6 +120,16 @@ export function getPublicMediaUrl(storageKey: string) {
   return `${endpoint.origin}${basePath}/${env.S3_BUCKET}/${encodedKey}`;
 }
 
+export function getMediaDeliveryUrl(storageKey: string) {
+  validateUploadStorageKey(storageKey);
+
+  if (env.S3_PUBLIC_BASE_URL) {
+    return getPublicMediaUrl(storageKey);
+  }
+
+  return `/api/media/${encodeStorageKey(storageKey)}`;
+}
+
 export async function createSignedPutUpload(input: {
   fileName: string;
   mimeType: string;
@@ -133,7 +149,7 @@ export async function createSignedPutUpload(input: {
   return {
     storageKey,
     uploadUrl: await getSignedUrl(getS3Client(), command, { expiresIn: 60 * 5 }),
-    url: getPublicMediaUrl(storageKey),
+    url: getMediaDeliveryUrl(storageKey),
   };
 }
 
@@ -167,6 +183,43 @@ export async function headMediaObject(storageKey: string) {
     );
   } catch {
     throw new Error("Uploaded object could not be verified.");
+  }
+}
+
+export async function getMediaObject(input: { range?: string | null; storageKey: string }) {
+  validateUploadStorageKey(input.storageKey);
+
+  return getS3Client().send(
+    new GetObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: input.storageKey,
+      Range: input.range ?? undefined,
+    }),
+  );
+}
+
+export async function deleteMediaObjects(storageKeys: string[]) {
+  const uniqueStorageKeys = [...new Set(storageKeys)];
+
+  if (uniqueStorageKeys.length === 0) {
+    return;
+  }
+
+  for (const storageKey of uniqueStorageKeys) {
+    validateUploadStorageKey(storageKey);
+  }
+
+  for (let index = 0; index < uniqueStorageKeys.length; index += 1000) {
+    const batch = uniqueStorageKeys.slice(index, index + 1000);
+    await getS3Client().send(
+      new DeleteObjectsCommand({
+        Bucket: env.S3_BUCKET,
+        Delete: {
+          Objects: batch.map((storageKey) => ({ Key: storageKey })),
+          Quiet: true,
+        },
+      }),
+    );
   }
 }
 

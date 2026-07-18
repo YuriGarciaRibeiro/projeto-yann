@@ -8,6 +8,7 @@ import { and, eq, like } from "drizzle-orm";
 import { closeDb, getDb } from "../src/lib/db/client";
 import { mediaAssets } from "../src/lib/db/schema";
 import { env } from "../src/lib/env";
+import { getMediaDeliveryUrl } from "../src/lib/storage/s3";
 
 const OUTPUT_MIME_TYPE = "video/mp4";
 
@@ -170,7 +171,7 @@ async function main() {
           durationSeconds,
           mimeType: OUTPUT_MIME_TYPE,
           sizeBytes: optimizedBuffer.byteLength,
-          url: `${video.url.split("?")[0]}?v=${Date.now()}`,
+          url: `${getMediaDeliveryUrl(video.storageKey)}?v=${Date.now()}`,
           videoVariant: "scrub",
         })
         .where(eq(mediaAssets.id, video.id));

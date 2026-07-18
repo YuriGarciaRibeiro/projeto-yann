@@ -4,6 +4,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { getDb } from "./client";
 import {
   adminUsers,
+  type MediaAsset,
   mediaAssets,
   type MediaUsageScope,
   type VideoVariant,
@@ -12,6 +13,7 @@ import {
   projects,
   type ProjectSectionType,
 } from "./schema";
+import { deleteMediaObjects, getMediaDeliveryUrl } from "../storage/s3";
 
 export type ProjectUpsert = {
   id?: string;
@@ -60,6 +62,17 @@ export type MediaAssetCreate = {
   usageScope: MediaUsageScope;
   videoVariant?: VideoVariant | null;
 };
+
+function withMediaDeliveryUrl<Asset extends MediaAsset | null>(asset: Asset): Asset {
+  if (!asset) {
+    return asset;
+  }
+
+  return {
+    ...asset,
+    url: getMediaDeliveryUrl(asset.storageKey),
+  } as Asset;
+}
 
 async function validateScopedAsset(input: {
   assetId: string | null;
@@ -214,7 +227,32 @@ export async function getAdminProjectById(projectId: string) {
 
 export async function deleteProject(projectId: string) {
   const db = getDb();
-  const [project] = await db.delete(projects).where(eq(projects.id, projectId)).returning();
+
+  const projectMediaAssets = await db
+    .select({ id: mediaAssets.id, storageKey: mediaAssets.storageKey })
+    .from(mediaAssets)
+    .where(and(eq(mediaAssets.usageScope, "project"), eq(mediaAssets.projectId, projectId)));
+
+  await deleteMediaObjects(projectMediaAssets.map((asset) => asset.storageKey));
+
+  const project = await db.transaction(async (tx) => {
+    const [deletedProject] = await tx
+      .delete(projects)
+      .where(eq(projects.id, projectId))
+      .returning();
+
+    if (!deletedProject) {
+      return null;
+    }
+
+    if (projectMediaAssets.length > 0) {
+      await tx
+        .delete(mediaAssets)
+        .where(inArray(mediaAssets.id, projectMediaAssets.map((asset) => asset.id)));
+    }
+
+    return deletedProject;
+  });
 
   if (!project) {
     throw new Error(`Project not found: ${projectId}`);
@@ -528,7 +566,14 @@ export async function getPublishedProjectBySlugWithMedia(slug: string) {
 
   return {
     ...projectRow,
-    sections,
+    clientArchitectImageAsset: withMediaDeliveryUrl(projectRow.clientArchitectImageAsset),
+    fallbackImageAsset: withMediaDeliveryUrl(projectRow.fallbackImageAsset),
+    heroVideoAsset: withMediaDeliveryUrl(projectRow.heroVideoAsset),
+    sections: sections.map((sectionRow) => ({
+      ...sectionRow,
+      posterMediaAsset: withMediaDeliveryUrl(sectionRow.posterMediaAsset),
+      primaryMediaAsset: withMediaDeliveryUrl(sectionRow.primaryMediaAsset),
+    })),
   };
 }
 

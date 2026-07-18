@@ -24,7 +24,7 @@ import {
   type ProjectSectionType,
 } from "@/lib/db/schema";
 import {
-  getPublicMediaUrl,
+  getMediaDeliveryUrl,
   validateMediaUploadInput,
   validateUploadStorageKey,
   verifyUploadedMediaObject,
@@ -500,7 +500,7 @@ export async function saveMediaAssetAction(input: {
       sizeBytes: input.sizeBytes,
       storageKey,
       usageScope,
-      url: getPublicMediaUrl(storageKey),
+      url: getMediaDeliveryUrl(storageKey),
     });
   } catch (error) {
     return {
