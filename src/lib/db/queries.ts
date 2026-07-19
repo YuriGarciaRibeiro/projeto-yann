@@ -274,6 +274,15 @@ export async function createMediaAsset(input: MediaAssetCreate) {
   return asset;
 }
 
+export async function createMediaAssets(inputs: MediaAssetCreate[]) {
+  if (inputs.length === 0) {
+    return [];
+  }
+
+  const db = getDb();
+  return db.transaction((tx) => tx.insert(mediaAssets).values(inputs).returning());
+}
+
 async function validateProjectMediaAssets(input: ProjectUpsert) {
   await validateScopedAsset({
     assetId: input.heroVideoAssetId,

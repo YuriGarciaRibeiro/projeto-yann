@@ -10,10 +10,11 @@ import {
   ADMIN_SESSION_COOKIE,
   verifySessionCookieValue,
 } from "@/lib/auth/session";
-import { createMediaAsset } from "@/lib/db/queries";
+import { createMediaAssets } from "@/lib/db/queries";
 import { mediaUsageScopes, type MediaUsageScope } from "@/lib/db/schema";
 import {
   createMediaStorageKey,
+  deleteMediaObjects,
   getMediaDeliveryUrl,
   putMediaObject,
   validateMediaUploadInput,
@@ -50,6 +51,30 @@ function standardVideoFileName(fileName: string) {
 
 function safeTemporaryFileName(fileName: string) {
   return (fileName || "input-video").replace(/[^a-zA-Z0-9._-]+/g, "-");
+}
+
+function logVideoUpload(requestId: string, message: string, metadata?: Record<string, unknown>) {
+  console.log(
+    JSON.stringify({
+      message,
+      requestId,
+      scope: "video-upload",
+      ...metadata,
+    }),
+  );
+}
+
+function logVideoUploadError(requestId: string, message: string, error: unknown, metadata?: Record<string, unknown>) {
+  console.error(
+    JSON.stringify({
+      error: error instanceof Error ? error.message : String(error),
+      message,
+      requestId,
+      scope: "video-upload",
+      stack: error instanceof Error ? error.stack : undefined,
+      ...metadata,
+    }),
+  );
 }
 
 function runFfmpeg(args: string[]) {
@@ -135,18 +160,23 @@ function createStandardVideo(inputPath: string, outputPath: string) {
 }
 
 export async function POST(request: Request) {
+  const requestId = crypto.randomUUID();
   const cookieStore = await cookies();
   const session = await verifySessionCookieValue(
     cookieStore.get(ADMIN_SESSION_COOKIE)?.value,
   );
 
   if (!session) {
+    logVideoUpload(requestId, "unauthorized");
     return NextResponse.json({ error: "Admin session required." }, { status: 401 });
   }
 
   let temporaryDirectory: string | null = null;
+  let uploadedStorageKeys: string[] = [];
 
   try {
+    logVideoUpload(requestId, "request-started");
+
     const formData = await request.formData();
     const file = formData.get("file");
     const altText = getString(formData, "altText");
@@ -156,6 +186,14 @@ export async function POST(request: Request) {
     if (!(file instanceof File)) {
       throw new Error("Escolha um vídeo para enviar.");
     }
+
+    logVideoUpload(requestId, "file-received", {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      projectId,
+      usageScope,
+    });
 
     if (!file.type.startsWith("video/")) {
       throw new Error("Este envio otimizado aceita apenas vídeos.");
@@ -177,15 +215,23 @@ export async function POST(request: Request) {
     const scrubOutputPath = `${temporaryDirectory}/output-scroll.mp4`;
     const standardOutputPath = `${temporaryDirectory}/output-standard.mp4`;
     await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+
+    logVideoUpload(requestId, "ffmpeg-started", { fileName: file.name });
     await Promise.all([
       createScrubVideo(inputPath, scrubOutputPath),
       createStandardVideo(inputPath, standardOutputPath),
     ]);
+    logVideoUpload(requestId, "ffmpeg-finished", { fileName: file.name });
 
     const scrubBuffer = await readFile(scrubOutputPath);
     const standardBuffer = await readFile(standardOutputPath);
     const scrubStorageKey = createMediaStorageKey(optimizedVideoFileName(file.name || "video.mp4"));
     const standardStorageKey = createMediaStorageKey(standardVideoFileName(file.name || "video.mp4"));
+
+    logVideoUpload(requestId, "storage-upload-started", {
+      scrubSize: scrubBuffer.byteLength,
+      standardSize: standardBuffer.byteLength,
+    });
     await putMediaObject({
       body: scrubBuffer,
       contentType: OUTPUT_MIME_TYPE,
@@ -196,27 +242,36 @@ export async function POST(request: Request) {
       contentType: OUTPUT_MIME_TYPE,
       storageKey: standardStorageKey,
     });
+    uploadedStorageKeys = [scrubStorageKey, standardStorageKey];
+    logVideoUpload(requestId, "storage-upload-finished", {
+      standardStorageKey,
+      scrubStorageKey,
+    });
 
-    await createMediaAsset({
-      altText: `${altText} - rolagem otimizado`,
-      mimeType: OUTPUT_MIME_TYPE,
-      projectId,
-      sizeBytes: scrubBuffer.byteLength,
-      storageKey: scrubStorageKey,
-      usageScope,
-      url: getMediaDeliveryUrl(scrubStorageKey),
-      videoVariant: "scrub",
-    });
-    await createMediaAsset({
-      altText: `${altText} - normal com áudio`,
-      mimeType: OUTPUT_MIME_TYPE,
-      projectId,
-      sizeBytes: standardBuffer.byteLength,
-      storageKey: standardStorageKey,
-      usageScope,
-      url: getMediaDeliveryUrl(standardStorageKey),
-      videoVariant: "standard",
-    });
+    logVideoUpload(requestId, "database-write-started");
+    await createMediaAssets([
+      {
+        altText: `${altText} - rolagem otimizado`,
+        mimeType: OUTPUT_MIME_TYPE,
+        projectId,
+        sizeBytes: scrubBuffer.byteLength,
+        storageKey: scrubStorageKey,
+        usageScope,
+        url: getMediaDeliveryUrl(scrubStorageKey),
+        videoVariant: "scrub",
+      },
+      {
+        altText: `${altText} - normal com áudio`,
+        mimeType: OUTPUT_MIME_TYPE,
+        projectId,
+        sizeBytes: standardBuffer.byteLength,
+        storageKey: standardStorageKey,
+        usageScope,
+        url: getMediaDeliveryUrl(standardStorageKey),
+        videoVariant: "standard",
+      },
+    ]);
+    logVideoUpload(requestId, "database-write-finished");
 
     revalidatePath("/admin");
     if (projectId) {
@@ -224,14 +279,29 @@ export async function POST(request: Request) {
     }
     revalidatePath("/");
 
-    return NextResponse.json({ ok: true });
+    logVideoUpload(requestId, "request-finished", { fileName: file.name });
+    return NextResponse.json({ ok: true, requestId });
   } catch (error) {
+    logVideoUploadError(requestId, "request-failed", error);
+
+    if (uploadedStorageKeys.length > 0) {
+      try {
+        await deleteMediaObjects(uploadedStorageKeys);
+        logVideoUpload(requestId, "storage-cleanup-finished", { uploadedStorageKeys });
+      } catch (cleanupError) {
+        logVideoUploadError(requestId, "storage-cleanup-failed", cleanupError, {
+          uploadedStorageKeys,
+        });
+      }
+    }
+
     return NextResponse.json(
       {
         error:
           error instanceof Error
             ? error.message
             : "Não foi possível otimizar e salvar o vídeo.",
+        requestId,
       },
       { status: 400 },
     );

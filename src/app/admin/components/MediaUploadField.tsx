@@ -26,6 +26,7 @@ type SignedUploadResponse = {
 type VideoUploadResponse = {
   error?: string;
   ok?: boolean;
+  requestId?: string;
 };
 
 type LibraryItem = {
@@ -110,7 +111,10 @@ export function MediaUploadField({
       const videoResult = (await videoResponse.json()) as VideoUploadResponse;
 
       if (!videoResponse.ok || !videoResult.ok) {
-        throw new Error(videoResult.error || `Não foi possível otimizar ${file.name}.`);
+        const requestHint = videoResult.requestId ? ` Código: ${videoResult.requestId}.` : "";
+        throw new Error(
+          `${videoResult.error || `Não foi possível otimizar ${file.name}.`}${requestHint}`,
+        );
       }
 
       return;
@@ -187,6 +191,12 @@ export function MediaUploadField({
           uploadedCount += 1;
         } catch (error) {
           failedCount += 1;
+          console.error("Media upload failed", {
+            error,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
+          });
           setMessage(error instanceof Error ? error.message : `O envio de ${file.name} falhou.`);
         }
       }
