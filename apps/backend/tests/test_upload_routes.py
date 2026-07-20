@@ -1,4 +1,5 @@
 from collections.abc import Generator
+import json
 from typing import Any, Dict, List, Mapping
 
 import pytest
@@ -9,6 +10,11 @@ import app.storage as storage
 from app.admins import AdminUser
 from app.dependencies import get_current_admin
 from app.main import create_app
+
+
+def parse_progress_events(response: object) -> List[Dict[str, object]]:
+    content = getattr(response, "content")
+    return [json.loads(line) for line in content.decode("utf-8").splitlines() if line.strip()]
 
 
 class FakeAdminMediaRepository:
@@ -135,8 +141,23 @@ def test_video_upload_processes_two_variants_and_creates_media_rows(
     )
 
     assert response.status_code == 200
-    assert response.json()["ok"] is True
-    assert response.json()["requestId"]
+    assert response.headers["content-type"].startswith("application/x-ndjson")
+    events = parse_progress_events(response)
+    assert [event["event"] for event in events] == [
+        "request-started",
+        "file-received",
+        "scrub-started",
+        "scrub-finished",
+        "standard-started",
+        "standard-finished",
+        "storage-upload-started",
+        "storage-upload-finished",
+        "database-write-started",
+        "database-write-finished",
+        "completed",
+    ]
+    assert all(isinstance(event["requestId"], str) and event["requestId"] for event in events)
+    assert events[-1]["ok"] is True
     assert len(ffmpeg_calls) == 2
     assert [call[0:2] for call in ffmpeg_calls] == [["-y", "-i"], ["-y", "-i"]]
     assert "-an" in ffmpeg_calls[0]
@@ -210,8 +231,12 @@ def test_video_upload_deletes_uploaded_objects_when_metadata_fails(
         data={"altText": "Hero video", "usageScope": "site"},
     )
 
-    assert response.status_code == 400
-    assert response.json()["error"] == "metadata failed"
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/x-ndjson")
+    events = parse_progress_events(response)
+    assert events[-1]["event"] == "failed"
+    assert events[-1]["ok"] is False
+    assert events[-1]["error"] == "metadata failed"
     assert deleted_keys == [
         [
             "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4",
@@ -255,8 +280,12 @@ def test_video_upload_deletes_first_uploaded_object_when_second_upload_fails(
         data={"altText": "Hero video", "usageScope": "site"},
     )
 
-    assert response.status_code == 400
-    assert response.json()["error"] == "storage failed"
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/x-ndjson")
+    events = parse_progress_events(response)
+    assert events[-1]["event"] == "failed"
+    assert events[-1]["ok"] is False
+    assert events[-1]["error"] == "storage failed"
     assert deleted_keys == [["uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4"]]
 
 
@@ -266,9 +295,13 @@ def test_video_upload_missing_multipart_fields_returns_request_id(client: TestCl
         files={"file": ("hero.mp4", b"source-video", "video/mp4")},
     )
 
-    assert response.status_code == 400
-    assert response.json()["error"] == "Adicione um nome para identificar o arquivo."
-    assert response.json()["requestId"]
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("application/x-ndjson")
+    events = parse_progress_events(response)
+    assert events[-1]["event"] == "failed"
+    assert events[-1]["ok"] is False
+    assert events[-1]["error"] == "Adicione um nome para identificar o arquivo."
+    assert events[-1]["requestId"]
 
 
 def test_media_proxy_streams_object_with_range_headers(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
