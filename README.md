@@ -161,7 +161,7 @@ The upload request sends `Content-Type`, so that header must be allowed by CORS 
 
 ## Video Preparation
 
-FastAPI signs direct image uploads to S3/MinIO, verifies stored objects, proxies media when needed, and processes admin video uploads with FFmpeg before saving scrub and standard MP4 variants. The backend server must have `ffmpeg` available in `PATH`.
+FastAPI signs direct image uploads to S3/MinIO, verifies stored objects, proxies media when needed, and processes admin video uploads with FFmpeg before saving scrub and standard MP4 variants. Video uploads stream newline-delimited progress events back to the admin UI while the request is still running. The backend server must have `ffmpeg` available in `PATH`.
 
 Recommended export for scroll-scrub videos:
 
@@ -199,7 +199,7 @@ Target budgets to start:
 - Mobile scrub sequence: 3–6 MB.
 - Poster image: 100–300 KB.
 
-Future improvement: add a background worker if uploads become too slow for request-time conversion. The current implementation converts synchronously during the admin upload request.
+Future improvement: add a background worker if request-time conversion becomes too fragile for large uploads or concurrent editors. The current implementation keeps conversion synchronous, but streams progress updates so the admin can see each processing stage.
 
 ## Verification
 
