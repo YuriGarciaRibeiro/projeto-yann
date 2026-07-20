@@ -222,23 +222,16 @@ def upload_admin_video(
     projectId: Annotated[Optional[str], Form()] = None,
 ) -> StreamingResponse:
     request_id = str(uuid.uuid4())
-    source_upload_file: Optional[Any] = None
-    if file is not None:
-        source_upload_file = tempfile.TemporaryFile()
-        while True:
-            chunk = file.file.read(UPLOAD_CHUNK_SIZE)
-            if not chunk:
-                break
-            source_upload_file.write(chunk)
-        source_upload_file.seek(0)
+    source_upload_fd = os.dup(file.file.fileno()) if file is not None else None
 
     def stream_video_upload() -> Iterator[str]:
         temporary_directory: Optional[str] = None
         uploaded_storage_keys = []
+        source_upload_file: Optional[Any] = None
 
         try:
             log_video_upload(request_id, "request-started")
-            yield video_progress_event("request-started", request_id, "request-started")
+            yield video_progress_event("request-started", request_id, "Recebendo video...")
             if file is None:
                 raise ValueError("Escolha um video para enviar.")
 
@@ -260,6 +253,7 @@ def upload_admin_video(
             scrub_output_path = os.path.join(temporary_directory, "output-scroll.mp4")
             standard_output_path = os.path.join(temporary_directory, "output-standard.mp4")
 
+            source_upload_file = os.fdopen(source_upload_fd, "rb") if source_upload_fd is not None else None
             source_size = 0
             with open(input_path, "wb") as input_file:
                 while True:
@@ -280,20 +274,20 @@ def upload_admin_video(
                 "usageScope": usage_scope,
             }
             log_video_upload(request_id, "file-received", file_metadata)
-            yield video_progress_event("file-received", request_id, "file-received", file_metadata)
+            yield video_progress_event("file-received", request_id, "Video recebido. Preparando conversao...", file_metadata)
 
             source_file_name = file.filename or "video.mp4"
             log_video_upload(request_id, "scrub-started", {"fileName": source_file_name})
-            yield video_progress_event("scrub-started", request_id, "scrub-started", {"fileName": source_file_name})
+            yield video_progress_event("scrub-started", request_id, "Convertendo versao para rolagem...", {"fileName": source_file_name})
             create_scrub_video(input_path, scrub_output_path)
             log_video_upload(request_id, "scrub-finished", {"fileName": source_file_name})
-            yield video_progress_event("scrub-finished", request_id, "scrub-finished", {"fileName": source_file_name})
+            yield video_progress_event("scrub-finished", request_id, "Versao para rolagem pronta.", {"fileName": source_file_name})
 
             log_video_upload(request_id, "standard-started", {"fileName": source_file_name})
-            yield video_progress_event("standard-started", request_id, "standard-started", {"fileName": source_file_name})
+            yield video_progress_event("standard-started", request_id, "Convertendo versao normal...", {"fileName": source_file_name})
             create_standard_video(input_path, standard_output_path)
             log_video_upload(request_id, "standard-finished", {"fileName": source_file_name})
-            yield video_progress_event("standard-finished", request_id, "standard-finished", {"fileName": source_file_name})
+            yield video_progress_event("standard-finished", request_id, "Versao normal pronta.", {"fileName": source_file_name})
 
             scrub_size = os.path.getsize(scrub_output_path)
             standard_size = os.path.getsize(standard_output_path)
@@ -303,7 +297,7 @@ def upload_admin_video(
 
             storage_metadata = {"scrubSize": scrub_size, "standardSize": standard_size}
             log_video_upload(request_id, "storage-upload-started", storage_metadata)
-            yield video_progress_event("storage-upload-started", request_id, "storage-upload-started", storage_metadata)
+            yield video_progress_event("storage-upload-started", request_id, "Enviando videos otimizados...", storage_metadata)
             with open(scrub_output_path, "rb") as scrub_file:
                 storage.put_media_object(
                     {
@@ -326,10 +320,10 @@ def upload_admin_video(
             uploaded_storage_keys.append(standard_storage_key)
             uploaded_metadata = {"standardStorageKey": standard_storage_key, "scrubStorageKey": scrub_storage_key}
             log_video_upload(request_id, "storage-upload-finished", uploaded_metadata)
-            yield video_progress_event("storage-upload-finished", request_id, "storage-upload-finished", uploaded_metadata)
+            yield video_progress_event("storage-upload-finished", request_id, "Videos enviados.", uploaded_metadata)
 
             log_video_upload(request_id, "database-write-started")
-            yield video_progress_event("database-write-started", request_id, "database-write-started")
+            yield video_progress_event("database-write-started", request_id, "Salvando dados do video...")
             repository.create_media_assets(
                 [
                     {
@@ -353,10 +347,10 @@ def upload_admin_video(
                 ]
             )
             log_video_upload(request_id, "database-write-finished")
-            yield video_progress_event("database-write-finished", request_id, "database-write-finished")
+            yield video_progress_event("database-write-finished", request_id, "Dados do video salvos.")
 
             log_video_upload(request_id, "request-finished", {"fileName": source_file_name})
-            yield video_progress_event("completed", request_id, "completed", {"ok": True})
+            yield video_progress_event("completed", request_id, "Upload concluido.", {"ok": True})
         except Exception as error:
             log_video_upload_error(request_id, "request-failed", error)
             if uploaded_storage_keys:
@@ -370,10 +364,12 @@ def upload_admin_video(
                         cleanup_error,
                         {"uploadedStorageKeys": uploaded_storage_keys},
                     )
-            yield video_progress_event("failed", request_id, "failed", {"ok": False, "error": str(error)})
+            yield video_progress_event("failed", request_id, "Nao foi possivel concluir o upload.", {"ok": False, "error": str(error)})
         finally:
             if source_upload_file:
                 source_upload_file.close()
+            elif source_upload_fd is not None:
+                os.close(source_upload_fd)
             if temporary_directory:
                 shutil.rmtree(temporary_directory, ignore_errors=True)
 

@@ -156,6 +156,19 @@ def test_video_upload_processes_two_variants_and_creates_media_rows(
         "database-write-finished",
         "completed",
     ]
+    assert [event["message"] for event in events] == [
+        "Recebendo video...",
+        "Video recebido. Preparando conversao...",
+        "Convertendo versao para rolagem...",
+        "Versao para rolagem pronta.",
+        "Convertendo versao normal...",
+        "Versao normal pronta.",
+        "Enviando videos otimizados...",
+        "Videos enviados.",
+        "Salvando dados do video...",
+        "Dados do video salvos.",
+        "Upload concluido.",
+    ]
     assert all(isinstance(event["requestId"], str) and event["requestId"] for event in events)
     assert events[-1]["ok"] is True
     assert len(ffmpeg_calls) == 2
