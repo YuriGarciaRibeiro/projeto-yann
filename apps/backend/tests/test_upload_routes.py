@@ -1,5 +1,6 @@
 from collections.abc import Generator
 import json
+import tempfile
 from typing import Any, Dict, List, Mapping
 
 import pytest
@@ -250,6 +251,68 @@ def test_video_upload_deletes_uploaded_objects_when_metadata_fails(
     assert events[-1]["event"] == "failed"
     assert events[-1]["ok"] is False
     assert events[-1]["error"] == "metadata failed"
+    assert deleted_keys == [
+        [
+            "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4",
+            "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-normal.mp4",
+        ]
+    ]
+    assert route_repository.created_assets == []
+
+
+def test_video_upload_deletes_uploaded_objects_when_stream_closes_before_metadata_persists(
+    route_repository: FakeAdminMediaRepository,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import app.upload_routes as upload_routes
+
+    deleted_keys: List[List[str]] = []
+
+    class FakeStreamingResponse:
+        def __init__(self, body_iterator: Generator[str, None, None], media_type: str) -> None:
+            self.body_iterator = body_iterator
+            self.media_type = media_type
+
+    class FakeUploadFile:
+        def __init__(self, file: object) -> None:
+            self.content_type = "video/mp4"
+            self.file = file
+            self.filename = "hero.mp4"
+
+    def fake_run_ffmpeg(args: List[str]) -> None:
+        with open(args[-1], "wb") as output_file:
+            output_file.write(b"video-bytes")
+
+    def fake_create_media_assets(inputs: List[Mapping[str, object]]) -> List[Dict[str, object]]:
+        raise GeneratorExit
+
+    monkeypatch.setattr(route_repository, "create_media_assets", fake_create_media_assets)
+    monkeypatch.setattr(upload_routes, "StreamingResponse", FakeStreamingResponse)
+    monkeypatch.setattr(upload_routes, "run_ffmpeg", fake_run_ffmpeg)
+    monkeypatch.setattr(
+        storage,
+        "create_media_storage_key",
+        lambda file_name: "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-" + file_name,
+    )
+    monkeypatch.setattr(storage, "get_media_delivery_url", lambda key: f"/media/{key}")
+    monkeypatch.setattr(storage, "put_media_object", lambda input_data: None)
+    monkeypatch.setattr(storage, "delete_media_objects", lambda keys: deleted_keys.append(list(keys)))
+
+    with tempfile.TemporaryFile() as source_file:
+        source_file.write(b"source-video")
+        source_file.seek(0)
+        response = upload_routes.upload_admin_video(
+            current_admin=AdminUser(id="admin-id", email="admin@example.com", password_hash="hash"),
+            repository=route_repository,
+            file=FakeUploadFile(source_file),
+            altText="Hero video",
+            usageScope="site",
+        )
+        stream = response.body_iterator
+        with pytest.raises(GeneratorExit):
+            for _event in stream:
+                pass
+
     assert deleted_keys == [
         [
             "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4",

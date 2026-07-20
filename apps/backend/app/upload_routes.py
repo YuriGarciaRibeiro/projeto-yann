@@ -228,6 +228,22 @@ def upload_admin_video(
         temporary_directory: Optional[str] = None
         uploaded_storage_keys = []
         source_upload_file: Optional[Any] = None
+        database_persisted = False
+
+        def cleanup_uploaded_storage() -> None:
+            if not uploaded_storage_keys:
+                return
+            try:
+                storage.delete_media_objects(uploaded_storage_keys)
+                log_video_upload(request_id, "storage-cleanup-finished", {"uploadedStorageKeys": uploaded_storage_keys})
+                uploaded_storage_keys.clear()
+            except Exception as cleanup_error:
+                log_video_upload_error(
+                    request_id,
+                    "storage-cleanup-failed",
+                    cleanup_error,
+                    {"uploadedStorageKeys": uploaded_storage_keys},
+                )
 
         try:
             log_video_upload(request_id, "request-started")
@@ -346,6 +362,7 @@ def upload_admin_video(
                     },
                 ]
             )
+            database_persisted = True
             log_video_upload(request_id, "database-write-finished")
             yield video_progress_event("database-write-finished", request_id, "Dados do video salvos.")
 
@@ -353,19 +370,11 @@ def upload_admin_video(
             yield video_progress_event("completed", request_id, "Upload concluido.", {"ok": True})
         except Exception as error:
             log_video_upload_error(request_id, "request-failed", error)
-            if uploaded_storage_keys:
-                try:
-                    storage.delete_media_objects(uploaded_storage_keys)
-                    log_video_upload(request_id, "storage-cleanup-finished", {"uploadedStorageKeys": uploaded_storage_keys})
-                except Exception as cleanup_error:
-                    log_video_upload_error(
-                        request_id,
-                        "storage-cleanup-failed",
-                        cleanup_error,
-                        {"uploadedStorageKeys": uploaded_storage_keys},
-                    )
+            cleanup_uploaded_storage()
             yield video_progress_event("failed", request_id, "Nao foi possivel concluir o upload.", {"ok": False, "error": str(error)})
         finally:
+            if uploaded_storage_keys and not database_persisted:
+                cleanup_uploaded_storage()
             if source_upload_file:
                 source_upload_file.close()
             elif source_upload_fd is not None:
