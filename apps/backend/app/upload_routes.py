@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import uuid
-from typing import Annotated, Any, Dict, Iterable, Iterator, Mapping, Optional
+from typing import Annotated, Any, AsyncIterator, Dict, Iterable, Mapping, Optional
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import Response, StreamingResponse
@@ -224,7 +224,7 @@ def upload_admin_video(
     request_id = str(uuid.uuid4())
     source_upload_fd = os.dup(file.file.fileno()) if file is not None else None
 
-    def stream_video_upload() -> Iterator[str]:
+    async def stream_video_upload() -> AsyncIterator[str]:
         temporary_directory: Optional[str] = None
         uploaded_storage_keys = []
         source_upload_file: Optional[Any] = None

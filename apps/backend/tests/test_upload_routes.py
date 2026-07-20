@@ -3,8 +3,10 @@ import json
 import tempfile
 from typing import Any, Dict, List, Mapping
 
+import anyio
 import pytest
 from fastapi.testclient import TestClient
+from starlette.requests import ClientDisconnect
 
 import app.admin_media as admin_media
 import app.storage as storage
@@ -268,11 +270,6 @@ def test_video_upload_deletes_uploaded_objects_when_stream_closes_before_metadat
 
     deleted_keys: List[List[str]] = []
 
-    class FakeStreamingResponse:
-        def __init__(self, body_iterator: Generator[str, None, None], media_type: str) -> None:
-            self.body_iterator = body_iterator
-            self.media_type = media_type
-
     class FakeUploadFile:
         def __init__(self, file: object) -> None:
             self.content_type = "video/mp4"
@@ -284,10 +281,27 @@ def test_video_upload_deletes_uploaded_objects_when_stream_closes_before_metadat
             output_file.write(b"video-bytes")
 
     def fake_create_media_assets(inputs: List[Mapping[str, object]]) -> List[Dict[str, object]]:
-        raise GeneratorExit
+        pytest.fail("metadata should not be created after client disconnect")
+
+    async def run_response_until_storage_uploaded(response: object) -> None:
+        async def receive() -> Dict[str, object]:
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        async def send(message: Mapping[str, object]) -> None:
+            if message["type"] != "http.response.body":
+                return
+            body = message.get("body", b"")
+            if b"storage-upload-finished" in body:
+                raise OSError("client disconnected")
+
+        with pytest.raises(ClientDisconnect):
+            await response(
+                {"type": "http", "asgi": {"spec_version": "2.4"}},
+                receive,
+                send,
+            )
 
     monkeypatch.setattr(route_repository, "create_media_assets", fake_create_media_assets)
-    monkeypatch.setattr(upload_routes, "StreamingResponse", FakeStreamingResponse)
     monkeypatch.setattr(upload_routes, "run_ffmpeg", fake_run_ffmpeg)
     monkeypatch.setattr(
         storage,
@@ -308,10 +322,8 @@ def test_video_upload_deletes_uploaded_objects_when_stream_closes_before_metadat
             altText="Hero video",
             usageScope="site",
         )
-        stream = response.body_iterator
-        with pytest.raises(GeneratorExit):
-            for _event in stream:
-                pass
+        assert response.body_iterator.ag_code.co_name == "stream_video_upload"
+        anyio.run(run_response_until_storage_uploaded, response)
 
     assert deleted_keys == [
         [
