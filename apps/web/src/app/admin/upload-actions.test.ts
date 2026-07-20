@@ -23,10 +23,28 @@ assert.equal(
   "video upload actions must expose progress event typing",
 );
 
+assert.doesNotMatch(
+  uploadActionsSource,
+  /VideoUploadConnection|getVideoUploadConnectionAction|backendUrl\?:|token\?:/,
+  "video upload actions must not expose backend connection details to client code",
+);
+
 assert.equal(
   mediaUploadFieldSource.includes("response.body.getReader()"),
   true,
   "video upload field must stream backend progress events",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("Não foi possível ler o progresso do processamento do vídeo."),
+  true,
+  "video upload progress parsing errors must use a controlled message",
+);
+
+assert.doesNotMatch(
+  mediaUploadFieldSource,
+  /headers:\s*\{\s*authorization:/,
+  "video upload field must not send authorization headers to the browser fetch path",
 );
 
 assert.equal(

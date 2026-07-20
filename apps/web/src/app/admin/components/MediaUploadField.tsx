@@ -7,11 +7,7 @@ import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { MediaUsageScope } from "@/lib/api/project-types";
 
 import { saveMediaAssetAction } from "../actions";
-import {
-  createSignedAdminUploadAction,
-  getVideoUploadConnectionAction,
-  type VideoUploadProgressEvent,
-} from "../upload-actions";
+import { createSignedAdminUploadAction, type VideoUploadProgressEvent } from "../upload-actions";
 
 type MediaUploadFieldProps = {
   description: string;
@@ -81,6 +77,11 @@ async function readVideoProgressStream(
   const events: VideoUploadProgressEvent[] = [];
   let buffer = "";
 
+  function getRequestHint() {
+    const requestId = events.at(-1)?.requestId;
+    return requestId ? ` Código: ${requestId}.` : "";
+  }
+
   function parseLine(line: string) {
     const trimmedLine = line.trim();
 
@@ -88,7 +89,16 @@ async function readVideoProgressStream(
       return;
     }
 
-    const event = JSON.parse(trimmedLine) as VideoUploadProgressEvent;
+    let event: VideoUploadProgressEvent;
+
+    try {
+      event = JSON.parse(trimmedLine) as VideoUploadProgressEvent;
+    } catch {
+      throw new Error(
+        `Não foi possível ler o progresso do processamento do vídeo.${getRequestHint()}`,
+      );
+    }
+
     events.push(event);
     onProgress(event);
   }
@@ -151,12 +161,6 @@ export function MediaUploadField({
       setStatus("uploading");
       setMessage(`Enviando ${file.name} e criando versões para rolagem e com áudio...`);
 
-      const connection = await getVideoUploadConnectionAction();
-
-      if (!connection.backendUrl || !connection.token) {
-        throw new Error(connection.error || `Não foi possível preparar o envio de ${file.name}.`);
-      }
-
       const videoFormData = new FormData();
       videoFormData.append("file", file);
       videoFormData.append("altText", displayName);
@@ -165,10 +169,9 @@ export function MediaUploadField({
         videoFormData.append("projectId", projectId);
       }
 
-      const response = await fetch(connection.backendUrl, {
+      const response = await fetch("/admin/uploads/video", {
         body: videoFormData,
         cache: "no-store",
-        headers: { authorization: `Bearer ${connection.token}` },
         method: "POST",
       });
 

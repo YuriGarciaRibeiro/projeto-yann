@@ -28,12 +28,6 @@ export type VideoUploadProgressEvent = {
   requestId: string;
 };
 
-export type VideoUploadConnection = {
-  backendUrl?: string;
-  error?: string;
-  token?: string;
-};
-
 function buildBackendUrl(path: string): URL {
   return new URL(
     path.replace(/^\/+/, ""),
@@ -109,17 +103,4 @@ export async function createSignedAdminUploadAction(
   }
 
   return (await response.json()) as SignedAdminUploadResponse;
-}
-
-export async function getVideoUploadConnectionAction(): Promise<VideoUploadConnection> {
-  const token = await getAdminBearerToken();
-
-  if (!token) {
-    return { error: "Missing admin access token." };
-  }
-
-  return {
-    backendUrl: buildBackendUrl("/admin/uploads/video").toString(),
-    token,
-  };
 }
