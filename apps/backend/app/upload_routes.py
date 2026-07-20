@@ -222,7 +222,27 @@ def upload_admin_video(
     projectId: Annotated[Optional[str], Form()] = None,
 ) -> StreamingResponse:
     request_id = str(uuid.uuid4())
-    source_upload_fd = os.dup(file.file.fileno()) if file is not None else None
+
+    try:
+        if file is None:
+            raise ValueError("Escolha um video para enviar.")
+
+        content_type = file.content_type or ""
+        if not content_type.startswith("video/"):
+            raise ValueError("Este envio otimizado aceita apenas videos.")
+
+        alt_text = altText.strip() if altText else ""
+        if not alt_text:
+            raise ValueError("Adicione um nome para identificar o arquivo.")
+
+        usage_scope = _parse_usage_scope(usageScope or "")
+        project_id = projectId.strip() if projectId else None
+        if usage_scope == "project" and not project_id:
+            raise ValueError("Escolha um projeto para este video.")
+    except ValueError as error:
+        raise _bad_request(error) from error
+
+    source_upload_fd = os.dup(file.file.fileno())
 
     def stream_video_upload() -> Iterator[str]:
         temporary_directory: Optional[str] = None
@@ -248,21 +268,6 @@ def upload_admin_video(
         try:
             log_video_upload(request_id, "request-started")
             yield video_progress_event("request-started", request_id, "Recebendo video...")
-            if file is None:
-                raise ValueError("Escolha um video para enviar.")
-
-            content_type = file.content_type or ""
-            if not content_type.startswith("video/"):
-                raise ValueError("Este envio otimizado aceita apenas videos.")
-
-            alt_text = altText.strip() if altText else ""
-            if not alt_text:
-                raise ValueError("Adicione um nome para identificar o arquivo.")
-
-            usage_scope = _parse_usage_scope(usageScope or "")
-            project_id = projectId.strip() if projectId else None
-            if usage_scope == "project" and not project_id:
-                raise ValueError("Escolha um projeto para este video.")
 
             temporary_directory = tempfile.mkdtemp(prefix="paralax-video-")
             input_path = os.path.join(temporary_directory, safe_temporary_file_name(file.filename or "input-video"))

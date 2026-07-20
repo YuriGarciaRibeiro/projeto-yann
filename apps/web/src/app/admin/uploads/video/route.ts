@@ -5,6 +5,8 @@ import { env } from "@/lib/env";
 
 const DEFAULT_BACKEND_PUBLIC_URL = "http://localhost:8000";
 
+export const runtime = "nodejs";
+
 function buildBackendUrl(path: string): URL {
   return new URL(
     path.replace(/^\/+/, ""),
@@ -37,12 +39,20 @@ export async function POST(request: Request) {
   let backendResponse: Response;
 
   try {
+    const headers = new Headers({ authorization: `Bearer ${token}` });
+    const contentType = request.headers.get("content-type");
+
+    if (contentType) {
+      headers.set("content-type", contentType);
+    }
+
     backendResponse = await fetch(buildBackendUrl("/admin/uploads/video"), {
-      body: await request.formData(),
+      body: request.body,
       cache: "no-store",
-      headers: { authorization: `Bearer ${token}` },
+      duplex: "half",
+      headers,
       method: "POST",
-    });
+    } as RequestInit & { duplex: "half" });
   } catch {
     return Response.json({ error: "Não foi possível otimizar o vídeo." }, { status: 502 });
   }

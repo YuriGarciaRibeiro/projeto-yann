@@ -379,19 +379,35 @@ def test_video_upload_deletes_first_uploaded_object_when_second_upload_fails(
     assert deleted_keys == [["uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4"]]
 
 
-def test_video_upload_missing_multipart_fields_returns_request_id(client: TestClient) -> None:
-    response = client.post(
-        "/admin/uploads/video",
-        files={"file": ("hero.mp4", b"source-video", "video/mp4")},
-    )
+@pytest.mark.parametrize(
+    ("request_kwargs", "expected_detail"),
+    [
+        ({"data": {"altText": "Hero video", "usageScope": "site"}}, "Escolha um video para enviar."),
+        (
+            {"files": {"file": ("hero.txt", b"source-video", "text/plain")}, "data": {"altText": "Hero video", "usageScope": "site"}},
+            "Este envio otimizado aceita apenas videos.",
+        ),
+        ({"files": {"file": ("hero.mp4", b"source-video", "video/mp4")}}, "Adicione um nome para identificar o arquivo."),
+        (
+            {"files": {"file": ("hero.mp4", b"source-video", "video/mp4")}, "data": {"altText": "Hero video", "usageScope": "gallery"}},
+            "Escolha onde este arquivo sera usado.",
+        ),
+        (
+            {"files": {"file": ("hero.mp4", b"source-video", "video/mp4")}, "data": {"altText": "Hero video", "usageScope": "project"}},
+            "Escolha um projeto para este video.",
+        ),
+    ],
+)
+def test_video_upload_pre_stream_validation_returns_bad_request(
+    client: TestClient,
+    request_kwargs: Mapping[str, object],
+    expected_detail: str,
+) -> None:
+    response = client.post("/admin/uploads/video", **request_kwargs)
 
-    assert response.status_code == 200
-    assert response.headers["content-type"].startswith("application/x-ndjson")
-    events = parse_progress_events(response)
-    assert events[-1]["event"] == "failed"
-    assert events[-1]["ok"] is False
-    assert events[-1]["error"] == "Adicione um nome para identificar o arquivo."
-    assert events[-1]["requestId"]
+    assert response.status_code == 400
+    assert response.headers["content-type"].startswith("application/json")
+    assert response.json()["detail"] == expected_detail
 
 
 def test_media_proxy_streams_object_with_range_headers(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

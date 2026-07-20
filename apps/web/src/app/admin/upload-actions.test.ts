@@ -10,6 +10,7 @@ const mediaUploadFieldSource = readFileSync(
   "utf8",
 );
 const adminActionsSource = readFileSync(join(currentDir, "actions.ts"), "utf8");
+const videoUploadRouteSource = readFileSync(join(currentDir, "uploads", "video", "route.ts"), "utf8");
 
 assert.equal(
   /getAdminUploadHeadersAction|backendPublicUrl/.test(uploadActionsSource),
@@ -27,6 +28,12 @@ assert.doesNotMatch(
   uploadActionsSource,
   /VideoUploadConnection|getVideoUploadConnectionAction|backendUrl\?:|token\?:/,
   "video upload actions must not expose backend connection details to client code",
+);
+
+assert.equal(
+  videoUploadRouteSource.includes("request.formData()"),
+  false,
+  "video upload route must forward the multipart request body without buffering formData",
 );
 
 assert.equal(
