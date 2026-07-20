@@ -9,6 +9,11 @@ import type { MediaUsageScope } from "@/lib/api/project-types";
 
 import { saveMediaAssetAction } from "../actions";
 import { createSignedAdminUploadAction, type VideoUploadProgressEvent } from "../upload-actions";
+import {
+  applyUploadModalInert,
+  clearUploadModalInert,
+  restoreUploadModalFocus,
+} from "./upload-modal-dom";
 
 type MediaUploadFieldProps = {
   description: string;
@@ -184,27 +189,16 @@ export function MediaUploadField({
     previousFocusRef.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
-    const inertedChildren = Array.from(document.body.children).filter(
-      (child) => child !== portalContainer && !child.hasAttribute("inert"),
-    );
-
-    for (const child of inertedChildren) {
-      child.setAttribute("inert", "");
-    }
+    const inertedChildren = applyUploadModalInert(Array.from(document.body.children), portalContainer);
 
     dialogRef.current?.focus();
 
     return () => {
-      for (const child of inertedChildren) {
-        child.removeAttribute("inert");
-      }
-
       const previousFocus = previousFocusRef.current;
       previousFocusRef.current = null;
 
-      if (previousFocus && document.contains(previousFocus) && !previousFocus.hasAttribute("disabled")) {
-        previousFocus.focus();
-      }
+      clearUploadModalInert(inertedChildren);
+      restoreUploadModalFocus(previousFocus);
     };
   }, [isBusy, portalContainer]);
 

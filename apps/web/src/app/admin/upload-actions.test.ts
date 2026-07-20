@@ -3,14 +3,93 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  applyUploadModalInert,
+  clearUploadModalInert,
+  restoreUploadModalFocus,
+} from "./components/upload-modal-dom";
+
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const uploadActionsSource = readFileSync(join(currentDir, "upload-actions.ts"), "utf8");
 const mediaUploadFieldSource = readFileSync(
   join(currentDir, "components", "MediaUploadField.tsx"),
   "utf8",
 );
+const uploadModalDomSource = readFileSync(join(currentDir, "components", "upload-modal-dom.ts"), "utf8");
 const adminActionsSource = readFileSync(join(currentDir, "actions.ts"), "utf8");
 const videoUploadRouteSource = readFileSync(join(currentDir, "uploads", "video", "route.ts"), "utf8");
+
+class FakeElement {
+  attributes = new Set<string>();
+  focusCount = 0;
+  isConnected = true;
+
+  hasAttribute(name: string) {
+    return this.attributes.has(name);
+  }
+
+  setAttribute(name: string) {
+    this.attributes.add(name);
+  }
+
+  removeAttribute(name: string) {
+    this.attributes.delete(name);
+  }
+
+  focus() {
+    this.focusCount += 1;
+  }
+}
+
+const backgroundElement = new FakeElement();
+const portalElement = new FakeElement();
+const alreadyInertElement = new FakeElement();
+alreadyInertElement.setAttribute("inert");
+
+const inertedElements = applyUploadModalInert(
+  [backgroundElement, portalElement, alreadyInertElement],
+  portalElement,
+);
+
+assert.deepEqual(
+  inertedElements,
+  [backgroundElement],
+  "upload modal inert helper must return only elements it marked inert",
+);
+assert.equal(backgroundElement.hasAttribute("inert"), true, "background content must become inert");
+assert.equal(portalElement.hasAttribute("inert"), false, "portal content must stay interactive");
+assert.equal(
+  alreadyInertElement.hasAttribute("inert"),
+  true,
+  "pre-existing inert content must remain inert",
+);
+
+clearUploadModalInert(inertedElements);
+
+assert.equal(
+  backgroundElement.hasAttribute("inert"),
+  false,
+  "upload modal inert cleanup must remove inert it added",
+);
+assert.equal(
+  alreadyInertElement.hasAttribute("inert"),
+  true,
+  "upload modal inert cleanup must not remove pre-existing inert attributes",
+);
+
+const enabledFocusTarget = new FakeElement();
+restoreUploadModalFocus(enabledFocusTarget);
+assert.equal(enabledFocusTarget.focusCount, 1, "upload modal must restore focus to enabled connected elements");
+
+const disabledFocusTarget = new FakeElement();
+disabledFocusTarget.setAttribute("disabled");
+restoreUploadModalFocus(disabledFocusTarget);
+assert.equal(disabledFocusTarget.focusCount, 0, "upload modal must not focus disabled elements");
+
+const disconnectedFocusTarget = new FakeElement();
+disconnectedFocusTarget.isConnected = false;
+restoreUploadModalFocus(disconnectedFocusTarget);
+assert.equal(disconnectedFocusTarget.focusCount, 0, "upload modal must not focus disconnected elements");
 
 assert.equal(
   /getAdminUploadHeadersAction|backendPublicUrl/.test(uploadActionsSource),
@@ -79,7 +158,7 @@ assert.equal(
 );
 
 assert.equal(
-  mediaUploadFieldSource.includes('setAttribute("inert", "")'),
+  uploadModalDomSource.includes('setAttribute("inert", "")'),
   true,
   "upload blocking dialog must make non-modal content inert while busy",
 );
@@ -109,7 +188,7 @@ assert.equal(
 );
 
 assert.equal(
-  mediaUploadFieldSource.includes("child !== portalContainer"),
+  uploadModalDomSource.includes("child !== portalContainer"),
   true,
   "upload blocking dialog must keep its portal container interactive while inerting the page",
 );
@@ -121,7 +200,7 @@ assert.equal(
 );
 
 assert.equal(
-  mediaUploadFieldSource.includes("previousFocus.focus()"),
+  mediaUploadFieldSource.includes("restoreUploadModalFocus(previousFocus)"),
   true,
   "upload blocking dialog must restore focus after closing",
 );
