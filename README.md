@@ -1,6 +1,6 @@
 # Architecture Portfolio MVP
 
-Next.js architecture portfolio with modular public project pages, single-admin content editing, Postgres persistence, and direct browser uploads to S3-compatible storage.
+Next.js architecture portfolio with modular public project pages, single-admin content editing, Postgres persistence, FastAPI upload signing/video processing/media proxying, and direct browser uploads to S3-compatible storage.
 
 Public projects are served at `/projetos/[slug]`, for example `/projetos/sala-02`. The root route `/` redirects to the primary published project when one exists. If no published project is available, `/` shows a minimal Yann-branded empty state instead of a project catalog.
 
@@ -11,20 +11,34 @@ Public projects are served at `/projetos/[slug]`, for example `/projetos/sala-02
 The repository includes a local Compose stack with Postgres and MinIO, an S3-compatible storage service.
 
 ```bash
-docker compose up -d
+docker compose up -d postgres minio minio-init
 npm install
-npm run db:migrate
+npm run backend:install
+cp apps/backend/.env.example apps/backend/.env
 npm run seed
-npm run dev
 ```
 
-The local `.env` is already configured for this stack:
+Backend-owned database, JWT, admin seed, and storage variables are defined in `apps/backend/.env.example`; copy that file to `apps/backend/.env` and replace secrets before production. `npm run seed` reads admin seed variables from `apps/backend/.env` first, then root `.env`; web env files remain supported only for transitional compatibility.
+
+Start the web app and FastAPI backend concurrently in separate terminals:
+
+```bash
+npm run dev:web
+```
+
+```bash
+npm run dev:backend
+```
+
+The local services are already configured with these defaults:
 
 - Postgres: `localhost:5432`
 - MinIO API: `http://localhost:9000`
 - MinIO console: `http://localhost:9001`
 - MinIO credentials: `minioadmin` / `minioadmin123`
 - Admin login: `admin@example.com` / `admin123456`
+
+When running the `web` service inside Compose, `BACKEND_PUBLIC_URL` is set to the container-internal FastAPI URL `http://backend:8000`.
 
 The `minio-init` service creates the `architecture-portfolio` bucket, enables public reads for uploaded media, and applies CORS for local browser uploads.
 
@@ -34,43 +48,67 @@ The `minio-init` service creates the `architecture-portfolio` bucket, enables pu
 
 ```bash
 npm install
+npm run backend:install
 ```
 
 2. Create local environment variables:
 
 ```bash
-cp .env.example .env.local
+cp apps/web/.env.example apps/web/.env.local
+cp apps/backend/.env.example apps/backend/.env
 ```
 
-3. Fill `.env.local`:
+3. Fill `apps/backend/.env` using `apps/backend/.env.example` as the source of truth for database, JWT, admin seed, and storage settings. Fill `apps/web/.env.local` only when the backend is not running at the default local URL:
 
 ```bash
-DATABASE_URL="postgresql://user:password@host:5432/database"
-AUTH_SECRET="replace-with-at-least-32-random-characters"
-ADMIN_EMAIL="admin@example.com"
-ADMIN_PASSWORD="replace-before-production"
-S3_ENDPOINT="https://s3.amazonaws.com"
-S3_REGION="us-east-1"
-S3_BUCKET="architecture-portfolio"
-S3_ACCESS_KEY_ID="replace-me"
-S3_SECRET_ACCESS_KEY="replace-me"
-S3_PUBLIC_BASE_URL="https://cdn.example.com"
+BACKEND_PUBLIC_URL="http://localhost:8000"
 ```
 
-4. Run database migrations and seed the first admin/default content:
+Set admin seed credentials in `apps/backend/.env` before running `npm run seed`. A root `.env` using the backend-owned variable names from `.env.example` is also supported as a fallback; web env files remain transitional compatibility only.
+
+Existing SQL migrations are legacy history pending backend migration ownership; this branch does not expose a root migration script.
+
+4. Seed the first admin user:
 
 ```bash
-npm run db:migrate
 npm run seed
 ```
 
-5. Start the app:
+5. Start the web app:
 
 ```bash
-npm run dev
+npm run dev:web
 ```
 
-The public site runs at `http://localhost:3000`. The admin editor runs at `http://localhost:3000/admin` and uses `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+6. To run FastAPI at `http://localhost:8000`, start the backend in a separate terminal:
+
+```bash
+npm run dev:backend
+```
+
+The public site remains at `http://localhost:3000`. The admin editor remains at `http://localhost:3000/admin` and uses the seeded admin credentials through FastAPI JWT login. The FastAPI backend runs at `http://localhost:8000`, with health checks available at `http://localhost:8000/health`.
+
+## Monorepo Layout
+
+- `apps/web`: Next.js frontend, public project pages, and admin UI. It no longer owns DB, storage, or auth backend logic; admin flows use FastAPI clients and server actions only for safe HTTP-only cookie transport, redirects, and revalidation.
+- `apps/backend`: FastAPI backend. It owns auth, public and admin project/section data, admin media listing and metadata creation, upload signing, video processing, storage verification, and media proxying.
+
+The public project pages now read project data from FastAPI:
+
+- `GET /projects/featured`
+- `GET /projects/published`
+- `GET /projects/{slug}`
+
+Set `BACKEND_PUBLIC_URL` in `apps/web/.env.local` when the backend is not running at `http://localhost:8000`.
+
+## FastAPI Auth
+
+Admin login now uses the FastAPI JWT auth endpoints:
+
+- `POST http://localhost:8000/auth/login` accepts `{ "email": "admin@example.com", "password": "admin123456" }` and returns a bearer token.
+- `GET http://localhost:8000/auth/me` requires `Authorization: Bearer <token>` and returns the current admin id/email.
+
+The frontend stores the bearer token in the `admin_access_token` HTTP-only cookie. Admin project and section CRUD, admin media listing, image metadata creation, upload signing, and video uploads use JWT-backed FastAPI endpoints.
 
 ## Content Workflow
 
@@ -88,19 +126,18 @@ Only published projects are available on public project URLs. Enabled sections r
 
 1. Create a Railway service from this repository.
 2. Attach a Railway Postgres database.
-3. Set all variables from `.env.example` in the Railway service environment.
-4. Use the Railway-provided Postgres connection string for `DATABASE_URL`.
-5. Set `AUTH_SECRET` to a long random production-only value.
-6. Configure `ADMIN_EMAIL` and `ADMIN_PASSWORD` before running the seed command.
-7. Configure the S3 variables for the production bucket or S3-compatible provider.
-8. Run migrations and seed on Railway after deploy:
+3. Set backend-owned variables from `apps/backend/.env.example` in the FastAPI service environment, using the Railway-provided Postgres connection string for the backend database variable.
+4. Set the backend JWT secret to a long random production-only value.
+5. Configure backend admin seed credentials before running the seed command.
+6. Configure backend storage variables for the production bucket or S3-compatible provider.
+7. Set only `BACKEND_PUBLIC_URL` for the web service when its FastAPI URL differs from `http://localhost:8000`.
+8. Seed on Railway after deploy:
 
 ```bash
-npm run db:migrate
 npm run seed
 ```
 
-For production media delivery, set `S3_PUBLIC_BASE_URL` to the public bucket URL or CDN origin that serves uploaded objects.
+For production media delivery, set the backend public storage base URL to the public bucket URL or CDN origin that serves uploaded objects.
 
 ## S3 CORS
 
@@ -124,7 +161,7 @@ The upload request sends `Content-Type`, so that header must be allowed by CORS 
 
 ## Video Preparation
 
-The admin uploads images directly to S3/MinIO. Videos are sent to the Next.js server first, optimized with FFmpeg, then saved to S3/MinIO as scrub-ready MP4 files. The server running the app must have `ffmpeg` available in `PATH`.
+FastAPI signs direct image uploads to S3/MinIO, verifies stored objects, proxies media when needed, and processes admin video uploads with FFmpeg before saving scrub and standard MP4 variants. The backend server must have `ffmpeg` available in `PATH`.
 
 Recommended export for scroll-scrub videos:
 
@@ -169,8 +206,6 @@ Future improvement: add a background worker if uploads become too slow for reque
 Run the production gates before release:
 
 ```bash
-npm run db:generate
-npm run db:migrate
 npm run seed
 npm run lint
 npm run build

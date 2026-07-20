@@ -2,7 +2,7 @@
 .env.*
 !.env.example
 .git
-.next
+**/.next
 .superpowers
 node_modules
 npm-debug.log*
@@ -17,3 +17,8 @@ coverage
 dist
 tmp
 temp
+apps/backend/.venv
+apps/backend/__pycache__
+apps/backend/.pytest_cache
+**/__pycache__
+**/.pytest_cache

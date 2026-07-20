@@ -15,7 +15,13 @@
 
 # next.js
 /.next/
+/apps/web/.next/
 /out/
+
+# python backend
+/apps/backend/.venv/
+/apps/backend/.pytest_cache/
+/apps/backend/**/__pycache__/
 
 # production
 /build
