@@ -252,6 +252,7 @@ def test_video_upload_deletes_uploaded_objects_when_metadata_fails(
     assert events[-1]["event"] == "failed"
     assert events[-1]["ok"] is False
     assert events[-1]["error"] == "metadata failed"
+    assert events[-1]["requestId"]
     assert deleted_keys == [
         [
             "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4",
