@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 
 import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { MediaUsageScope } from "@/lib/api/project-types";
@@ -147,30 +148,65 @@ export function MediaUploadField({
   usageScope,
 }: MediaUploadFieldProps) {
   const router = useRouter();
-  const sectionRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const [message, setMessage] = useState("");
+  const [portalContainer] = useState<HTMLDivElement | null>(() => {
+    if (typeof document === "undefined") {
+      return null;
+    }
+
+    const container = document.createElement("div");
+    container.setAttribute("data-media-upload-portal", "");
+    return container;
+  });
   const [status, setStatus] = useState<UploadStatus>("idle");
 
   const isBusy = status === "signing" || status === "uploading" || status === "saving";
   const libraryItems = getLibraryItems(mediaAssets);
 
   useEffect(() => {
-    const section = sectionRef.current;
-
-    if (!section) {
+    if (!portalContainer || typeof document === "undefined") {
       return;
     }
 
-    if (isBusy) {
-      section.setAttribute("inert", "");
-      dialogRef.current?.focus();
-      return () => section.removeAttribute("inert");
+    document.body.appendChild(portalContainer);
+
+    return () => portalContainer.remove();
+  }, [portalContainer]);
+
+  useEffect(() => {
+    if (!isBusy || !portalContainer || typeof document === "undefined") {
+      return;
     }
 
-    section.removeAttribute("inert");
-  }, [isBusy]);
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    const inertedChildren = Array.from(document.body.children).filter(
+      (child) => child !== portalContainer && !child.hasAttribute("inert"),
+    );
+
+    for (const child of inertedChildren) {
+      child.setAttribute("inert", "");
+    }
+
+    dialogRef.current?.focus();
+
+    return () => {
+      for (const child of inertedChildren) {
+        child.removeAttribute("inert");
+      }
+
+      const previousFocus = previousFocusRef.current;
+      previousFocusRef.current = null;
+
+      if (previousFocus && document.contains(previousFocus) && !previousFocus.hasAttribute("disabled")) {
+        previousFocus.focus();
+      }
+    };
+  }, [isBusy, portalContainer]);
 
   async function uploadFile(file: File) {
     const displayName = getDisplayNameFromFileName(file.name);
@@ -295,9 +331,40 @@ export function MediaUploadField({
     }
   }
 
+  const uploadDialog = isBusy && portalContainer
+    ? createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+          <div
+            aria-labelledby="media-upload-progress-title"
+            aria-modal="true"
+            className="w-full max-w-md border border-neutral-950 bg-white p-6 shadow-2xl md:p-8"
+            ref={dialogRef}
+            role="dialog"
+            tabIndex={-1}
+          >
+            <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Upload em andamento</p>
+            <h2
+              className="mt-3 text-2xl font-normal tracking-[-0.03em] text-neutral-950"
+              id="media-upload-progress-title"
+            >
+              Processando envio
+            </h2>
+            <p className="mt-5 border border-neutral-200 px-4 py-3 text-sm text-neutral-700" role="status">
+              {message || "Preparando envio..."}
+            </p>
+            <p className="mt-4 text-xs leading-5 text-neutral-500">
+              Não feche esta aba até o processamento terminar.
+            </p>
+          </div>
+        </div>,
+        portalContainer,
+      )
+    : null;
+
   return (
+    <>
     <section className="border border-neutral-200 bg-white p-5 md:p-6" id={usageScope === "site" ? "midias" : undefined}>
-      <div className="space-y-5" ref={sectionRef}>
+      <div className="space-y-5">
         <div>
           <p className="text-sm uppercase tracking-[0.18em] text-neutral-500">
             {usageScope === "site" ? "Arquivos do site" : "Arquivos deste projeto"}
@@ -370,32 +437,8 @@ export function MediaUploadField({
           )}
         </div>
       </div>
-      {isBusy ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
-          <div
-            aria-labelledby="media-upload-progress-title"
-            aria-modal="true"
-            className="w-full max-w-md border border-neutral-950 bg-white p-6 shadow-2xl md:p-8"
-            ref={dialogRef}
-            role="dialog"
-            tabIndex={-1}
-          >
-            <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Upload em andamento</p>
-            <h2
-              className="mt-3 text-2xl font-normal tracking-[-0.03em] text-neutral-950"
-              id="media-upload-progress-title"
-            >
-              Processando envio
-            </h2>
-            <p className="mt-5 border border-neutral-200 px-4 py-3 text-sm text-neutral-700" role="status">
-              {message || "Preparando envio..."}
-            </p>
-            <p className="mt-4 text-xs leading-5 text-neutral-500">
-              Não feche esta aba até o processamento terminar.
-            </p>
-          </div>
-        </div>
-      ) : null}
     </section>
+    {uploadDialog}
+    </>
   );
 }

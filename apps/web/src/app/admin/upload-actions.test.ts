@@ -91,6 +91,42 @@ assert.equal(
 );
 
 assert.equal(
+  mediaUploadFieldSource.includes("createPortal"),
+  true,
+  "upload blocking dialog must render outside the page content with a portal",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("document.body.appendChild"),
+  true,
+  "upload blocking dialog must append a dedicated portal container to the page body",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("Array.from(document.body.children)"),
+  true,
+  "upload blocking dialog must inert body-level siblings while busy",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("child !== portalContainer"),
+  true,
+  "upload blocking dialog must keep its portal container interactive while inerting the page",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("previousFocusRef"),
+  true,
+  "upload blocking dialog must remember focus before opening",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("previousFocus.focus()"),
+  true,
+  "upload blocking dialog must restore focus after closing",
+);
+
+assert.equal(
   mediaUploadFieldSource.includes('role={status === "error" ? "alert" : isBusy ? undefined : "status"}'),
   true,
   "inline upload message must not duplicate status announcements while busy",
