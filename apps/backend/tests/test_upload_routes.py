@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Mapping
 import anyio
 import pytest
 from fastapi.testclient import TestClient
-from starlette.requests import ClientDisconnect
 
 import app.admin_media as admin_media
 import app.storage as storage
@@ -262,13 +261,14 @@ def test_video_upload_deletes_uploaded_objects_when_metadata_fails(
     assert route_repository.created_assets == []
 
 
-def test_video_upload_deletes_uploaded_objects_when_stream_closes_before_metadata_persists(
+def test_video_upload_does_not_yield_between_storage_upload_and_metadata_persistence(
     route_repository: FakeAdminMediaRepository,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     import app.upload_routes as upload_routes
 
     deleted_keys: List[List[str]] = []
+    call_order: List[str] = []
 
     class FakeUploadFile:
         def __init__(self, file: object) -> None:
@@ -280,26 +280,28 @@ def test_video_upload_deletes_uploaded_objects_when_stream_closes_before_metadat
         with open(args[-1], "wb") as output_file:
             output_file.write(b"video-bytes")
 
-    def fake_create_media_assets(inputs: List[Mapping[str, object]]) -> List[Dict[str, object]]:
-        pytest.fail("metadata should not be created after client disconnect")
+    def fake_put_media_object(input_data: Mapping[str, object]) -> None:
+        call_order.append(f"put:{input_data['storageKey']}")
 
-    async def run_response_until_storage_uploaded(response: object) -> None:
+    def fake_create_media_assets(inputs: List[Mapping[str, object]]) -> List[Dict[str, object]]:
+        call_order.append("database-persisted")
+        return FakeAdminMediaRepository.create_media_assets(route_repository, inputs)
+
+    async def run_response(response: object) -> None:
         async def receive() -> Dict[str, object]:
             return {"type": "http.request", "body": b"", "more_body": False}
 
         async def send(message: Mapping[str, object]) -> None:
-            if message["type"] != "http.response.body":
+            if message["type"] != "http.response.body" or not message.get("body"):
                 return
-            body = message.get("body", b"")
-            if b"storage-upload-finished" in body:
-                raise OSError("client disconnected")
+            event = json.loads(message["body"])
+            call_order.append(f"event:{event['event']}")
 
-        with pytest.raises(ClientDisconnect):
-            await response(
-                {"type": "http", "asgi": {"spec_version": "2.4"}},
-                receive,
-                send,
-            )
+        await response(
+            {"type": "http", "asgi": {"spec_version": "2.4"}},
+            receive,
+            send,
+        )
 
     monkeypatch.setattr(route_repository, "create_media_assets", fake_create_media_assets)
     monkeypatch.setattr(upload_routes, "run_ffmpeg", fake_run_ffmpeg)
@@ -309,7 +311,7 @@ def test_video_upload_deletes_uploaded_objects_when_stream_closes_before_metadat
         lambda file_name: "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-" + file_name,
     )
     monkeypatch.setattr(storage, "get_media_delivery_url", lambda key: f"/media/{key}")
-    monkeypatch.setattr(storage, "put_media_object", lambda input_data: None)
+    monkeypatch.setattr(storage, "put_media_object", fake_put_media_object)
     monkeypatch.setattr(storage, "delete_media_objects", lambda keys: deleted_keys.append(list(keys)))
 
     with tempfile.TemporaryFile() as source_file:
@@ -322,16 +324,15 @@ def test_video_upload_deletes_uploaded_objects_when_stream_closes_before_metadat
             altText="Hero video",
             usageScope="site",
         )
-        assert response.body_iterator.ag_code.co_name == "stream_video_upload"
-        anyio.run(run_response_until_storage_uploaded, response)
+        anyio.run(run_response, response)
 
-    assert deleted_keys == [
-        [
-            "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4",
-            "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-normal.mp4",
-        ]
-    ]
-    assert route_repository.created_assets == []
+    assert call_order.index("put:uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-normal.mp4") < call_order.index(
+        "database-persisted"
+    )
+    assert call_order.index("database-persisted") < call_order.index("event:storage-upload-finished")
+    assert call_order.index("database-persisted") < call_order.index("event:database-write-started")
+    assert deleted_keys == []
+    assert len(route_repository.created_assets) == 2
 
 
 def test_video_upload_deletes_first_uploaded_object_when_second_upload_fails(

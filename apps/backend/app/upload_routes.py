@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import uuid
-from typing import Annotated, Any, AsyncIterator, Dict, Iterable, Mapping, Optional
+from typing import Annotated, Any, Dict, Iterable, Iterator, Mapping, Optional
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import Response, StreamingResponse
@@ -224,7 +224,7 @@ def upload_admin_video(
     request_id = str(uuid.uuid4())
     source_upload_fd = os.dup(file.file.fileno()) if file is not None else None
 
-    async def stream_video_upload() -> AsyncIterator[str]:
+    def stream_video_upload() -> Iterator[str]:
         temporary_directory: Optional[str] = None
         uploaded_storage_keys = []
         source_upload_file: Optional[Any] = None
@@ -336,10 +336,8 @@ def upload_admin_video(
             uploaded_storage_keys.append(standard_storage_key)
             uploaded_metadata = {"standardStorageKey": standard_storage_key, "scrubStorageKey": scrub_storage_key}
             log_video_upload(request_id, "storage-upload-finished", uploaded_metadata)
-            yield video_progress_event("storage-upload-finished", request_id, "Videos enviados.", uploaded_metadata)
 
             log_video_upload(request_id, "database-write-started")
-            yield video_progress_event("database-write-started", request_id, "Salvando dados do video...")
             repository.create_media_assets(
                 [
                     {
@@ -364,6 +362,8 @@ def upload_admin_video(
             )
             database_persisted = True
             log_video_upload(request_id, "database-write-finished")
+            yield video_progress_event("storage-upload-finished", request_id, "Videos enviados.", uploaded_metadata)
+            yield video_progress_event("database-write-started", request_id, "Salvando dados do video...")
             yield video_progress_event("database-write-finished", request_id, "Dados do video salvos.")
 
             log_video_upload(request_id, "request-finished", {"fileName": source_file_name})
