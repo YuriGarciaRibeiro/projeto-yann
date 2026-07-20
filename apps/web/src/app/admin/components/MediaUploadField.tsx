@@ -350,6 +350,30 @@ export function MediaUploadField({
           </p>
         )}
       </div>
+      {isBusy ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+          <div
+            aria-labelledby="media-upload-progress-title"
+            aria-modal="true"
+            className="w-full max-w-md border border-neutral-950 bg-white p-6 shadow-2xl md:p-8"
+            role="dialog"
+          >
+            <p className="text-xs uppercase tracking-[0.18em] text-neutral-500">Upload em andamento</p>
+            <h2
+              className="mt-3 text-2xl font-normal tracking-[-0.03em] text-neutral-950"
+              id="media-upload-progress-title"
+            >
+              Processando envio
+            </h2>
+            <p className="mt-5 border border-neutral-200 px-4 py-3 text-sm text-neutral-700" role="status">
+              {message || "Preparando envio..."}
+            </p>
+            <p className="mt-4 text-xs leading-5 text-neutral-500">
+              Não feche esta aba até o processamento terminar.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

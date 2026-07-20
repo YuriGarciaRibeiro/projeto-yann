@@ -48,6 +48,30 @@ assert.equal(
   "video upload progress parsing errors must use a controlled message",
 );
 
+assert.equal(
+  mediaUploadFieldSource.includes('role="dialog"'),
+  true,
+  "media upload must render an accessible blocking dialog while busy",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes('aria-modal="true"'),
+  true,
+  "upload blocking dialog must be modal for assistive technology",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("Processando envio"),
+  true,
+  "upload blocking dialog must show a clear processing title",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("Não feche esta aba até o processamento terminar."),
+  true,
+  "upload blocking dialog must warn the admin not to close the tab",
+);
+
 assert.doesNotMatch(
   mediaUploadFieldSource,
   /headers:\s*\{\s*authorization:/,
