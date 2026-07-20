@@ -7,7 +7,11 @@ import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { MediaUsageScope } from "@/lib/api/project-types";
 
 import { saveMediaAssetAction } from "../actions";
-import { createSignedAdminUploadAction, uploadAdminVideoAction } from "../upload-actions";
+import {
+  createSignedAdminUploadAction,
+  getVideoUploadConnectionAction,
+  type VideoUploadProgressEvent,
+} from "../upload-actions";
 
 type MediaUploadFieldProps = {
   description: string;
@@ -64,6 +68,67 @@ function getLibraryItems(mediaAssets: AdminMediaAsset[]) {
   return Array.from(itemsByKey.values());
 }
 
+async function readVideoProgressStream(
+  response: Response,
+  onProgress: (event: VideoUploadProgressEvent) => void,
+) {
+  if (!response.body) {
+    throw new Error("Não foi possível acompanhar o progresso do vídeo.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  const events: VideoUploadProgressEvent[] = [];
+  let buffer = "";
+
+  function parseLine(line: string) {
+    const trimmedLine = line.trim();
+
+    if (!trimmedLine) {
+      return;
+    }
+
+    const event = JSON.parse(trimmedLine) as VideoUploadProgressEvent;
+    events.push(event);
+    onProgress(event);
+  }
+
+  while (true) {
+    const { done, value } = await reader.read();
+
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      parseLine(line);
+    }
+  }
+
+  buffer += decoder.decode();
+  parseLine(buffer);
+
+  const finalEvent = events.at(-1);
+
+  if (!finalEvent) {
+    throw new Error("Nenhum progresso de vídeo foi recebido.");
+  }
+
+  const requestHint = finalEvent.requestId ? ` Código: ${finalEvent.requestId}.` : "";
+
+  if (finalEvent.event === "failed" || finalEvent.ok === false) {
+    throw new Error(`${finalEvent.error || finalEvent.message}${requestHint}`);
+  }
+
+  if (finalEvent.event !== "completed") {
+    throw new Error(`O envio de vídeo terminou sem confirmação de conclusão.${requestHint}`);
+  }
+}
+
 export function MediaUploadField({
   description,
   mediaAssets,
@@ -86,6 +151,12 @@ export function MediaUploadField({
       setStatus("uploading");
       setMessage(`Enviando ${file.name} e criando versões para rolagem e com áudio...`);
 
+      const connection = await getVideoUploadConnectionAction();
+
+      if (!connection.backendUrl || !connection.token) {
+        throw new Error(connection.error || `Não foi possível preparar o envio de ${file.name}.`);
+      }
+
       const videoFormData = new FormData();
       videoFormData.append("file", file);
       videoFormData.append("altText", displayName);
@@ -94,14 +165,18 @@ export function MediaUploadField({
         videoFormData.append("projectId", projectId);
       }
 
-      const videoResult = await uploadAdminVideoAction(videoFormData);
+      const response = await fetch(connection.backendUrl, {
+        body: videoFormData,
+        cache: "no-store",
+        headers: { authorization: `Bearer ${connection.token}` },
+        method: "POST",
+      });
 
-      if (!videoResult.ok) {
-        const requestHint = videoResult.requestId ? ` Código: ${videoResult.requestId}.` : "";
-        throw new Error(
-          `${videoResult.error || `Não foi possível otimizar ${file.name}.`}${requestHint}`,
-        );
+      if (!response.ok) {
+        throw new Error(`Não foi possível otimizar ${file.name}.`);
       }
+
+      await readVideoProgressStream(response, (event) => setMessage(event.message));
 
       return;
     }

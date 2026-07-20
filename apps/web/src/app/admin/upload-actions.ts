@@ -20,10 +20,18 @@ export type SignedAdminUploadResponse = {
   url?: string;
 };
 
-export type VideoAdminUploadResponse = {
+export type VideoUploadProgressEvent = {
   error?: string;
+  event: string;
+  message: string;
   ok?: boolean;
-  requestId?: string;
+  requestId: string;
+};
+
+export type VideoUploadConnection = {
+  backendUrl?: string;
+  error?: string;
+  token?: string;
 };
 
 function buildBackendUrl(path: string): URL {
@@ -103,53 +111,15 @@ export async function createSignedAdminUploadAction(
   return (await response.json()) as SignedAdminUploadResponse;
 }
 
-export async function uploadAdminVideoAction(formData: FormData): Promise<VideoAdminUploadResponse> {
+export async function getVideoUploadConnectionAction(): Promise<VideoUploadConnection> {
   const token = await getAdminBearerToken();
 
   if (!token) {
-    return { error: "Missing admin access token.", ok: false };
+    return { error: "Missing admin access token." };
   }
-
-  let response: Response;
-
-  try {
-    response = await fetch(buildBackendUrl("/admin/uploads/video"), {
-      body: formData,
-      cache: "no-store",
-      headers: { authorization: `Bearer ${token}` },
-      method: "POST",
-    });
-  } catch {
-    return { error: "Não foi possível otimizar o vídeo.", ok: false };
-  }
-
-  if (!response.ok) {
-    const requestId = response.headers.get("x-request-id") ?? undefined;
-
-    try {
-      const data = (await response.json()) as { error?: unknown; detail?: unknown; requestId?: unknown };
-      return {
-        error:
-          formatErrorDetail(data.error) ||
-          formatErrorDetail(data.detail) ||
-          "Não foi possível otimizar o vídeo.",
-        ok: false,
-        requestId: typeof data.requestId === "string" ? data.requestId : requestId,
-      };
-    } catch {
-      return {
-        error: "Não foi possível otimizar o vídeo.",
-        ok: false,
-        requestId,
-      };
-    }
-  }
-
-  const data = (await response.json()) as { ok?: unknown; error?: unknown; requestId?: unknown };
 
   return {
-    error: formatErrorDetail(data.error) || undefined,
-    ok: data.ok === true,
-    requestId: typeof data.requestId === "string" ? data.requestId : undefined,
+    backendUrl: buildBackendUrl("/admin/uploads/video").toString(),
+    token,
   };
 }

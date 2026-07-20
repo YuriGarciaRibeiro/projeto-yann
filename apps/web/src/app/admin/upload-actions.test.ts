@@ -18,6 +18,18 @@ assert.equal(
 );
 
 assert.equal(
+  uploadActionsSource.includes("export type VideoUploadProgressEvent"),
+  true,
+  "video upload actions must expose progress event typing",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("response.body.getReader()"),
+  true,
+  "video upload field must stream backend progress events",
+);
+
+assert.equal(
   mediaUploadFieldSource.includes("@/lib/api/admin-uploads"),
   false,
   "client upload components must call server actions instead of direct FastAPI helpers",
