@@ -207,6 +207,8 @@ Run the production gates before release:
 
 ```bash
 npm run seed
+npm run backend:test -- apps/backend/tests/test_upload_routes.py
+node --import tsx apps/web/src/app/admin/upload-actions.test.ts
 npm run lint
 npm run build
 ```
