@@ -72,6 +72,30 @@ assert.equal(
   "upload blocking dialog must warn the admin not to close the tab",
 );
 
+assert.equal(
+  mediaUploadFieldSource.includes("dialogRef"),
+  true,
+  "upload blocking dialog must receive focus while busy",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes('setAttribute("inert", "")'),
+  true,
+  "upload blocking dialog must make non-modal content inert while busy",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("tabIndex={-1}"),
+  true,
+  "upload blocking dialog must be programmatically focusable",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes('role={status === "error" ? "alert" : isBusy ? undefined : "status"}'),
+  true,
+  "inline upload message must not duplicate status announcements while busy",
+);
+
 assert.doesNotMatch(
   mediaUploadFieldSource,
   /headers:\s*\{\s*authorization:/,
