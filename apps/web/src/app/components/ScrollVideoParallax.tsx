@@ -60,9 +60,9 @@ export function ScrollVideoParallax({
     offset: ["start start", "end end"],
   });
   const smoothScrollYProgress = useSpring(scrollYProgress, {
-    damping: 36,
+    damping: 30,
     restDelta: 0.001,
-    stiffness: 72,
+    stiffness: 100,
   });
   const shadeOpacity = useTransform(smoothScrollYProgress, [0, 0.6, 1], [0.18, 0.34, 0.56]);
   const controlledMotionProgress =
@@ -163,8 +163,8 @@ export function ScrollVideoParallax({
     const tick = () => {
       const delta = targetTimeRef.current - video.currentTime;
 
-      if (Math.abs(delta) > 0.03) {
-        video.currentTime += delta * 0.16;
+      if (Math.abs(delta) > 0.015) {
+        video.currentTime += delta * 0.22;
       }
 
       frameRef.current = window.requestAnimationFrame(tick);

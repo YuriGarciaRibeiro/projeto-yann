@@ -192,14 +192,14 @@ assert.match(
 
 assert.match(
   scrollVideoParallaxSource,
-  /damping: 36,[\s\S]*stiffness: 72,/,
-  "scroll scrub spring should be damped enough to reduce Windows mouse wheel stepping",
+  /damping: 30,[\s\S]*stiffness: 100,/,
+  "scroll scrub spring should keep the calibrated response used across pointer types",
 );
 
 assert.match(
   scrollVideoParallaxSource,
-  /Math\.abs\(delta\) > 0\.03[\s\S]*delta \* 0\.16/,
-  "scroll scrub video seeks should ignore tiny deltas and ease toward target time gently",
+  /Math\.abs\(delta\) > 0\.015[\s\S]*delta \* 0\.22/,
+  "scroll scrub video seeks should keep the calibrated target-time response",
 );
 
 assert.match(
