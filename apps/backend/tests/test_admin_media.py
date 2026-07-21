@@ -465,6 +465,25 @@ def test_delete_media_asset_commits_and_closes_owned_connection(monkeypatch: pyt
     assert connection.closes == 1
 
 
+def test_delete_media_asset_rolls_back_owned_connection_when_storage_delete_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    connection = FakeConnection(one_rows=[media_row(), None, media_row()])
+    monkeypatch.setattr(admin_media.psycopg, "connect", lambda *args, **kwargs: connection)
+
+    def raise_storage_error(keys: List[str]) -> None:
+        raise ValueError("Media object could not be deleted.")
+
+    monkeypatch.setattr(admin_media.storage, "delete_media_objects", raise_storage_error)
+
+    with pytest.raises(ValueError, match="Media object could not be deleted"):
+        PostgresAdminMediaRepository().delete_media_asset("asset-id")
+
+    assert connection.commits == 0
+    assert connection.rollbacks == 1
+    assert connection.closes == 1
+
+
 def test_admin_list_site_media_route_requires_auth(route_repository: FakeAdminMediaRepository) -> None:
     app = create_app()
     app.dependency_overrides[admin_media.get_admin_media_repository] = lambda: route_repository

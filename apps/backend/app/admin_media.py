@@ -358,7 +358,7 @@ class PostgresAdminMediaRepository:
                 if deleted_asset is None:
                     raise MediaAssetInUse("Arquivo em uso. Remova-o do projeto antes de apagar.")
 
-        storage.delete_media_objects([str(deleted_asset["storageKey"])])
+            storage.delete_media_objects([str(deleted_asset["storageKey"])])
         return deleted_asset
 
 

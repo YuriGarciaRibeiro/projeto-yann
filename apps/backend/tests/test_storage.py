@@ -24,6 +24,7 @@ class FakeS3Client:
             "ContentRange": "bytes 0-12/100",
             "ContentType": "video/mp4",
         }
+        self.delete_response: Dict[str, Any] = {}
 
     def generate_presigned_url(
         self,
@@ -56,7 +57,7 @@ class FakeS3Client:
 
     def delete_objects(self, **kwargs: Any) -> Dict[str, Any]:
         self.delete_calls.append(kwargs)
-        return {}
+        return self.delete_response
 
 
 def settings(**overrides: Any) -> Settings:
@@ -324,6 +325,25 @@ def test_delete_media_objects_deduplicates_and_batches(monkeypatch: pytest.Monke
     assert len(fake_client.delete_calls[0]["Delete"]["Objects"]) == 1000
     assert len(fake_client.delete_calls[1]["Delete"]["Objects"]) == 1
     assert fake_client.delete_calls[0]["Delete"]["Quiet"] is True
+
+
+def test_delete_media_objects_raises_when_s3_reports_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_client = FakeS3Client()
+    fake_client.delete_response = {
+        "Errors": [
+            {
+                "Key": "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.jpg",
+                "Code": "InternalError",
+            }
+        ]
+    }
+    monkeypatch.setattr(storage, "get_s3_client", lambda settings: fake_client)
+
+    with pytest.raises(ValueError, match="Media object could not be deleted"):
+        storage.delete_media_objects(
+            ["uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.jpg"],
+            settings(),
+        )
 
 
 def test_get_media_object_passes_range(monkeypatch: pytest.MonkeyPatch) -> None:

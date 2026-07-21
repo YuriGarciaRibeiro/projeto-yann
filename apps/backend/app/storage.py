@@ -256,13 +256,15 @@ def delete_media_objects(storage_keys: Sequence[str], settings: Optional[Setting
     client = get_s3_client(resolved_settings)
     for index in range(0, len(unique_storage_keys), 1000):
         batch = unique_storage_keys[index : index + 1000]
-        client.delete_objects(
+        response = client.delete_objects(
             Bucket=resolved_settings.s3_bucket,
             Delete={
                 "Objects": [{"Key": storage_key} for storage_key in batch],
                 "Quiet": True,
             },
         )
+        if response.get("Errors"):
+            raise ValueError("Media object could not be deleted.")
 
 
 def verify_uploaded_media_object(input_data: Mapping[str, Any], settings: Optional[Settings] = None) -> None:
