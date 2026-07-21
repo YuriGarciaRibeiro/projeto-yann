@@ -7,7 +7,7 @@ Add a safe delete option to the admin media library so an admin can remove unuse
 ## Approved Behavior
 
 - Each media library item shows an `Apagar` action.
-- Deletion is blocked when the media asset is referenced anywhere in project or site content.
+- Deletion is blocked when the media asset is referenced by current project content tables.
 - If blocked, nothing is removed and the admin sees a clear message explaining that the file is in use.
 - If the asset is unused, deletion removes the `media_assets` row and deletes the storage object from S3/MinIO.
 - Missing assets return a not-found response rather than a successful delete.
@@ -33,9 +33,10 @@ Deletion is blocked if the media asset id appears in any of these columns:
 - `projects.hero_video_asset_id`
 - `projects.fallback_image_asset_id`
 - `projects.client_architect_image_asset_id`
-- `site_profile.portrait_image_asset_id`
 - `project_sections.primary_media_asset_id`
 - `project_sections.poster_media_asset_id`
+
+`site_profile` was removed by migration `0005_legal_warbird.sql`, so `site_profile.portrait_image_asset_id` is not part of current delete blocking.
 
 The initial response only needs a human-readable message such as `Arquivo em uso. Remova-o do projeto antes de apagar.` Detailed per-field usage reporting is out of scope.
 

@@ -4,7 +4,9 @@
 
 **Goal:** Add a safe `Apagar` action to the admin media library that blocks in-use files and deletes unused files from both Postgres and S3/MinIO.
 
-**Architecture:** FastAPI owns media deletion through `DELETE /admin/media/{asset_id}`. The backend checks references before deleting the database row, then removes the storage object with the existing storage helper. The Next admin UI calls the backend through the existing server-only API client and a server action, then refreshes the current admin page.
+**Architecture:** FastAPI owns media deletion through `DELETE /admin/media/{asset_id}`. The backend checks references before deleting the database row, guards the delete with the same current-schema reference checks, then removes the storage object with the existing storage helper. The Next admin UI calls the backend through the existing server-only API client and a server action, then refreshes the current admin page.
+
+**Schema note:** `site_profile` was removed by migration `0005_legal_warbird.sql`, so `site_profile.portrait_image_asset_id` is not part of current delete blocking.
 
 **Tech Stack:** FastAPI, psycopg, pytest, Next.js App Router, React client components, server actions, Node `assert` tests.
 
@@ -47,10 +49,13 @@ def test_delete_media_asset_removes_unused_row_and_storage_object(monkeypatch: p
     assert "from media_assets" in connection.cursor_instance.queries[0]
     assert "from projects" in connection.cursor_instance.queries[1]
     assert "from project_sections" in connection.cursor_instance.queries[1]
+    assert "site_profile" not in connection.cursor_instance.queries[1]
     assert "delete from media_assets" in connection.cursor_instance.queries[2]
+    assert connection.cursor_instance.queries[2].count("not exists") == 5
+    assert "site_profile" not in connection.cursor_instance.queries[2]
     assert connection.cursor_instance.params[0] == ("asset-id",)
-    assert connection.cursor_instance.params[1] == ("asset-id",) * 6
-    assert connection.cursor_instance.params[2] == ("asset-id",)
+    assert connection.cursor_instance.params[1] == ("asset-id",) * 5
+    assert connection.cursor_instance.params[2] == ("asset-id",) * 6
     assert deleted_storage_keys == [[DEFAULT_STORAGE_KEY]]
 
 
@@ -147,15 +152,13 @@ Add these methods to `PostgresAdminMediaRepository` after `create_media_assets`:
                     union all
                     select 'projects' as source from projects where client_architect_image_asset_id = %s
                     union all
-                    select 'site_profile' as source from site_profile where portrait_image_asset_id = %s
-                    union all
                     select 'project_sections' as source from project_sections where primary_media_asset_id = %s
                     union all
                     select 'project_sections' as source from project_sections where poster_media_asset_id = %s
-                ) references
+                ) media_references
                 limit 1
                 """,
-                (asset_id, asset_id, asset_id, asset_id, asset_id, asset_id),
+                (asset_id, asset_id, asset_id, asset_id, asset_id),
             )
             return cursor.fetchone()
 
@@ -173,14 +176,19 @@ Add these methods to `PostgresAdminMediaRepository` after `create_media_assets`:
                     f"""
                     delete from media_assets
                     where id = %s
+                    and not exists (select 1 from projects where hero_video_asset_id = %s)
+                    and not exists (select 1 from projects where fallback_image_asset_id = %s)
+                    and not exists (select 1 from projects where client_architect_image_asset_id = %s)
+                    and not exists (select 1 from project_sections where primary_media_asset_id = %s)
+                    and not exists (select 1 from project_sections where poster_media_asset_id = %s)
                     returning {MEDIA_COLUMNS}
                     """,
-                    (asset_id,),
+                    (asset_id, asset_id, asset_id, asset_id, asset_id, asset_id),
                 )
                 deleted_asset = map_media_asset_row(cursor.fetchone())
 
         if deleted_asset is None:
-            raise MediaAssetNotFound("Media asset not found")
+            raise MediaAssetInUse("Arquivo em uso. Remova-o do projeto antes de apagar.")
 
         storage.delete_media_objects([str(deleted_asset["storageKey"])])
         return deleted_asset

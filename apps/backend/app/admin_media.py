@@ -321,15 +321,13 @@ class PostgresAdminMediaRepository:
                     union all
                     select 'projects' as source from projects where client_architect_image_asset_id = %s
                     union all
-                    select 'site_profile' as source from site_profile where portrait_image_asset_id = %s
-                    union all
                     select 'project_sections' as source from project_sections where primary_media_asset_id = %s
                     union all
                     select 'project_sections' as source from project_sections where poster_media_asset_id = %s
                 ) media_references
                 limit 1
                 """,
-                (asset_id, asset_id, asset_id, asset_id, asset_id, asset_id),
+                (asset_id, asset_id, asset_id, asset_id, asset_id),
             )
             return cursor.fetchone()
 
@@ -350,12 +348,11 @@ class PostgresAdminMediaRepository:
                     and not exists (select 1 from projects where hero_video_asset_id = %s)
                     and not exists (select 1 from projects where fallback_image_asset_id = %s)
                     and not exists (select 1 from projects where client_architect_image_asset_id = %s)
-                    and not exists (select 1 from site_profile where portrait_image_asset_id = %s)
                     and not exists (select 1 from project_sections where primary_media_asset_id = %s)
                     and not exists (select 1 from project_sections where poster_media_asset_id = %s)
                     returning {MEDIA_COLUMNS}
                     """,
-                    (asset_id, asset_id, asset_id, asset_id, asset_id, asset_id, asset_id),
+                    (asset_id, asset_id, asset_id, asset_id, asset_id, asset_id),
                 )
                 deleted_asset = map_media_asset_row(cursor.fetchone())
                 if deleted_asset is None:
