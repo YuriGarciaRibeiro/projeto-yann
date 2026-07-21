@@ -80,13 +80,13 @@ function SectionText({
     <div className="mt-6 grid gap-4 border-t border-white/18 pt-5 lg:grid-cols-8">
       {title ? (
         <h2
-          className="font-[var(--font-display)] text-[var(--text-h3)] font-normal tracking-[-0.035em] lg:col-span-3"
+          className="font-[var(--font-display)] text-[var(--text-card-title)] font-normal tracking-[-0.035em] lg:col-span-3"
           id={`${id}-title`}
         >
           {title}
         </h2>
       ) : null}
-      <div className="text-sm leading-6 text-white/68 lg:col-span-4 lg:col-start-5">
+      <div className="text-[var(--text-caption)] leading-6 text-white/68 lg:col-span-4 lg:col-start-5">
         {body ? <p className="whitespace-pre-line">{body}</p> : null}
         {caption ? <p className="mt-4 text-white/45">{caption}</p> : null}
       </div>

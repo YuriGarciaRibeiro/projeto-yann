@@ -36,13 +36,13 @@ export function TechnicalInfoSection({ project, sectionRow }: TechnicalInfoSecti
             Dados tecnicos
           </p>
           <h2
-            className="mt-5 font-[var(--font-display)] text-[var(--text-h2)] font-normal leading-[1] tracking-[-0.045em]"
+            className="mt-5 font-[var(--font-display)] text-[var(--text-section-title)] font-normal leading-[1] tracking-[-0.045em]"
             id={`${section.id}-title`}
           >
             {section.title ?? "Informacoes do projeto"}
           </h2>
           {section.body ? (
-            <p className="mt-6 whitespace-pre-line text-sm leading-6 text-[var(--graphite)]">
+            <p className="mt-6 whitespace-pre-line text-[var(--text-caption)] leading-6 text-[var(--graphite)]">
               {section.body}
             </p>
           ) : null}
@@ -57,7 +57,7 @@ export function TechnicalInfoSection({ project, sectionRow }: TechnicalInfoSecti
               <dt className="text-[var(--text-label)] font-medium uppercase tracking-[0.16em] text-[var(--mid-gray)]">
                 {label}
               </dt>
-              <dd className="text-sm leading-6 text-[var(--graphite)]">{value}</dd>
+              <dd className="text-[var(--text-caption)] leading-6 text-[var(--graphite)]">{value}</dd>
             </div>
           ))}
         </dl>

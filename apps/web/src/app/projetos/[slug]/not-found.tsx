@@ -5,7 +5,7 @@ export default function ProjectNotFound() {
         <p className="text-[var(--text-label)] font-medium uppercase tracking-[0.18em] text-[var(--mid-gray)]">
           Yann / Projeto
         </p>
-        <h1 className="mt-8 font-[var(--font-display)] text-[var(--text-h1)] font-normal leading-[0.95] tracking-[-0.045em]">
+        <h1 className="mt-8 font-[var(--font-display)] text-[var(--text-project-title)] font-normal leading-[0.95] tracking-[-0.045em]">
           Projeto nao encontrado.
         </h1>
         <p className="mt-6 max-w-xl text-[var(--text-body)] leading-7 text-[var(--graphite)]">

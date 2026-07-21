@@ -96,7 +96,7 @@ export function MediaPlaceholder({
         <p className={`text-[var(--text-label)] font-medium uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-[var(--mid-gray)]"}`}>
           Midia indisponivel
         </p>
-        <p className={`mt-3 text-sm leading-6 ${isDark ? "text-white/62" : "text-[var(--graphite)]"}`}>
+        <p className={`mt-3 text-[var(--text-caption)] leading-6 ${isDark ? "text-white/62" : "text-[var(--graphite)]"}`}>
           {label}
         </p>
       </div>

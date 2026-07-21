@@ -44,19 +44,19 @@ export function ProjectHero({ data, sectionCount }: ProjectHeroProps) {
               {project.category} / {project.location} / {project.year}
             </p>
             <h1
-              className="mt-5 font-[var(--font-display)] text-[var(--text-display-xl)] font-normal leading-[0.88] tracking-[-0.045em]"
+              className="mt-5 font-[var(--font-display)] text-[var(--text-hero-title)] font-normal leading-[0.88] tracking-[-0.045em]"
               id="project-title"
             >
               {project.title}
             </h1>
             {project.subtitle ? (
-              <p className="mt-6 max-w-2xl text-[var(--text-body-lg)] leading-[1.55] text-white/78">
+              <p className="mt-6 max-w-2xl text-[var(--text-body-large)] leading-[1.55] text-white/78">
                 {project.subtitle}
               </p>
             ) : null}
           </div>
 
-          <dl className="col-span-4 mt-12 grid content-end gap-4 border-t border-white/24 pt-5 text-sm leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
+          <dl className="col-span-4 mt-12 grid content-end gap-4 border-t border-white/24 pt-5 text-[var(--text-caption)] leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
             <HeroFact label="Cliente / arquiteto" value={project.clientArchitectName} />
             <HeroFact label="Local" value={project.location} />
             <HeroFact label="Ano" value={String(project.year)} />

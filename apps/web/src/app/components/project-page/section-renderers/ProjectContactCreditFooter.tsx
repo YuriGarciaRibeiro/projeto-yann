@@ -50,7 +50,7 @@ export function ProjectContactCreditFooter({
             Contato / credito
           </p>
           <h2
-            className="mt-5 font-[var(--font-display)] text-[var(--text-h2)] font-normal leading-[1] tracking-[-0.045em]"
+            className="mt-5 font-[var(--font-display)] text-[var(--text-section-title)] font-normal leading-[1] tracking-[-0.045em]"
             id={titleId}
           >
             {title ?? project.clientArchitectName ?? project.title}
@@ -100,7 +100,7 @@ function ContactRow({ href, label, value }: { href?: string; label: string; valu
       <dt className="text-[var(--text-label)] font-medium uppercase tracking-[0.16em] text-white/42">
         {label}
       </dt>
-      <dd className="text-sm leading-6 text-white/72">
+      <dd className="text-[var(--text-caption)] leading-6 text-white/72">
         {href ? (
           <a className="underline decoration-white/28 underline-offset-4 hover:decoration-white" href={href}>
             {value}

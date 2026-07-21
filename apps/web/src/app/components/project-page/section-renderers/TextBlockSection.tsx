@@ -21,14 +21,14 @@ export function TextBlockSection({ sectionRow }: TextBlockSectionProps) {
         </p>
         {section.title ? (
           <h2
-            className="font-[var(--font-display)] text-[var(--text-h2)] font-normal leading-[1] tracking-[-0.045em] lg:col-span-4"
+            className="font-[var(--font-display)] text-[var(--text-section-title)] font-normal leading-[1] tracking-[-0.045em] lg:col-span-4"
             id={`${section.id}-title`}
           >
             {section.title}
           </h2>
         ) : null}
         {section.body ? (
-          <p className="max-w-3xl whitespace-pre-line text-[var(--text-body-lg)] leading-[1.65] text-[var(--graphite)] lg:col-span-5 lg:col-start-8">
+          <p className="max-w-3xl whitespace-pre-line text-[var(--text-body-large)] leading-[1.65] text-[var(--graphite)] lg:col-span-5 lg:col-start-8">
             {section.body}
           </p>
         ) : null}

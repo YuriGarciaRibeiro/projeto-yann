@@ -145,7 +145,7 @@ export function ProjectPreloader({
             <p className="text-[var(--text-label)] font-medium uppercase tracking-[0.22em] text-white/52">
               Yann
             </p>
-            <p className="mt-5 font-[var(--font-display)] text-[clamp(2.5rem,12vw,5.5rem)] font-normal leading-[0.86] tracking-[-0.055em]">
+            <p className="mt-5 font-[var(--font-display)] text-[var(--text-preloader-title)] font-normal leading-[0.86] tracking-[-0.055em]">
               {projectTitle}
             </p>
             <div className="mx-auto mt-9 h-px w-44 overflow-hidden bg-white/18" aria-hidden="true">

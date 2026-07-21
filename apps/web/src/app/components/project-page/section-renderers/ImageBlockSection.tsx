@@ -34,13 +34,13 @@ export function ImageBlockSection({ sectionRow }: ImageBlockSectionProps) {
         <div className="mt-6 grid gap-4 border-t border-[var(--line)] pt-5 lg:grid-cols-12">
           {section.title ? (
             <h2
-              className="font-[var(--font-display)] text-[var(--text-h3)] font-normal tracking-[-0.035em] lg:col-span-4"
+              className="font-[var(--font-display)] text-[var(--text-card-title)] font-normal tracking-[-0.035em] lg:col-span-4"
               id={`${section.id}-title`}
             >
               {section.title}
             </h2>
           ) : null}
-          <div className="text-sm leading-6 text-[var(--graphite)] lg:col-span-4 lg:col-start-8">
+          <div className="text-[var(--text-caption)] leading-6 text-[var(--graphite)] lg:col-span-4 lg:col-start-8">
             {section.body ? <p className="whitespace-pre-line">{section.body}</p> : null}
             {section.caption ? <p className="mt-4 text-[var(--mid-gray)]">{section.caption}</p> : null}
           </div>
