@@ -26,6 +26,11 @@ type MediaUploadFieldProps = {
 
 type UploadStatus = "idle" | "signing" | "uploading" | "saving" | "success" | "error";
 
+type PendingDeleteAsset = {
+  assetIds: string[];
+  displayName: string;
+};
+
 function getDisplayNameFromFileName(fileName: string) {
   const extensionlessName = fileName.replace(/\.[^.]+$/, "").trim();
   return extensionlessName || fileName || "arquivo";
@@ -129,10 +134,12 @@ export function MediaUploadField({
   });
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [deletingAssetId, setDeletingAssetId] = useState<string | null>(null);
+  const [pendingDeleteAsset, setPendingDeleteAsset] = useState<PendingDeleteAsset | null>(null);
 
   const isBusy = status === "signing" || status === "uploading" || status === "saving";
   const libraryItems = getLibraryItems(mediaAssets);
   const isMutating = isBusy || deletingAssetId !== null;
+  const isModalOpen = isBusy || pendingDeleteAsset !== null;
 
   useEffect(() => {
     if (!portalContainer || typeof document === "undefined") {
@@ -145,7 +152,7 @@ export function MediaUploadField({
   }, [portalContainer]);
 
   useEffect(() => {
-    if (!isBusy || !portalContainer || typeof document === "undefined") {
+    if (!isModalOpen || !portalContainer || typeof document === "undefined") {
       return;
     }
 
@@ -163,7 +170,7 @@ export function MediaUploadField({
       clearUploadModalInert(inertedChildren);
       restoreUploadModalFocus(previousFocus);
     };
-  }, [isBusy, portalContainer]);
+  }, [isModalOpen, portalContainer]);
 
   async function uploadFile(file: File) {
     const displayName = getDisplayNameFromFileName(file.name);
@@ -288,29 +295,34 @@ export function MediaUploadField({
     }
   }
 
-  async function handleDeleteAsset(assetId: string, displayName: string) {
+  function handleDeleteAsset(assetIds: string[], displayName: string) {
     if (isBusy || deletingAssetId) {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Apagar "${displayName}"? Esta ação remove o arquivo da biblioteca e do storage.`,
-    );
-    if (!confirmed) {
+    setPendingDeleteAsset({ assetIds, displayName });
+  }
+
+  async function handleConfirmDeleteAsset() {
+    if (!pendingDeleteAsset || isBusy || deletingAssetId) {
       return;
     }
 
-    setDeletingAssetId(assetId);
+    const asset = pendingDeleteAsset;
+    setPendingDeleteAsset(null);
+    setDeletingAssetId(asset.assetIds[0] ?? null);
     setStatus("idle");
-    setMessage(`Apagando ${displayName}...`);
+    setMessage(`Apagando ${asset.displayName}...`);
 
     try {
-      const result = await deleteMediaAssetAction(assetId);
-      if (!result.ok) {
-        throw new Error(result.error ?? "Não foi possível apagar o arquivo.");
+      for (const assetId of asset.assetIds) {
+        const result = await deleteMediaAssetAction(assetId);
+        if (!result.ok) {
+          throw new Error(result.error ?? "Não foi possível apagar o arquivo.");
+        }
       }
 
-      setMessage(`${displayName} apagado.`);
+      setMessage(`${asset.displayName} apagado.`);
       router.refresh();
     } catch (error) {
       setStatus("error");
@@ -344,6 +356,50 @@ export function MediaUploadField({
             <p className="mt-4 text-admin-help leading-5 text-neutral-500">
               Não feche esta aba até o processamento terminar.
             </p>
+          </div>
+        </div>,
+        portalContainer,
+      )
+    : null;
+
+  const deleteConfirmDialog = pendingDeleteAsset && portalContainer
+    ? createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+          <div
+            aria-labelledby="media-delete-confirm-title"
+            aria-modal="true"
+            className="w-full max-w-md border border-neutral-950 bg-white p-6 md:p-8"
+            ref={dialogRef}
+            role="dialog"
+            tabIndex={-1}
+          >
+            <p className="text-admin-help uppercase tracking-[0.18em] text-neutral-500">Confirmar exclusão</p>
+            <h2
+              className="mt-3 text-admin-section-title font-normal tracking-[-0.03em] text-neutral-950"
+              id="media-delete-confirm-title"
+            >
+              Apagar arquivo
+            </h2>
+            <p className="mt-5 text-admin-body leading-6 text-neutral-700">
+              Apagar <span className="font-medium">{pendingDeleteAsset.displayName}</span> remove o arquivo da
+              biblioteca e do storage.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                className="min-h-11 border border-neutral-300 px-4 text-admin-label uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+                onClick={() => setPendingDeleteAsset(null)}
+                type="button"
+              >
+                Cancelar
+              </button>
+              <button
+                className="min-h-11 border border-neutral-950 bg-neutral-950 px-4 text-admin-label uppercase tracking-[0.16em] text-white hover:bg-white hover:text-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+                onClick={() => void handleConfirmDeleteAsset()}
+                type="button"
+              >
+                Apagar
+              </button>
+            </div>
           </div>
         </div>,
         portalContainer,
@@ -414,7 +470,7 @@ export function MediaUploadField({
                     aria-label={`Apagar ${item.displayName}`}
                     className="justify-self-start border border-neutral-300 px-3 py-2 text-admin-label uppercase tracking-[0.14em] text-neutral-700 hover:border-neutral-950 hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 disabled:hover:bg-white disabled:hover:text-neutral-400 md:justify-self-end"
                     disabled={isMutating}
-                    onClick={() => void handleDeleteAsset(item.id, item.displayName)}
+                    onClick={() => handleDeleteAsset(item.assets.map((asset) => asset.id), item.displayName)}
                     type="button"
                   >
                     {deletingAssetId === item.id ? "Apagando" : "Apagar"}
@@ -439,6 +495,7 @@ export function MediaUploadField({
       </div>
     </section>
     {uploadDialog}
+    {deleteConfirmDialog}
     </>
   );
 }

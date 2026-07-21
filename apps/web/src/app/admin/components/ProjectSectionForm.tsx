@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import type { AdminMediaAsset } from "@/lib/api/admin-media";
@@ -9,7 +10,7 @@ import {
   projectSectionTypes,
 } from "@/lib/api/project-types";
 
-import { deleteProjectSectionAction, saveProjectSectionAction } from "../actions";
+import { deleteProjectSectionInlineAction, saveProjectSectionAction } from "../actions";
 
 type ProjectSectionFormProps = {
   displayOrder?: number;
@@ -85,6 +86,7 @@ export function ProjectSectionForm({
   section,
   sectionCount = 0,
 }: ProjectSectionFormProps) {
+  const router = useRouter();
   const sectionData = section?.section;
   const isEditing = Boolean(sectionData);
   const idPrefix = sectionData?.id ?? `${projectId}-new-section`;
@@ -97,7 +99,36 @@ export function ProjectSectionForm({
   const [selectedType, setSelectedType] = useState<ProjectSectionType>(
     sectionData?.type ?? "text_block",
   );
+  const [deleteMessage, setDeleteMessage] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const fieldConfig = sectionFieldConfig[selectedType];
+
+  async function handleDeleteSection() {
+    if (!sectionData || isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteMessage("Apagando bloco...");
+
+    try {
+      const result = await deleteProjectSectionInlineAction({
+        projectId,
+        sectionId: sectionData.id,
+      });
+
+      if (!result.ok) {
+        throw new Error(result.error ?? "Não foi possível apagar o bloco.");
+      }
+
+      setDeleteMessage("Bloco apagado.");
+      router.refresh();
+    } catch (error) {
+      setDeleteMessage(error instanceof Error ? error.message : "Não foi possível apagar o bloco.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <div className="border border-neutral-200 p-4">
@@ -116,16 +147,21 @@ export function ProjectSectionForm({
           ) : null}
         </div>
         {sectionData ? (
-          <form action={deleteProjectSectionAction}>
-            <input name="id" type="hidden" value={sectionData.id} />
-            <input name="projectId" type="hidden" value={projectId} />
+          <div className="grid gap-2 justify-items-start md:justify-items-end">
             <button
-              className="min-h-11 border border-neutral-300 px-4 text-admin-label uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
-              type="submit"
+              className="min-h-11 border border-neutral-300 px-4 text-admin-label uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400"
+              disabled={isDeleting}
+              onClick={() => void handleDeleteSection()}
+              type="button"
             >
-              Apagar
+              {isDeleting ? "Apagando" : "Apagar"}
             </button>
-          </form>
+            {deleteMessage ? (
+              <p className="max-w-52 text-right text-admin-help leading-5 text-neutral-500" role="status">
+                {deleteMessage}
+              </p>
+            ) : null}
+          </div>
         ) : null}
       </div>
 

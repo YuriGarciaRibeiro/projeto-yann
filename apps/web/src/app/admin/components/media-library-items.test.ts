@@ -16,7 +16,7 @@ const baseAsset = {
 const items = getLibraryItems([
   {
     ...baseAsset,
-    altText: "Video arquitetonico - rolagem otimizado",
+    altText: "Video sala - rolagem otimizado",
     id: "scrub-1",
     storageKey: "uploads/2026/07/123e4567-e89b-12d3-a456-426614174001-video-rolagem.mp4",
     url: "https://example.com/video-1-rolagem.mp4",
@@ -24,7 +24,7 @@ const items = getLibraryItems([
   },
   {
     ...baseAsset,
-    altText: "Video arquitetonico - normal com áudio",
+    altText: "Video sala - normal com áudio",
     id: "standard-1",
     storageKey: "uploads/2026/07/123e4567-e89b-12d3-a456-426614174002-video-normal.mp4",
     url: "https://example.com/video-1-normal.mp4",
@@ -32,7 +32,7 @@ const items = getLibraryItems([
   },
   {
     ...baseAsset,
-    altText: "Video arquitetonico - rolagem otimizado",
+    altText: "Video cozinha - rolagem otimizado",
     id: "scrub-2",
     storageKey: "uploads/2026/07/123e4567-e89b-12d3-a456-426614174003-video-rolagem.mp4",
     url: "https://example.com/video-2-rolagem.mp4",
@@ -40,7 +40,7 @@ const items = getLibraryItems([
   },
   {
     ...baseAsset,
-    altText: "Video arquitetonico - normal com áudio",
+    altText: "Video cozinha - normal com áudio",
     id: "standard-2",
     storageKey: "uploads/2026/07/123e4567-e89b-12d3-a456-426614174004-video-normal.mp4",
     url: "https://example.com/video-2-normal.mp4",
@@ -48,20 +48,24 @@ const items = getLibraryItems([
   },
 ]);
 
-assert.equal(items.length, 4, "every saved video asset must remain visible in the library");
+assert.equal(items.length, 2, "video variants should be grouped as one visible library item");
 assert.deepEqual(
   items.map((item) => item.assets.map((asset) => asset.id)),
   [
-    ["scrub-1"],
-    ["standard-1"],
-    ["scrub-2"],
-    ["standard-2"],
+    ["scrub-1", "standard-1"],
+    ["scrub-2", "standard-2"],
   ],
-  "library rows should match database rows instead of collapsing videos by repeated titles",
+  "library rows should keep both video variants inside the grouped item",
 );
 
 assert.deepEqual(
   items.map((item) => item.id),
-  ["scrub-1", "standard-1", "scrub-2", "standard-2"],
+  ["scrub-1", "scrub-2"],
   "library rows should expose stable asset ids for row actions",
+);
+
+assert.deepEqual(
+  items.map((item) => item.displayName),
+  ["Video sala", "Video cozinha"],
+  "library rows should hide technical video variant labels from admins",
 );

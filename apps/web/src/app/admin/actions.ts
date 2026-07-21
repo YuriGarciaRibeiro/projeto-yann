@@ -409,6 +409,33 @@ export async function deleteProjectSectionAction(formData: FormData) {
   projectStatusRedirect(projectId, "Bloco apagado.");
 }
 
+export async function deleteProjectSectionInlineAction(input: {
+  projectId: string;
+  sectionId: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  await requireAdminSession();
+
+  try {
+    const projectId = input.projectId.trim();
+    const sectionId = input.sectionId.trim();
+
+    if (!sectionId || !projectId) {
+      throw new Error("Bloco não encontrado.");
+    }
+
+    await deleteAdminProjectSection(sectionId, projectId);
+    revalidatePath(ADMIN_PATH);
+    revalidatePath(`/admin/projetos/${projectId}`);
+    revalidatePath("/");
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Não foi possível apagar o bloco.",
+    };
+  }
+}
+
 export async function deleteProjectAction(formData: FormData) {
   await requireAdminSession();
 
