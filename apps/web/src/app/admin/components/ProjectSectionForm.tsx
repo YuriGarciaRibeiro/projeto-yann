@@ -103,11 +103,11 @@ export function ProjectSectionForm({
     <div className="border border-neutral-200 p-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <h4 className="text-sm uppercase tracking-[0.14em]">
+          <h4 className="text-[var(--text-admin-label)] uppercase tracking-[0.14em]">
             {isEditing ? `Bloco ${visibleOrder}` : "Criar bloco"}
           </h4>
           {sectionData ? (
-            <dl className="mt-3 grid gap-2 text-sm text-neutral-600 md:grid-cols-4">
+            <dl className="mt-3 grid gap-2 text-[var(--text-admin-body)] text-neutral-600 md:grid-cols-4">
               <SummaryItem label="Tipo" value={sectionTypeLabels[sectionData.type]} />
               <SummaryItem label="Título" value={blockTitle} />
               <SummaryItem label="Mídia" value={mediaLabel} />
@@ -120,7 +120,7 @@ export function ProjectSectionForm({
             <input name="id" type="hidden" value={sectionData.id} />
             <input name="projectId" type="hidden" value={projectId} />
             <button
-              className="min-h-11 border border-neutral-300 px-4 text-sm uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+              className="min-h-11 border border-neutral-300 px-4 text-[var(--text-admin-label)] uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
               type="submit"
             >
               Apagar
@@ -196,7 +196,7 @@ export function ProjectSectionForm({
 
         {fieldConfig.metadata ? (
           <details className="border border-neutral-200 p-4">
-            <summary className="cursor-pointer text-sm uppercase tracking-[0.14em]">
+            <summary className="cursor-pointer text-[var(--text-admin-label)] uppercase tracking-[0.14em]">
               Configurações avançadas
             </summary>
             <div className="mt-4">
@@ -207,7 +207,7 @@ export function ProjectSectionForm({
                 name="metadata"
                 rows={5}
               />
-              <p className="mt-2 text-xs leading-5 text-neutral-500">
+              <p className="mt-2 text-[var(--text-admin-help)] leading-5 text-neutral-500">
                 Use um objeto JSON com chave e valor para os dados da ficha técnica.
               </p>
             </div>
@@ -215,7 +215,7 @@ export function ProjectSectionForm({
         ) : null}
 
         <label
-          className="flex min-h-11 items-center gap-3 text-sm"
+          className="flex min-h-11 items-center gap-3 text-[var(--text-admin-body)]"
           htmlFor={`${idPrefix}-isEnabled`}
         >
           <input
@@ -228,7 +228,7 @@ export function ProjectSectionForm({
           Visível na página
         </label>
         <button
-          className="min-h-11 justify-self-start border border-neutral-950 px-5 text-sm uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+          className="min-h-11 justify-self-start border border-neutral-950 px-5 text-[var(--text-admin-label)] uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
           type="submit"
         >
           {isEditing ? "Salvar bloco" : "Criar bloco"}
@@ -241,7 +241,7 @@ export function ProjectSectionForm({
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-[0.14em] text-neutral-400">{label}</dt>
+      <dt className="text-[var(--text-admin-help)] uppercase tracking-[0.14em] text-neutral-400">{label}</dt>
       <dd>{value}</dd>
     </div>
   );
@@ -260,11 +260,11 @@ function SectionTypeSelect({
 
   return (
     <div className="grid min-w-0 gap-2">
-      <label className="text-sm uppercase tracking-[0.14em]" htmlFor={id}>
+      <label className="text-[var(--text-admin-label)] uppercase tracking-[0.14em]" htmlFor={id}>
         Tipo de bloco
       </label>
       <select
-        className="min-h-12 w-full min-w-0 border border-neutral-300 bg-white px-3 text-base outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+        className="min-h-12 w-full min-w-0 border border-neutral-300 bg-white px-3 text-[var(--text-admin-control)] outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
         id={id}
         name="type"
         onChange={(event) => onChange(event.target.value as ProjectSectionType)}
@@ -296,11 +296,11 @@ function TextField({
 
   return (
     <div className="grid min-w-0 gap-2">
-      <label className="text-sm uppercase tracking-[0.14em]" htmlFor={id}>
+      <label className="text-[var(--text-admin-label)] uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
       </label>
       <input
-        className="min-h-12 border border-neutral-300 bg-white px-3 text-base outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+        className="min-h-12 border border-neutral-300 bg-white px-3 text-[var(--text-admin-control)] outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
         defaultValue={defaultValue}
         id={id}
         name={name}
@@ -327,11 +327,11 @@ function TextArea({
 
   return (
     <div className="grid gap-2">
-      <label className="text-sm uppercase tracking-[0.14em]" htmlFor={id}>
+      <label className="text-[var(--text-admin-label)] uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
       </label>
       <textarea
-        className="border border-neutral-300 bg-white px-3 py-3 text-base leading-6 outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+        className="border border-neutral-300 bg-white px-3 py-3 text-[var(--text-admin-control)] leading-6 outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
         defaultValue={defaultValue}
         id={id}
         name={name}
@@ -373,11 +373,11 @@ function MediaSelect({
 
   return (
     <div className="grid min-w-0 gap-2">
-      <label className="text-sm uppercase tracking-[0.14em]" htmlFor={id}>
+      <label className="text-[var(--text-admin-label)] uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
       </label>
       <select
-        className="min-h-12 w-full min-w-0 border border-neutral-300 bg-white px-3 text-base outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+        className="min-h-12 w-full min-w-0 border border-neutral-300 bg-white px-3 text-[var(--text-admin-control)] outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
         defaultValue={currentId ?? ""}
         id={id}
         name={name}
