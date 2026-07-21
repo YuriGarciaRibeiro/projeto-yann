@@ -401,7 +401,7 @@ assert.deepEqual(
 Run:
 
 ```bash
-node --import tsx apps/web/src/app/admin/components/media-library-items.test.ts
+node apps/web/src/app/admin/components/media-library-items.test.ts
 ```
 
 Expected: PASS. This confirms the data shape already supports per-row delete controls.
@@ -490,7 +490,7 @@ Replace the `<li>` body in the `libraryItems.map` block with:
 Run:
 
 ```bash
-node --import tsx apps/web/src/app/admin/components/media-library-items.test.ts
+node apps/web/src/app/admin/components/media-library-items.test.ts
 npm run lint:web
 ```
 
@@ -525,8 +525,8 @@ Expected: PASS.
 Run:
 
 ```bash
-node --import tsx apps/web/src/app/admin/components/media-library-items.test.ts
-node --import tsx apps/web/src/app/admin/upload-actions.test.ts
+node apps/web/src/app/admin/components/media-library-items.test.ts
+node apps/web/src/app/admin/upload-actions.test.ts
 ```
 
 Expected: PASS.
