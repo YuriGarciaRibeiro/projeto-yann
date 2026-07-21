@@ -361,44 +361,70 @@ export async function saveProjectAction(formData: FormData) {
 
 export async function saveProjectSectionAction(formData: FormData) {
   await requireAdminSession();
-  const projectId = getString(formData, "projectId");
 
   try {
-    const sortOrder = Number.parseInt(getString(formData, "sortOrder"), 10);
+    const projectId = await saveProjectSectionFromFormData(formData);
 
-    if (!projectId) {
-      throw new Error("Escolha um projeto para alterar os blocos.");
-    }
-
-    if (Number.isNaN(sortOrder) || sortOrder < 1) {
-      throw new Error("A posição do bloco precisa ser válida.");
-    }
-
-    await upsertAdminProjectSection({
-      id: nullableString(getString(formData, "id")) ?? undefined,
-      body: nullableString(getString(formData, "body")),
-      caption: nullableString(getString(formData, "caption")),
-      isEnabled: formData.get("isEnabled") === "on",
-      metadata: parseJsonObject(getString(formData, "metadata")),
-      posterMediaAssetId: nullableString(getString(formData, "posterMediaAssetId")),
-      primaryMediaAssetId: nullableString(getString(formData, "primaryMediaAssetId")),
-      projectId,
-      sortOrder: sortOrder * 10,
-      title: nullableString(getString(formData, "title")),
-      type: parseProjectSectionType(getString(formData, "type")),
-    });
+    revalidatePath(ADMIN_PATH);
+    revalidatePath(`/admin/projetos/${projectId}`);
+    revalidatePath("/");
+    projectStatusRedirect(projectId, "Bloco salvo.");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Não foi possível salvar o bloco.";
+    const projectId = getString(formData, "projectId");
     if (projectId) {
       projectErrorRedirect(projectId, message);
     }
     errorRedirect(message);
   }
+}
 
-  revalidatePath(ADMIN_PATH);
-  revalidatePath(`/admin/projetos/${projectId}`);
-  revalidatePath("/");
-  projectStatusRedirect(projectId, "Bloco salvo.");
+async function saveProjectSectionFromFormData(formData: FormData) {
+  const projectId = getString(formData, "projectId");
+  const sortOrder = Number.parseInt(getString(formData, "sortOrder"), 10);
+
+  if (!projectId) {
+    throw new Error("Escolha um projeto para alterar os blocos.");
+  }
+
+  if (Number.isNaN(sortOrder) || sortOrder < 1) {
+    throw new Error("A posição do bloco precisa ser válida.");
+  }
+
+  await upsertAdminProjectSection({
+    id: nullableString(getString(formData, "id")) ?? undefined,
+    body: nullableString(getString(formData, "body")),
+    caption: nullableString(getString(formData, "caption")),
+    isEnabled: formData.get("isEnabled") === "on",
+    metadata: parseJsonObject(getString(formData, "metadata")),
+    posterMediaAssetId: nullableString(getString(formData, "posterMediaAssetId")),
+    primaryMediaAssetId: nullableString(getString(formData, "primaryMediaAssetId")),
+    projectId,
+    sortOrder: sortOrder * 10,
+    title: nullableString(getString(formData, "title")),
+    type: parseProjectSectionType(getString(formData, "type")),
+  });
+
+  return projectId;
+}
+
+export async function saveProjectSectionInlineAction(
+  formData: FormData,
+): Promise<{ ok: boolean; error?: string }> {
+  await requireAdminSession();
+
+  try {
+    const projectId = await saveProjectSectionFromFormData(formData);
+    revalidatePath(ADMIN_PATH);
+    revalidatePath(`/admin/projetos/${projectId}`);
+    revalidatePath("/");
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Não foi possível salvar o bloco.",
+    };
+  }
 }
 
 export async function deleteProjectSectionAction(formData: FormData) {

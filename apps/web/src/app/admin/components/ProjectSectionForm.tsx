@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { AdminProjectSection } from "@/lib/api/admin-projects";
@@ -10,7 +10,7 @@ import {
   projectSectionTypes,
 } from "@/lib/api/project-types";
 
-import { deleteProjectSectionInlineAction, saveProjectSectionAction } from "../actions";
+import { deleteProjectSectionInlineAction, saveProjectSectionInlineAction } from "../actions";
 
 type ProjectSectionFormProps = {
   displayOrder?: number;
@@ -99,9 +99,41 @@ export function ProjectSectionForm({
   const [selectedType, setSelectedType] = useState<ProjectSectionType>(
     sectionData?.type ?? "text_block",
   );
+  const [saveMessage, setSaveMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const fieldConfig = sectionFieldConfig[selectedType];
+
+  async function handleSaveSection(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isSaving) {
+      return;
+    }
+
+    const form = event.currentTarget;
+    setIsSaving(true);
+    setSaveMessage("Salvando bloco...");
+
+    try {
+      const result = await saveProjectSectionInlineAction(new FormData(form));
+
+      if (!result.ok) {
+        throw new Error(result.error ?? "Não foi possível salvar o bloco.");
+      }
+
+      setSaveMessage("Bloco salvo.");
+      if (!isEditing) {
+        form.reset();
+        setSelectedType("text_block");
+      }
+      router.refresh();
+    } catch (error) {
+      setSaveMessage(error instanceof Error ? error.message : "Não foi possível salvar o bloco.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   async function handleDeleteSection() {
     if (!sectionData || isDeleting) {
@@ -165,7 +197,7 @@ export function ProjectSectionForm({
         ) : null}
       </div>
 
-      <form action={saveProjectSectionAction} className="mt-5 grid gap-5" noValidate>
+      <form className="mt-5 grid gap-5" noValidate onSubmit={(event) => void handleSaveSection(event)}>
         <input name="id" type="hidden" value={sectionData?.id ?? ""} />
         <input name="projectId" type="hidden" value={projectId} />
         <input name="sortOrder" type="hidden" value={String(visibleOrder)} />
@@ -264,11 +296,17 @@ export function ProjectSectionForm({
           Visível na página
         </label>
         <button
-          className="min-h-11 justify-self-start border border-neutral-950 px-5 text-admin-label uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+          className="min-h-11 justify-self-start border border-neutral-950 px-5 text-admin-label uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:text-neutral-400 disabled:hover:bg-white"
+          disabled={isSaving}
           type="submit"
         >
-          {isEditing ? "Salvar bloco" : "Criar bloco"}
+          {isSaving ? "Salvando" : isEditing ? "Salvar bloco" : "Criar bloco"}
         </button>
+        {saveMessage ? (
+          <p className="text-admin-help leading-5 text-neutral-500" role="status">
+            {saveMessage}
+          </p>
+        ) : null}
       </form>
     </div>
   );

@@ -37,6 +37,18 @@ assert.match(
   "section deletes should use the inline action that does not redirect to the top of the page",
 );
 
+assert.match(
+  projectSectionFormSource,
+  /saveProjectSectionInlineAction/,
+  "section saves should use the inline action that does not redirect to the top of the page",
+);
+
+assert.doesNotMatch(
+  getFunctionSource(adminActionsSource, "saveProjectSectionInlineAction"),
+  /projectStatusRedirect|redirect\(/,
+  "inline section save action should not redirect after saving a section",
+);
+
 assert.doesNotMatch(
   getFunctionSource(adminActionsSource, "deleteProjectSectionInlineAction"),
   /projectStatusRedirect|redirect\(/,
