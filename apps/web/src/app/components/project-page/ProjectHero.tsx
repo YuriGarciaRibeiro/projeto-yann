@@ -56,7 +56,7 @@ export function ProjectHero({ data, sectionCount }: ProjectHeroProps) {
             ) : null}
           </div>
 
-          <dl className="col-span-4 mt-12 grid content-end gap-4 border-t border-white/24 pt-5 text-[var(--text-caption)] leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
+          <dl className="col-span-4 mt-12 grid content-end gap-4 border-t border-white/24 pt-5 text-[var(--text-meta)] leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
             <HeroFact label="Cliente / arquiteto" value={project.clientArchitectName} />
             <HeroFact label="Local" value={project.location} />
             <HeroFact label="Ano" value={String(project.year)} />

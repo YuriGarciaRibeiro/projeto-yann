@@ -61,7 +61,7 @@ export function ProjectScrollMedia({
           <p className="text-[var(--text-label)] font-medium uppercase tracking-[0.18em] text-white/45">
             Midia indisponivel
           </p>
-          <p className="mt-3 text-sm leading-6 text-white/62">{alt}</p>
+          <p className="mt-3 text-[var(--text-caption)] leading-6 text-white/62">{alt}</p>
         </div>
       </div>
     );

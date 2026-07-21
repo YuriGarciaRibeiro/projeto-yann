@@ -57,7 +57,7 @@ export function TechnicalInfoSection({ project, sectionRow }: TechnicalInfoSecti
               <dt className="text-[var(--text-label)] font-medium uppercase tracking-[0.16em] text-[var(--mid-gray)]">
                 {label}
               </dt>
-              <dd className="text-[var(--text-caption)] leading-6 text-[var(--graphite)]">{value}</dd>
+              <dd className="text-[var(--text-meta)] leading-6 text-[var(--graphite)]">{value}</dd>
             </div>
           ))}
         </dl>
