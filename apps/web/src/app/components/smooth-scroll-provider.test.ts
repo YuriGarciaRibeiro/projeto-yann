@@ -20,6 +20,6 @@ assert.match(
 
 assert.match(
   smoothScrollProviderSource,
-  /lerp: 0\.055[\s\S]*wheelMultiplier: 0\.65/,
-  "Lenis should smooth Windows mouse wheel deltas before they drive scroll-bound video",
+  /lerp: 0\.08[\s\S]*wheelMultiplier: 0\.9[\s\S]*touchMultiplier: 1\.2/,
+  "Lenis should keep the calibrated smooth scroll settings that work across pointer types",
 );

@@ -46,9 +46,9 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
       root
       options={{
         autoRaf: true,
-        lerp: 0.055,
-        wheelMultiplier: 0.65,
-        touchMultiplier: 1,
+        lerp: 0.08,
+        wheelMultiplier: 0.9,
+        touchMultiplier: 1.2,
       }}
     >
       {children}
