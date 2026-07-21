@@ -614,3 +614,19 @@ def test_admin_delete_media_route_returns_409_for_referenced_asset(
 
     assert response.status_code == 409
     assert response.json() == {"detail": "Arquivo em uso. Remova-o do projeto antes de apagar."}
+
+
+def test_admin_delete_media_route_returns_400_for_repository_error(
+    client: TestClient,
+    route_repository: FakeAdminMediaRepository,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def raise_error(asset_id: str) -> dict[str, object]:
+        raise ValueError("Storage cleanup failed")
+
+    monkeypatch.setattr(route_repository, "delete_media_asset", raise_error)
+
+    response = client.delete("/admin/media/asset-id")
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Storage cleanup failed"}
