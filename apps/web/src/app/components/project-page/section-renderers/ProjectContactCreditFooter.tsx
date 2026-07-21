@@ -44,7 +44,7 @@ export function ProjectContactCreditFooter({
       className="bg-ink px-5 py-20 text-white sm:px-8 sm:py-28 lg:px-16"
       data-header-theme="light"
     >
-      <div className="mx-auto grid max-w-[1440px] gap-12 border-t border-white/18 pt-8 lg:grid-cols-12">
+      <div className="mx-auto grid max-w-[1440px] gap-12 border-t border-white/18 pt-8 lg:grid-cols-12 lg:items-center">
         <div className="lg:col-span-5">
           <p className="text-label font-medium uppercase tracking-[0.16em] text-white/45">
             Contato / credito
@@ -55,6 +55,15 @@ export function ProjectContactCreditFooter({
           >
             {title ?? project.clientArchitectName ?? project.title}
           </h2>
+          {mediaAsset ? (
+            <ProjectImage
+              alt={mediaAsset.altText ?? ""}
+              className="mt-8 aspect-[4/5] w-full max-w-[14rem] object-cover"
+              placeholderClassName="mt-8 aspect-[4/5] w-full max-w-[14rem]"
+              src={mediaAsset.url}
+              tone="dark"
+            />
+          ) : null}
           {body ? (
             <p className="mt-6 max-w-xl whitespace-pre-line text-body leading-7 text-white/68">
               {body}
@@ -63,15 +72,6 @@ export function ProjectContactCreditFooter({
         </div>
 
         <div className="lg:col-span-5 lg:col-start-8">
-          {mediaAsset ? (
-            <ProjectImage
-              alt={mediaAsset.altText ?? ""}
-              className="mb-8 aspect-[4/5] w-full max-w-sm object-cover grayscale"
-              placeholderClassName="mb-8 aspect-[4/5] w-full max-w-sm"
-              src={mediaAsset.url}
-              tone="dark"
-            />
-          ) : null}
           <dl className="grid gap-0">
             {project.clientArchitectName ? (
               <ContactRow label="Cliente / arquiteto" value={project.clientArchitectName} />
@@ -86,7 +86,7 @@ export function ProjectContactCreditFooter({
             ))}
           </dl>
           <p className="mt-12 text-label uppercase tracking-[0.18em] text-white/40">
-            Produzido por Yann
+            Produzido por Yann | Archviz Studio
           </p>
         </div>
       </div>

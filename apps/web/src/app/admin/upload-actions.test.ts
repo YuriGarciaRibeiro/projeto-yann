@@ -7,7 +7,7 @@ import {
   applyUploadModalInert,
   clearUploadModalInert,
   restoreUploadModalFocus,
-} from "./components/upload-modal-dom";
+} from "./components/upload-modal-dom.ts";
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const uploadActionsSource = readFileSync(join(currentDir, "upload-actions.ts"), "utf8");
@@ -18,6 +18,10 @@ const mediaUploadFieldSource = readFileSync(
 const uploadModalDomSource = readFileSync(join(currentDir, "components", "upload-modal-dom.ts"), "utf8");
 const adminActionsSource = readFileSync(join(currentDir, "actions.ts"), "utf8");
 const videoUploadRouteSource = readFileSync(join(currentDir, "uploads", "video", "route.ts"), "utf8");
+const contactCreditFooterSource = readFileSync(
+  join(currentDir, "..", "components", "project-page", "section-renderers", "ProjectContactCreditFooter.tsx"),
+  "utf8",
+);
 
 class FakeElement {
   attributes = new Set<string>();
@@ -239,4 +243,32 @@ assert.doesNotMatch(
   adminActionsSource,
   /createAdminMediaAsset\(\{[\s\S]*?\n\s*url[,\s\n]/,
   "saveMediaAssetAction must not forward client-provided media URLs to metadata creation",
+);
+
+const contactCreditLabelIndex = contactCreditFooterSource.indexOf("Contato / credito");
+const contactImageIndex = contactCreditFooterSource.indexOf("<ProjectImage");
+const contactTitleIndex = contactCreditFooterSource.indexOf("{title ?? project.clientArchitectName ?? project.title}");
+
+assert.notEqual(contactCreditLabelIndex, -1, "contact footer must render the contact credit label");
+assert.notEqual(contactImageIndex, -1, "contact footer must render the architect image");
+assert.notEqual(contactTitleIndex, -1, "contact footer must render the contact title after the image");
+assert.equal(
+  contactCreditLabelIndex < contactTitleIndex && contactTitleIndex < contactImageIndex,
+  true,
+  "architect image must sit below the contact credit label and contact title",
+);
+assert.doesNotMatch(
+  contactCreditFooterSource,
+  /ProjectImage[\s\S]*?className="[^"]*\bgrayscale\b/,
+  "architect image must render without grayscale treatment",
+);
+assert.match(
+  contactCreditFooterSource,
+  /className="[^"]*\blg:grid-cols-12\b[^"]*\blg:items-center\b[^"]*"/,
+  "contact footer columns must align vertically on desktop",
+);
+assert.match(
+  contactCreditFooterSource,
+  /ProjectImage[\s\S]*?className="[^"]*max-w-\[14rem\]/,
+  "architect image must be smaller than the previous max-w-sm treatment",
 );

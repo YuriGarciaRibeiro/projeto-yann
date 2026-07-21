@@ -14,6 +14,7 @@ import {
   clearUploadModalInert,
   restoreUploadModalFocus,
 } from "./upload-modal-dom";
+import { getLibraryItems } from "./media-library-items";
 
 type MediaUploadFieldProps = {
   description: string;
@@ -25,49 +26,9 @@ type MediaUploadFieldProps = {
 
 type UploadStatus = "idle" | "signing" | "uploading" | "saving" | "success" | "error";
 
-type LibraryItem = {
-  assets: AdminMediaAsset[];
-  displayName: string;
-  id: string;
-  mimeType: string;
-  usageScope: MediaUsageScope;
-  url: string;
-};
-
 function getDisplayNameFromFileName(fileName: string) {
   const extensionlessName = fileName.replace(/\.[^.]+$/, "").trim();
   return extensionlessName || fileName || "arquivo";
-}
-
-function getDisplayNameFromAsset(asset: AdminMediaAsset) {
-  return asset.altText.replace(/ - (rolagem otimizado|normal com áudio)$/, "");
-}
-
-function getLibraryItems(mediaAssets: AdminMediaAsset[]) {
-  const itemsByKey = new Map<string, LibraryItem>();
-
-  for (const asset of mediaAssets) {
-    const displayName = getDisplayNameFromAsset(asset);
-    const isVideo = asset.mimeType.startsWith("video/");
-    const key = isVideo ? `video:${displayName}` : asset.id;
-    const existingItem = itemsByKey.get(key);
-
-    if (existingItem) {
-      existingItem.assets.push(asset);
-      continue;
-    }
-
-    itemsByKey.set(key, {
-      assets: [asset],
-      displayName,
-      id: asset.id,
-      mimeType: asset.mimeType,
-      usageScope: asset.usageScope,
-      url: asset.url,
-    });
-  }
-
-  return Array.from(itemsByKey.values());
 }
 
 async function readVideoProgressStream(
