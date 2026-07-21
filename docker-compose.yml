@@ -2,7 +2,7 @@ services:
   web:
     build:
       context: .
-      target: runner
+      dockerfile: apps/web/Dockerfile
     restart: unless-stopped
     depends_on:
       backend:
@@ -21,7 +21,7 @@ services:
   backend:
     build:
       context: .
-      target: backend-runner
+      dockerfile: apps/backend/Dockerfile
     working_dir: /app/apps/backend
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     restart: unless-stopped
