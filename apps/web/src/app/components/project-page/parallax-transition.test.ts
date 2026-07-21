@@ -186,12 +186,12 @@ assert.match(
 
 assert.match(
   scrollVideoParallaxSource,
-  /style=\{\{ scaleX: scrollYProgress \}\}/,
-  "isolated scroll video parallax sections should expose a bottom progress indicator linked to section scroll progress",
+  /useMotionValueEvent\(smoothScrollYProgress, "change"/,
+  "isolated scroll video parallax sections should smooth scroll progress before targeting video time",
 );
 
 assert.match(
   parallaxVideoSequenceSource,
-  /style=\{\{ scaleX: scrollYProgress \}\}/,
-  "parallax video sequences should expose a bottom progress indicator linked to the combined sequence scroll progress",
+  /style=\{\{ scaleX: smoothScrollYProgress \}\}/,
+  "parallax video sequences should expose a bottom progress indicator linked to the smoothed combined sequence scroll progress",
 );

@@ -21,7 +21,8 @@ from app.dependencies import get_current_admin
 admin_uploads_router = APIRouter(prefix="/admin", tags=["admin-uploads"])
 media_router = APIRouter(tags=["media"])
 
-OUTPUT_MIME_TYPE = "video/mp4"
+SCRUB_OUTPUT_MIME_TYPE = "video/webm"
+STANDARD_OUTPUT_MIME_TYPE = "video/mp4"
 UPLOAD_CHUNK_SIZE = 1024 * 1024
 RANGE_HEADER_PATTERN = re.compile(r"^bytes=(\d+-\d*|\d*-\d+)$")
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ def _extensionless_file_name(file_name: str) -> str:
 
 
 def optimized_video_file_name(file_name: str) -> str:
-    return f"{_extensionless_file_name(file_name)}-rolagem.mp4"
+    return f"{_extensionless_file_name(file_name)}-rolagem.webm"
 
 
 def standard_video_file_name(file_name: str) -> str:
@@ -114,25 +115,19 @@ def create_scrub_video(input_path: str, output_path: str) -> None:
             "-vf",
             "scale='min(1920,iw)':-2",
             "-c:v",
-            "libx264",
-            "-preset",
-            "slow",
+            "libvpx-vp9",
+            "-deadline",
+            "good",
+            "-cpu-used",
+            "2",
             "-crf",
-            "22",
-            "-maxrate",
-            "5500k",
-            "-bufsize",
-            "9000k",
-            "-pix_fmt",
-            "yuv420p",
-            "-movflags",
-            "+faststart",
+            "32",
+            "-b:v",
+            "0",
+            "-row-mt",
+            "1",
             "-g",
             "12",
-            "-keyint_min",
-            "12",
-            "-sc_threshold",
-            "0",
             output_path,
         ]
     )
@@ -271,7 +266,7 @@ def upload_admin_video(
 
             temporary_directory = tempfile.mkdtemp(prefix="paralax-video-")
             input_path = os.path.join(temporary_directory, safe_temporary_file_name(file.filename or "input-video"))
-            scrub_output_path = os.path.join(temporary_directory, "output-scroll.mp4")
+            scrub_output_path = os.path.join(temporary_directory, "output-scroll.webm")
             standard_output_path = os.path.join(temporary_directory, "output-standard.mp4")
 
             source_upload_file = os.fdopen(source_upload_fd, "rb") if source_upload_fd is not None else None
@@ -323,7 +318,7 @@ def upload_admin_video(
                 storage.put_media_object(
                     {
                         "body": scrub_file,
-                        "contentType": OUTPUT_MIME_TYPE,
+                        "contentType": SCRUB_OUTPUT_MIME_TYPE,
                         "contentLength": scrub_size,
                         "storageKey": scrub_storage_key,
                     }
@@ -333,7 +328,7 @@ def upload_admin_video(
                 storage.put_media_object(
                     {
                         "body": standard_file,
-                        "contentType": OUTPUT_MIME_TYPE,
+                        "contentType": STANDARD_OUTPUT_MIME_TYPE,
                         "contentLength": standard_size,
                         "storageKey": standard_storage_key,
                     }
@@ -347,7 +342,7 @@ def upload_admin_video(
                 [
                     {
                         "storageKey": scrub_storage_key,
-                        "mimeType": OUTPUT_MIME_TYPE,
+                        "mimeType": SCRUB_OUTPUT_MIME_TYPE,
                         "sizeBytes": scrub_size,
                         "altText": f"{alt_text} - rolagem otimizado",
                         "usageScope": usage_scope,
@@ -356,7 +351,7 @@ def upload_admin_video(
                     },
                     {
                         "storageKey": standard_storage_key,
-                        "mimeType": OUTPUT_MIME_TYPE,
+                        "mimeType": STANDARD_OUTPUT_MIME_TYPE,
                         "sizeBytes": standard_size,
                         "altText": f"{alt_text} - normal com áudio",
                         "usageScope": usage_scope,

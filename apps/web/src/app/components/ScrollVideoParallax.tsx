@@ -77,7 +77,7 @@ export function ScrollVideoParallax({
     }
   };
 
-  useMotionValueEvent(scrollYProgress, "change", (progress) => {
+  useMotionValueEvent(smoothScrollYProgress, "change", (progress) => {
     if (controlledProgress !== undefined) {
       return;
     }
