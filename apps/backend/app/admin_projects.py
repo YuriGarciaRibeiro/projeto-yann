@@ -7,6 +7,7 @@ import psycopg
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from psycopg.rows import dict_row
+from psycopg.types.json import Json
 
 from app.admins import AdminUser
 from app.config import get_settings
@@ -266,6 +267,8 @@ def _section_values(input_data: Mapping[str, object]) -> dict[str, object]:
             values[column] = input_data[camel_key]
         elif column in input_data:
             values[column] = input_data[column]
+    if isinstance(values.get("metadata"), dict):
+        values["metadata"] = Json(values["metadata"])
     return values
 
 

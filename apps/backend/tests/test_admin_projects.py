@@ -4,6 +4,7 @@ from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
+from psycopg.types.json import Json
 
 import app.admin_projects as admin_projects
 from app.admins import AdminUser
@@ -416,6 +417,17 @@ def test_list_project_sections_does_not_commit_owned_connection(
     assert connection.commits == 0
     assert connection.rollbacks == 0
     assert connection.closes == 1
+
+
+def test_section_values_adapts_metadata_dict_to_json() -> None:
+    values = admin_projects._section_values(
+        {
+            "type": "parallax_video",
+            "metadata": {"scrollSpeed": 0.8, "chapters": [{"title": "Intro"}]},
+        }
+    )
+
+    assert isinstance(values["metadata"], Json)
 
 
 def test_delete_project_section_uses_id_and_project_id_parameters() -> None:
