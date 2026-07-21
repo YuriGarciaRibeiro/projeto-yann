@@ -42,3 +42,15 @@ assert.doesNotMatch(
   /projectStatusRedirect|redirect\(/,
   "inline section delete action should not redirect after deleting a section",
 );
+
+assert.match(
+  adminActionsSource,
+  /Este arquivo está sendo usado em um projeto/,
+  "media delete errors for referenced files should be rewritten as a friendly admin message",
+);
+
+assert.doesNotMatch(
+  getFunctionSource(adminActionsSource, "deleteMediaAssetAction"),
+  /error instanceof Error \? error\.message/,
+  "media delete action should not expose raw technical API error messages to the UI",
+);

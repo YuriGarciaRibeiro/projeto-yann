@@ -11,9 +11,44 @@ export type LibraryItem = {
 };
 
 const videoVariantLabelPattern = / - (rolagem otimizado|normal com áudio)$/;
+const storageFilePrefixPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}-/i;
+const storageVideoVariantPattern = /-(rolagem|normal)\.[^.]+$/i;
+
+function getStorageFileBaseName(storageKey: string) {
+  const fileName = storageKey.split("/").at(-1) ?? storageKey;
+  const withoutUuid = fileName.replace(storageFilePrefixPattern, "");
+  const withoutVariant = withoutUuid.replace(storageVideoVariantPattern, "");
+  return withoutVariant || withoutUuid;
+}
+
+function normalizeGroupName(value: string) {
+  return value.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function getVideoGroupingName(asset: AdminMediaAsset, displayName: string) {
+  const rawFileName = asset.storageKey.split("/").at(-1);
+  const storageFileBaseName = getStorageFileBaseName(asset.storageKey);
+  const storageDisplayName = storageFileBaseName.replaceAll("-", " ").trim();
+
+  if (
+    storageFileBaseName !== rawFileName &&
+    normalizeGroupName(displayName) === normalizeGroupName(storageDisplayName)
+  ) {
+    return storageFileBaseName;
+  }
+
+  return displayName;
+}
+
+function isVideoVariantAsset(asset: AdminMediaAsset) {
+  return Boolean(asset.videoVariant) || storageVideoVariantPattern.test(asset.storageKey);
+}
 
 export function getDisplayNameFromAsset(asset: AdminMediaAsset) {
-  return asset.altText.replace(videoVariantLabelPattern, "");
+  return asset.altText
+    .replace(videoVariantLabelPattern, "")
+    .replace(/-(rolagem|normal)$/i, "")
+    .trim();
 }
 
 export function getLibraryItems(mediaAssets: AdminMediaAsset[]) {
@@ -21,8 +56,13 @@ export function getLibraryItems(mediaAssets: AdminMediaAsset[]) {
 
   for (const asset of mediaAssets) {
     const displayName = getDisplayNameFromAsset(asset);
-    const groupingKey = asset.videoVariant
-      ? [asset.usageScope, asset.projectId ?? "site", asset.mimeType, displayName].join(":")
+    const groupingKey = isVideoVariantAsset(asset)
+      ? [
+          asset.usageScope,
+          asset.projectId ?? "site",
+          asset.mimeType,
+          getVideoGroupingName(asset, displayName),
+        ].join(":")
       : asset.id;
     const existingItem = items.get(groupingKey);
 

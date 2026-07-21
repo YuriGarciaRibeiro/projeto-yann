@@ -48,6 +48,25 @@ const items = getLibraryItems([
   },
 ]);
 
+const legacyItems = getLibraryItems([
+  {
+    ...baseAsset,
+    altText: "video-casa-rolagem",
+    id: "legacy-scrub",
+    storageKey: "uploads/2026/07/123e4567-e89b-12d3-a456-426614174005-video-casa-rolagem.mp4",
+    url: "https://example.com/video-casa-rolagem.mp4",
+    videoVariant: null,
+  },
+  {
+    ...baseAsset,
+    altText: "video-casa-normal",
+    id: "legacy-standard",
+    storageKey: "uploads/2026/07/123e4567-e89b-12d3-a456-426614174006-video-casa-normal.mp4",
+    url: "https://example.com/video-casa-normal.mp4",
+    videoVariant: null,
+  },
+]);
+
 assert.equal(items.length, 2, "video variants should be grouped as one visible library item");
 assert.deepEqual(
   items.map((item) => item.assets.map((asset) => asset.id)),
@@ -68,4 +87,15 @@ assert.deepEqual(
   items.map((item) => item.displayName),
   ["Video sala", "Video cozinha"],
   "library rows should hide technical video variant labels from admins",
+);
+
+assert.equal(
+  legacyItems.length,
+  1,
+  "legacy video variants should be grouped from their storage file names even without videoVariant metadata",
+);
+assert.deepEqual(
+  legacyItems[0]?.assets.map((asset) => asset.id),
+  ["legacy-scrub", "legacy-standard"],
+  "legacy grouped video rows should keep both storage variants",
 );

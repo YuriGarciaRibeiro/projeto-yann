@@ -135,6 +135,24 @@ function parseJsonObject(value: string) {
   return parsed as Record<string, unknown>;
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function getMediaDeleteErrorMessage(error: unknown) {
+  const message = getErrorMessage(error, "Não foi possível apagar o arquivo.");
+
+  if (message.includes("Arquivo em uso")) {
+    return "Este arquivo está sendo usado em um projeto. Remova-o dos blocos ou campos do projeto antes de apagar.";
+  }
+
+  if (message.includes("Failed to delete admin media asset")) {
+    return "Não foi possível apagar o arquivo agora. Tente novamente em alguns instantes.";
+  }
+
+  return message;
+}
+
 function statusRedirect(status: string) {
   redirect(`${ADMIN_PATH}?status=${encodeURIComponent(status)}`);
 }
@@ -518,7 +536,7 @@ export async function deleteMediaAssetAction(
   } catch (error) {
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Não foi possível apagar o arquivo.",
+      error: getMediaDeleteErrorMessage(error),
     };
   }
 }
