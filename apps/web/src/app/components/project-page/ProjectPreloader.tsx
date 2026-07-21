@@ -1,5 +1,6 @@
 "use client";
 
+import NextImage from "next/image";
 import { type ReactNode, useEffect, useState } from "react";
 
 import {
@@ -136,16 +137,22 @@ export function ProjectPreloader({
         <div
           aria-busy={!isReady}
           aria-live="polite"
-          className={`fixed inset-0 z-[100] grid place-items-center bg-[var(--black)] px-5 text-white transition-opacity duration-500 ease-out ${
+          className={`fixed inset-0 z-[100] grid place-items-center bg-black px-5 text-white transition-opacity duration-500 ease-out ${
             isReady ? "pointer-events-none opacity-0" : "opacity-100"
           }`}
           role="status"
         >
           <div className="w-full max-w-md text-center">
-            <p className="text-[var(--text-label)] font-medium uppercase tracking-[0.22em] text-white/52">
-              Yann
-            </p>
-            <p className="mt-5 font-[var(--font-display)] text-[var(--text-preloader-title)] font-normal leading-[0.86] tracking-[-0.055em]">
+            <NextImage
+              alt="Yann"
+              className="mx-auto h-16 w-auto"
+              height={1598}
+              priority
+              src="/logo.png"
+              unoptimized
+              width={3554}
+            />
+            <p className="mt-5 font-display text-preloader-title font-normal leading-[0.86] tracking-[-0.055em]">
               {projectTitle}
             </p>
             <div className="mx-auto mt-9 h-px w-44 overflow-hidden bg-white/18" aria-hidden="true">

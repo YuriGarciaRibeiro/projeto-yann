@@ -15,6 +15,25 @@
 
   --font-display: Georgia, "Times New Roman", serif;
   --font-sans: var(--font-geist-sans), Arial, sans-serif;
+}
+
+@theme inline {
+  --color-black: #050505;
+  --color-ink: #101010;
+  --color-charcoal: #1c1c1c;
+  --color-graphite: #3f3f3f;
+  --color-mid-gray: #777777;
+  --color-silver: #b7b7b7;
+  --color-line: #d8d8d8;
+  --color-paper: #f4f4f2;
+  --color-white: #ffffff;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
   --text-hero-title: clamp(4rem, 10vw, 9rem);
   --text-page-title: clamp(3.5rem, 12vw, 10rem);
   --text-project-title: clamp(2.75rem, 5.5vw, 5.5rem);
@@ -23,8 +42,8 @@
   --text-preloader-title: clamp(2.5rem, 12vw, 5.5rem);
   --text-body-large: clamp(1.125rem, 1.4vw, 1.375rem);
   --text-body: clamp(1rem, 1.1vw, 1.125rem);
-  --text-caption: 0.875rem;
-  --text-meta: 0.875rem;
+  --text-caption: 1.125rem;
+  --text-meta: 0.975rem;
   --text-label: 0.6875rem;
   --text-admin-title: clamp(2.25rem, 6vw, 3.75rem);
   --text-admin-page-title: 2.25rem;
@@ -35,33 +54,7 @@
   --text-admin-help: 0.75rem;
   --text-admin-control: 1rem;
 
-  --text-display-xl: var(--text-hero-title);
-  --text-display-lg: var(--text-page-title);
-  --text-h1: var(--text-project-title);
-  --text-h2: var(--text-section-title);
-  --text-h3: var(--text-card-title);
-  --text-body-lg: var(--text-body-large);
-  --text-small: var(--text-caption);
-
-  --space-4: 1rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-  --space-24: 6rem;
-  --space-32: 8rem;
-  --space-40: 10rem;
-
-  --duration-fast: 220ms;
-  --duration-base: 360ms;
   --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 body {

@@ -41,22 +41,22 @@ export function ProjectContactCreditFooter({
   return (
     <footer
       aria-labelledby={titleId}
-      className="bg-[var(--ink)] px-5 py-20 text-white sm:px-8 sm:py-28 lg:px-16"
+      className="bg-ink px-5 py-20 text-white sm:px-8 sm:py-28 lg:px-16"
       data-header-theme="light"
     >
       <div className="mx-auto grid max-w-[1440px] gap-12 border-t border-white/18 pt-8 lg:grid-cols-12">
         <div className="lg:col-span-5">
-          <p className="text-[var(--text-label)] font-medium uppercase tracking-[0.16em] text-white/45">
+          <p className="text-label font-medium uppercase tracking-[0.16em] text-white/45">
             Contato / credito
           </p>
           <h2
-            className="mt-5 font-[var(--font-display)] text-[var(--text-section-title)] font-normal leading-[1] tracking-[-0.045em]"
+            className="mt-5 font-display text-section-title font-normal leading-[1] tracking-[-0.045em]"
             id={titleId}
           >
             {title ?? project.clientArchitectName ?? project.title}
           </h2>
           {body ? (
-            <p className="mt-6 max-w-xl whitespace-pre-line text-[var(--text-body)] leading-7 text-white/68">
+            <p className="mt-6 max-w-xl whitespace-pre-line text-body leading-7 text-white/68">
               {body}
             </p>
           ) : null}
@@ -85,7 +85,7 @@ export function ProjectContactCreditFooter({
               />
             ))}
           </dl>
-          <p className="mt-12 text-[var(--text-label)] uppercase tracking-[0.18em] text-white/40">
+          <p className="mt-12 text-label uppercase tracking-[0.18em] text-white/40">
             Produzido por Yann
           </p>
         </div>
@@ -97,10 +97,10 @@ export function ProjectContactCreditFooter({
 function ContactRow({ href, label, value }: { href?: string; label: string; value: string }) {
   return (
     <div className="grid gap-2 border-b border-white/14 py-4 sm:grid-cols-[12rem_1fr] sm:gap-6">
-      <dt className="text-[var(--text-label)] font-medium uppercase tracking-[0.16em] text-white/42">
+      <dt className="text-label font-medium uppercase tracking-[0.16em] text-white/42">
         {label}
       </dt>
-      <dd className="text-[var(--text-meta)] leading-6 text-white/72">
+      <dd className="text-meta leading-6 text-white/72">
         {href ? (
           <a className="underline decoration-white/28 underline-offset-4 hover:decoration-white" href={href}>
             {value}

@@ -52,8 +52,8 @@ export function ProjectPage({ data }: ProjectPageProps) {
       videoMimeType={data.heroVideoAsset?.mimeType ?? null}
       videoSrc={data.heroVideoAsset?.url ?? null}
     >
-      <main className="overflow-x-clip bg-[var(--paper)] text-[var(--ink)]">
-        <ProjectHero data={data} sectionCount={renderedSections.length} />
+      <main className="overflow-x-clip bg-paper text-ink">
+        <ProjectHero data={data} />
         <article aria-label={`Conteudo do projeto ${data.project.title}`}>
           {renderGroups.map((group) =>
             group.type === "parallax_sequence" ? (

@@ -19,7 +19,7 @@ export function ParallaxVideoSection({
   return (
     <section
       aria-labelledby={section.title ? `${section.id}-title` : undefined}
-      className={`project-scroll-range project-scrub-flow relative bg-[var(--black)] text-white ${
+      className={`project-scroll-range project-scrub-flow relative bg-black text-white ${
         overlapPrevious ? "project-parallax-overlap" : ""
       }`}
       data-header-theme="light"
@@ -40,20 +40,20 @@ export function ParallaxVideoSection({
           <div className="col-span-4 sm:col-span-5 lg:col-span-6">
             {section.title ? (
               <h2
-                className="font-[var(--font-display)] text-[var(--text-project-title)] font-normal leading-[0.95] tracking-[-0.045em]"
+                className="font-display text-project-title font-normal leading-[0.95] tracking-[-0.045em]"
                 id={`${section.id}-title`}
               >
                 {section.title}
               </h2>
             ) : null}
             {section.body ? (
-              <p className="mt-6 max-w-2xl whitespace-pre-line text-[var(--text-body-large)] leading-[1.55] text-white/76">
+              <p className="mt-6 max-w-2xl whitespace-pre-line text-body-large leading-[1.55] text-white/76">
                 {section.body}
               </p>
             ) : null}
           </div>
           {section.caption ? (
-            <p className="col-span-4 mt-10 border-t border-white/20 pt-4 text-[var(--text-caption)] leading-6 text-white/60 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
+            <p className="col-span-4 mt-10 self-end border border-white/10 bg-white/[0.08] px-4 py-3 text-caption leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
               {section.caption}
             </p>
           ) : null}

@@ -23,6 +23,7 @@ type ScrollVideoParallaxProps = {
   onVideoError: () => void;
   posterSrc?: string | null;
   scrollRangeClassName?: string;
+  showProgress?: boolean;
   shouldWriteScrollHeight?: boolean;
   title: string;
   videoMimeType: string;
@@ -37,6 +38,7 @@ export function ScrollVideoParallax({
   onVideoError,
   posterSrc = null,
   scrollRangeClassName = "hero-scroll-range",
+  showProgress = true,
   shouldWriteScrollHeight = true,
   title,
   videoMimeType,
@@ -235,7 +237,7 @@ export function ScrollVideoParallax({
         </video>
       </div>
       <motion.div className="absolute inset-0 bg-black" style={{ opacity: shadeOpacity }} />
-      {controlledProgress === undefined ? (
+      {showProgress && controlledProgress === undefined ? (
         <div className="pointer-events-none absolute inset-x-5 bottom-5 z-40 h-px bg-white/20 sm:inset-x-8 lg:inset-x-16">
           <motion.div
             className="h-full origin-left bg-white"

@@ -27,22 +27,22 @@ export function TechnicalInfoSection({ project, sectionRow }: TechnicalInfoSecti
   return (
     <section
       aria-labelledby={`${section.id}-title`}
-      className="bg-white px-5 py-20 text-[var(--ink)] sm:px-8 sm:py-28 lg:px-16"
+      className="bg-white px-5 py-20 text-ink sm:px-8 sm:py-28 lg:px-16"
       data-header-theme="dark"
     >
-      <div className="mx-auto grid max-w-[1440px] gap-10 border-t border-[var(--line)] pt-8 lg:grid-cols-12">
+      <div className="mx-auto grid max-w-[1440px] gap-10 border-t border-line pt-8 lg:grid-cols-12">
         <div className="lg:col-span-4">
-          <p className="text-[var(--text-label)] font-medium uppercase tracking-[0.16em] text-[var(--mid-gray)]">
+          <p className="text-label font-medium uppercase tracking-[0.16em] text-mid-gray">
             Dados tecnicos
           </p>
           <h2
-            className="mt-5 font-[var(--font-display)] text-[var(--text-section-title)] font-normal leading-[1] tracking-[-0.045em]"
+            className="mt-5 font-display text-section-title font-normal leading-[1] tracking-[-0.045em]"
             id={`${section.id}-title`}
           >
             {section.title ?? "Informacoes do projeto"}
           </h2>
           {section.body ? (
-            <p className="mt-6 whitespace-pre-line text-[var(--text-caption)] leading-6 text-[var(--graphite)]">
+            <p className="mt-6 whitespace-pre-line text-caption leading-6 text-graphite">
               {section.body}
             </p>
           ) : null}
@@ -51,13 +51,13 @@ export function TechnicalInfoSection({ project, sectionRow }: TechnicalInfoSecti
         <dl className="grid gap-0 lg:col-span-6 lg:col-start-7">
           {facts.map(([label, value]) => (
             <div
-              className="grid gap-2 border-b border-[var(--line)] py-4 sm:grid-cols-[12rem_1fr] sm:gap-6"
+              className="grid gap-2 border-b border-line py-4 sm:grid-cols-[12rem_1fr] sm:gap-6"
               key={label}
             >
-              <dt className="text-[var(--text-label)] font-medium uppercase tracking-[0.16em] text-[var(--mid-gray)]">
+              <dt className="text-label font-medium uppercase tracking-[0.16em] text-mid-gray">
                 {label}
               </dt>
-              <dd className="text-[var(--text-meta)] leading-6 text-[var(--graphite)]">{value}</dd>
+              <dd className="text-meta leading-6 text-graphite">{value}</dd>
             </div>
           ))}
         </dl>

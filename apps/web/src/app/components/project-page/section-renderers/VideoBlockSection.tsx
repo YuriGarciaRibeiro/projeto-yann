@@ -15,12 +15,12 @@ export function VideoBlockSection({ sectionRow }: VideoBlockSectionProps) {
   return (
     <section
       aria-labelledby={section.title ? `${section.id}-title` : undefined}
-      className="bg-[var(--black)] px-5 py-20 text-white sm:px-8 sm:py-28 lg:px-16"
+      className="bg-black px-5 py-20 text-white sm:px-8 sm:py-28 lg:px-16"
       data-header-theme="light"
     >
       <div className="mx-auto grid max-w-[1440px] gap-8 lg:grid-cols-12 lg:gap-4">
         <div className="lg:col-span-8 lg:col-start-3">
-          <div className="aspect-video overflow-hidden bg-[var(--charcoal)]">
+          <div className="aspect-video overflow-hidden bg-charcoal">
             {primaryMediaAsset ? (
               <ProjectVideo
                 alt={videoAlt}
@@ -80,13 +80,13 @@ function SectionText({
     <div className="mt-6 grid gap-4 border-t border-white/18 pt-5 lg:grid-cols-8">
       {title ? (
         <h2
-          className="font-[var(--font-display)] text-[var(--text-card-title)] font-normal tracking-[-0.035em] lg:col-span-3"
+          className="font-display text-card-title font-normal tracking-[-0.035em] lg:col-span-3"
           id={`${id}-title`}
         >
           {title}
         </h2>
       ) : null}
-      <div className="text-[var(--text-caption)] leading-6 text-white/68 lg:col-span-4 lg:col-start-5">
+      <div className="text-caption leading-6 text-white/68 lg:col-span-4 lg:col-start-5">
         {body ? <p className="whitespace-pre-line">{body}</p> : null}
         {caption ? <p className="mt-4 text-white/45">{caption}</p> : null}
       </div>

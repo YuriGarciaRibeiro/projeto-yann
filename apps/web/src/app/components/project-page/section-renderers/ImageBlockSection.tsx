@@ -14,7 +14,7 @@ export function ImageBlockSection({ sectionRow }: ImageBlockSectionProps) {
   return (
     <section
       aria-labelledby={section.title ? `${section.id}-title` : undefined}
-      className="bg-[var(--paper)] px-5 py-16 text-[var(--ink)] sm:px-8 sm:py-24 lg:px-16"
+      className="bg-paper px-5 py-16 text-ink sm:px-8 sm:py-24 lg:px-16"
       data-header-theme="dark"
     >
       <div className="mx-auto max-w-[1440px]">
@@ -31,18 +31,18 @@ export function ImageBlockSection({ sectionRow }: ImageBlockSectionProps) {
             label={section.title ?? section.caption ?? "Imagem do projeto"}
           />
         )}
-        <div className="mt-6 grid gap-4 border-t border-[var(--line)] pt-5 lg:grid-cols-12">
+        <div className="mt-6 grid gap-4 border-t border-line pt-5 lg:grid-cols-12">
           {section.title ? (
             <h2
-              className="font-[var(--font-display)] text-[var(--text-card-title)] font-normal tracking-[-0.035em] lg:col-span-4"
+              className="font-display text-card-title font-normal tracking-[-0.035em] lg:col-span-4"
               id={`${section.id}-title`}
             >
               {section.title}
             </h2>
           ) : null}
-          <div className="text-[var(--text-caption)] leading-6 text-[var(--graphite)] lg:col-span-4 lg:col-start-8">
+          <div className="text-caption leading-6 text-graphite lg:col-span-4 lg:col-start-8">
             {section.body ? <p className="whitespace-pre-line">{section.body}</p> : null}
-            {section.caption ? <p className="mt-4 text-[var(--mid-gray)]">{section.caption}</p> : null}
+            {section.caption ? <p className="mt-4 text-mid-gray">{section.caption}</p> : null}
           </div>
         </div>
       </div>

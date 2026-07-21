@@ -336,17 +336,17 @@ export function MediaUploadField({
             role="dialog"
             tabIndex={-1}
           >
-            <p className="text-[var(--text-admin-help)] uppercase tracking-[0.18em] text-neutral-500">Upload em andamento</p>
+            <p className="text-admin-help uppercase tracking-[0.18em] text-neutral-500">Upload em andamento</p>
             <h2
-              className="mt-3 text-[var(--text-admin-section-title)] font-normal tracking-[-0.03em] text-neutral-950"
+              className="mt-3 text-admin-section-title font-normal tracking-[-0.03em] text-neutral-950"
               id="media-upload-progress-title"
             >
               Processando envio
             </h2>
-            <p className="mt-5 border border-neutral-200 px-4 py-3 text-[var(--text-admin-body)] text-neutral-700" role="status">
+            <p className="mt-5 border border-neutral-200 px-4 py-3 text-admin-body text-neutral-700" role="status">
               {message || "Preparando envio..."}
             </p>
-            <p className="mt-4 text-[var(--text-admin-help)] leading-5 text-neutral-500">
+            <p className="mt-4 text-admin-help leading-5 text-neutral-500">
               Não feche esta aba até o processamento terminar.
             </p>
           </div>
@@ -360,22 +360,22 @@ export function MediaUploadField({
     <section className="border border-neutral-200 bg-white p-5 md:p-6" id={usageScope === "site" ? "midias" : undefined}>
       <div className="space-y-5">
         <div>
-          <p className="text-[var(--text-admin-label)] uppercase tracking-[0.18em] text-neutral-500">
+          <p className="text-admin-label uppercase tracking-[0.18em] text-neutral-500">
             {usageScope === "site" ? "Arquivos do site" : "Arquivos deste projeto"}
           </p>
-          <h2 className="mt-2 text-[var(--text-admin-section-title)] font-normal tracking-[-0.02em]">{title}</h2>
-          <p className="mt-2 max-w-2xl text-[var(--text-admin-body)] leading-6 text-neutral-600">
+          <h2 className="mt-2 text-admin-section-title font-normal tracking-[-0.02em]">{title}</h2>
+          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-neutral-600">
             {description}
           </p>
         </div>
         <form className="grid gap-5 md:grid-cols-[1fr_auto] md:items-end" onSubmit={handleSubmit}>
           <div className="grid gap-2">
-            <label className="text-[var(--text-admin-label)] uppercase tracking-[0.14em]" htmlFor="media-upload-file">
+            <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor="media-upload-file">
               Arquivos
             </label>
             <input
               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
-              className="min-h-12 border border-neutral-300 bg-white px-3 py-2 text-[var(--text-admin-body)] outline-none file:mr-3 file:border-0 file:bg-neutral-950 file:px-3 file:py-2 file:text-[var(--text-admin-body)] file:text-white focus:border-neutral-950"
+              className="min-h-12 border border-neutral-300 bg-white px-3 py-2 text-admin-body outline-none file:mr-3 file:border-0 file:bg-neutral-950 file:px-3 file:py-2 file:text-admin-body file:text-white focus:border-neutral-950"
               disabled={isBusy}
               id="media-upload-file"
               multiple
@@ -384,7 +384,7 @@ export function MediaUploadField({
             />
           </div>
           <button
-            className="min-h-12 border border-neutral-950 px-5 text-[var(--text-admin-label)] uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:text-neutral-400 disabled:hover:bg-white disabled:hover:text-neutral-400"
+            className="min-h-12 border border-neutral-950 px-5 text-admin-label uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:text-neutral-400 disabled:hover:bg-white disabled:hover:text-neutral-400"
             disabled={isBusy}
             type="submit"
           >
@@ -395,8 +395,8 @@ export function MediaUploadField({
           <p
             className={
               status === "error"
-                ? "border border-neutral-950 bg-neutral-950 px-4 py-3 text-[var(--text-admin-body)] text-white"
-                : "border border-neutral-300 px-4 py-3 text-[var(--text-admin-body)] text-neutral-700"
+                ? "border border-neutral-950 bg-neutral-950 px-4 py-3 text-admin-body text-white"
+                : "border border-neutral-300 px-4 py-3 text-admin-body text-neutral-700"
             }
             role={status === "error" ? "alert" : isBusy ? undefined : "status"}
           >
@@ -404,9 +404,9 @@ export function MediaUploadField({
           </p>
         ) : null}
         <div className="space-y-3">
-          <h3 className="text-[var(--text-admin-label)] uppercase tracking-[0.14em]">Biblioteca</h3>
+          <h3 className="text-admin-label uppercase tracking-[0.14em]">Biblioteca</h3>
           {mediaAssets.length > 0 ? (
-            <ul className="divide-y divide-neutral-200 border border-neutral-200 text-[var(--text-admin-body)]">
+            <ul className="divide-y divide-neutral-200 border border-neutral-200 text-admin-body">
               {libraryItems.map((item) => (
                 <li className="grid gap-1 px-3 py-3 md:grid-cols-[1fr_auto] md:gap-4" key={item.id}>
                   <span className="font-medium">{item.displayName}</span>
@@ -425,7 +425,7 @@ export function MediaUploadField({
               ))}
             </ul>
           ) : (
-            <p className="border border-neutral-200 px-4 py-3 text-[var(--text-admin-body)] text-neutral-600">
+            <p className="border border-neutral-200 px-4 py-3 text-admin-body text-neutral-600">
               Nenhuma foto ou vídeo foi salvo ainda.
             </p>
           )}
