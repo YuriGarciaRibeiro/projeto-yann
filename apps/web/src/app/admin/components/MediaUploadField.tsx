@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { MediaUsageScope } from "@/lib/api/project-types";
 
-import { saveMediaAssetAction } from "../actions";
+import { deleteMediaAssetAction, saveMediaAssetAction } from "../actions";
 import { createSignedAdminUploadAction, type VideoUploadProgressEvent } from "../upload-actions";
 import {
   applyUploadModalInert,
@@ -128,6 +128,7 @@ export function MediaUploadField({
     return container;
   });
   const [status, setStatus] = useState<UploadStatus>("idle");
+  const [deletingAssetId, setDeletingAssetId] = useState<string | null>(null);
 
   const isBusy = status === "signing" || status === "uploading" || status === "saving";
   const libraryItems = getLibraryItems(mediaAssets);
@@ -286,6 +287,38 @@ export function MediaUploadField({
     }
   }
 
+  async function handleDeleteAsset(assetId: string, displayName: string) {
+    if (isBusy || deletingAssetId) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Apagar "${displayName}"? Esta ação remove o arquivo da biblioteca e do storage.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingAssetId(assetId);
+    setStatus("idle");
+    setMessage(`Apagando ${displayName}...`);
+
+    try {
+      const result = await deleteMediaAssetAction(assetId);
+      if (!result.ok) {
+        throw new Error(result.error ?? "Não foi possível apagar o arquivo.");
+      }
+
+      setMessage(`${displayName} apagado.`);
+      router.refresh();
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Não foi possível apagar o arquivo.");
+    } finally {
+      setDeletingAssetId(null);
+    }
+  }
+
   const uploadDialog = isBusy && portalContainer
     ? createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
@@ -370,10 +403,20 @@ export function MediaUploadField({
             <ul className="divide-y divide-neutral-200 border border-neutral-200 text-admin-body">
               {libraryItems.map((item) => (
                 <li className="grid gap-1 px-3 py-3 md:grid-cols-[1fr_auto] md:gap-4" key={item.id}>
-                  <span className="font-medium">{item.displayName}</span>
-                  <span className="text-neutral-600">
-                    {item.mimeType} / Usado em: {item.usageScope === "site" ? "Site" : "Projeto"}
-                  </span>
+                  <div className="grid gap-1">
+                    <span className="font-medium">{item.displayName}</span>
+                    <span className="text-neutral-600">
+                      {item.mimeType} / Usado em: {item.usageScope === "site" ? "Site" : "Projeto"}
+                    </span>
+                  </div>
+                  <button
+                    className="justify-self-start border border-neutral-300 px-3 py-2 text-admin-label uppercase tracking-[0.14em] text-neutral-700 hover:border-neutral-950 hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 disabled:hover:bg-white disabled:hover:text-neutral-400 md:justify-self-end"
+                    disabled={isBusy || deletingAssetId !== null}
+                    onClick={() => void handleDeleteAsset(item.id, item.displayName)}
+                    type="button"
+                  >
+                    {deletingAssetId === item.id ? "Apagando" : "Apagar"}
+                  </button>
                   <a
                     className="break-all text-neutral-600 underline underline-offset-4 md:col-span-2"
                     href={item.url}

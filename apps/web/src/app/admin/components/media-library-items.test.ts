@@ -59,3 +59,9 @@ assert.deepEqual(
   ],
   "library rows should match database rows instead of collapsing videos by repeated titles",
 );
+
+assert.deepEqual(
+  items.map((item) => item.id),
+  ["scrub-1", "standard-1", "scrub-2", "standard-2"],
+  "library rows should expose stable asset ids for row actions",
+);
