@@ -1,4 +1,8 @@
+"use client";
+
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
+import { useRef } from "react";
 
 import { ProjectScrollMedia } from "../ProjectScrollMedia";
 import type { PublishedProjectPageData } from "./ProjectPage";
@@ -8,15 +12,28 @@ type ProjectHeroProps = {
 };
 
 export function ProjectHero({ data }: ProjectHeroProps) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const shouldReduceMotion = useReducedMotion();
   const { project, heroVideoAsset, fallbackImageAsset } = data;
   const mediaAlt =
     fallbackImageAsset?.altText ?? heroVideoAsset?.altText ?? `Imagem do projeto ${project.title}.`;
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  });
+  const smoothScrollYProgress = useSpring(scrollYProgress, {
+    damping: 30,
+    restDelta: 0.001,
+    stiffness: 100,
+  });
+  const contentY = useTransform(smoothScrollYProgress, [0.62, 1], [0, shouldReduceMotion ? 0 : -96]);
 
   return (
     <section
       aria-labelledby="project-title"
       className="hero-scroll-range project-scrub-flow relative bg-black text-white"
       data-header-theme="light"
+      ref={sectionRef}
     >
       <header className="pointer-events-none absolute inset-x-0 top-0 z-40 px-5 py-5 text-white sm:px-8 lg:px-16">
         <div className="pointer-events-auto mx-auto flex max-w-360 items-center justify-between gap-6 text-label font-medium uppercase tracking-[0.18em]">
@@ -51,7 +68,10 @@ export function ProjectHero({ data }: ProjectHeroProps) {
         <div className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(90deg,rgb(0_0_0/0.66)_0%,rgb(0_0_0/0.28)_42%,transparent_74%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1/2 bg-[linear-gradient(0deg,rgb(0_0_0/0.64)_0%,transparent_70%)]" />
 
-        <div className="relative z-30 mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-16 lg:pb-16">
+        <motion.div
+          className="relative z-30 mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-16 lg:pb-16"
+          style={{ y: contentY }}
+        >
           <div className="col-span-4 sm:col-span-5 lg:col-span-7">
             <p className="text-label font-medium uppercase tracking-[0.16em] text-white/68">
               {project.category} / {project.location} / {project.year}
@@ -75,7 +95,7 @@ export function ProjectHero({ data }: ProjectHeroProps) {
             <HeroFact label="Ano" value={String(project.year)} />
             <HeroFact label="Categoria" value={project.category} />
           </dl>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

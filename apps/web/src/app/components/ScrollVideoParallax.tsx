@@ -5,6 +5,7 @@ import {
   type MotionValue,
   useMotionValueEvent,
   useScroll,
+  useSpring,
   useTransform,
 } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -58,7 +59,12 @@ export function ScrollVideoParallax({
     target: sectionRef,
     offset: ["start start", "end end"],
   });
-  const shadeOpacity = useTransform(scrollYProgress, [0, 0.6, 1], [0.18, 0.34, 0.56]);
+  const smoothScrollYProgress = useSpring(scrollYProgress, {
+    damping: 30,
+    restDelta: 0.001,
+    stiffness: 100,
+  });
+  const shadeOpacity = useTransform(smoothScrollYProgress, [0, 0.6, 1], [0.18, 0.34, 0.56]);
   const controlledMotionProgress =
     typeof controlledProgress === "number" ? null : (controlledProgress ?? null);
 
@@ -241,7 +247,7 @@ export function ScrollVideoParallax({
         <div className="pointer-events-none absolute inset-x-5 bottom-5 z-40 h-px bg-white/20 sm:inset-x-8 lg:inset-x-16">
           <motion.div
             className="h-full origin-left bg-white"
-            style={{ scaleX: scrollYProgress }}
+            style={{ scaleX: smoothScrollYProgress }}
           />
         </div>
       ) : null}

@@ -1,6 +1,14 @@
 "use client";
 
-import { motion, useMotionValue, useMotionValueEvent, useScroll } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+} from "framer-motion";
 import {
   type CSSProperties,
   type SyntheticEvent,
@@ -27,6 +35,7 @@ type ParallaxVideoSequenceProps = {
 export function ParallaxVideoSequence({ sectionRows }: ParallaxVideoSequenceProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const activeIndexRef = useRef(0);
+  const shouldReduceMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
   const [canEnhanceSequence, setCanEnhanceSequence] = useState(false);
   const activeSegmentProgress = useMotionValue(0);
@@ -36,6 +45,11 @@ export function ParallaxVideoSequence({ sectionRows }: ParallaxVideoSequenceProp
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"],
+  });
+  const smoothScrollYProgress = useSpring(scrollYProgress, {
+    damping: 30,
+    restDelta: 0.001,
+    stiffness: 100,
   });
 
   const totalScrollHeight = getTotalSegmentScrollHeight(segmentScrollHeights);
@@ -225,32 +239,41 @@ export function ParallaxVideoSequence({ sectionRows }: ParallaxVideoSequenceProp
         <div className="pointer-events-none absolute inset-x-5 bottom-5 z-40 h-px bg-white/20 sm:inset-x-8 lg:inset-x-16">
           <motion.div
             className="h-full origin-left bg-white"
-            style={{ scaleX: scrollYProgress }}
+            style={{ scaleX: smoothScrollYProgress }}
           />
         </div>
 
-        <div className="relative z-30 mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-16 lg:pb-16">
-          <div className="col-span-4 sm:col-span-5 lg:col-span-6">
-            {section.title ? (
-              <h2
-                className="font-display text-project-title font-normal leading-[0.95] tracking-[-0.045em]"
-                id={`${section.id}-title`}
-              >
-                {section.title}
-              </h2>
-            ) : null}
-            {section.body ? (
-              <p className="mt-6 max-w-2xl whitespace-pre-line text-body-large leading-[1.55] text-white/76">
-                {section.body}
+        <AnimatePresence mode="wait">
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            className="relative z-30 mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-16 lg:pb-16"
+            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -12 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 18 }}
+            key={section.id}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.41, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="col-span-4 sm:col-span-5 lg:col-span-6">
+              {section.title ? (
+                <h2
+                  className="font-display text-project-title font-normal leading-[0.95] tracking-[-0.045em]"
+                  id={`${section.id}-title`}
+                >
+                  {section.title}
+                </h2>
+              ) : null}
+              {section.body ? (
+                <p className="mt-6 max-w-2xl whitespace-pre-line text-body-large leading-[1.55] text-white/76">
+                  {section.body}
+                </p>
+              ) : null}
+            </div>
+            {section.caption ? (
+              <p className="col-span-4 mt-10 self-end border border-white/10 bg-white/[0.08] px-4 py-3 text-caption leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
+                {section.caption}
               </p>
             ) : null}
-          </div>
-          {section.caption ? (
-            <p className="col-span-4 mt-10 self-end border border-white/10 bg-white/[0.08] px-4 py-3 text-caption leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
-              {section.caption}
-            </p>
-          ) : null}
-        </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   );
