@@ -16,7 +16,7 @@ import {
   upsertAdminProject,
   upsertAdminProjectSection,
 } from "@/lib/api/admin-projects";
-import { createAdminMediaAsset } from "@/lib/api/admin-media";
+import { createAdminMediaAsset, deleteAdminMediaAsset } from "@/lib/api/admin-media";
 import {
   validateMediaUploadInput,
   validateUploadStorageKey,
@@ -476,6 +476,24 @@ export async function saveMediaAssetAction(input: {
   revalidatePath("/");
 
   return { ok: true };
+}
+
+export async function deleteMediaAssetAction(
+  assetId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  await requireAdminSession();
+
+  try {
+    await deleteAdminMediaAsset(assetId);
+    revalidatePath("/admin");
+    revalidatePath("/admin/projetos/[id]", "page");
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Não foi possível apagar o arquivo.",
+    };
+  }
 }
 
 export async function logoutAdminAction() {

@@ -132,3 +132,11 @@ export async function createAdminMediaAsset(
 
   return readAdminMediaResponse<AdminMediaAsset>(response, "Failed to create admin media asset");
 }
+
+export async function deleteAdminMediaAsset(assetId: string): Promise<AdminMediaAsset> {
+  const response = await fetchAdminMediaApi(`/admin/media/${encodeURIComponent(assetId)}`, {
+    method: "DELETE",
+  });
+
+  return readAdminMediaResponse<AdminMediaAsset>(response, "Failed to delete admin media asset");
+}
