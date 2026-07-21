@@ -132,6 +132,7 @@ export function MediaUploadField({
 
   const isBusy = status === "signing" || status === "uploading" || status === "saving";
   const libraryItems = getLibraryItems(mediaAssets);
+  const isMutating = isBusy || deletingAssetId !== null;
 
   useEffect(() => {
     if (!portalContainer || typeof document === "undefined") {
@@ -370,7 +371,7 @@ export function MediaUploadField({
             <input
               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
               className="min-h-12 border border-neutral-300 bg-white px-3 py-2 text-admin-body outline-none file:mr-3 file:border-0 file:bg-neutral-950 file:px-3 file:py-2 file:text-admin-body file:text-white focus:border-neutral-950"
-              disabled={isBusy}
+              disabled={isMutating}
               id="media-upload-file"
               multiple
               ref={fileInputRef}
@@ -379,7 +380,7 @@ export function MediaUploadField({
           </div>
           <button
             className="min-h-12 border border-neutral-950 px-5 text-admin-label uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:text-neutral-400 disabled:hover:bg-white disabled:hover:text-neutral-400"
-            disabled={isBusy}
+            disabled={isMutating}
             type="submit"
           >
             {isBusy ? "Enviando" : "Enviar"}
@@ -410,8 +411,9 @@ export function MediaUploadField({
                     </span>
                   </div>
                   <button
+                    aria-label={`Apagar ${item.displayName}`}
                     className="justify-self-start border border-neutral-300 px-3 py-2 text-admin-label uppercase tracking-[0.14em] text-neutral-700 hover:border-neutral-950 hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 disabled:hover:bg-white disabled:hover:text-neutral-400 md:justify-self-end"
-                    disabled={isBusy || deletingAssetId !== null}
+                    disabled={isMutating}
                     onClick={() => void handleDeleteAsset(item.id, item.displayName)}
                     type="button"
                   >
