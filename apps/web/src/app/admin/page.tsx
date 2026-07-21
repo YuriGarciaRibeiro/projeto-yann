@@ -45,13 +45,13 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     <AdminShell error={params.error} status={params.status}>
       <section className="space-y-6" id="projects">
         <div>
-          <p className="text-sm uppercase tracking-[0.18em] text-neutral-500" id="projetos">
+          <p className="text-[var(--text-admin-label)] uppercase tracking-[0.18em] text-neutral-500" id="projetos">
             Projetos
           </p>
-          <h2 className="mt-2 font-[var(--font-display)] text-4xl font-normal tracking-[-0.04em]">
+          <h2 className="mt-2 font-[var(--font-display)] text-[var(--text-admin-page-title)] font-normal tracking-[-0.04em]">
             Páginas de projeto
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-600">
+          <p className="mt-2 max-w-2xl text-[var(--text-admin-body)] leading-6 text-neutral-600">
             Crie, edite e organize as páginas públicas dos projetos. As fotos e vídeos enviados aparecem nos campos de mídia.
           </p>
         </div>
@@ -72,13 +72,13 @@ function ProjectList({ projects }: { projects: AdminProject[] }) {
     <section className="border border-neutral-200 bg-white p-5 md:p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-xl font-normal tracking-[-0.02em]">Lista de projetos</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-600">
+          <h2 className="text-[var(--text-admin-section-title)] font-normal tracking-[-0.02em]">Lista de projetos</h2>
+          <p className="mt-2 max-w-2xl text-[var(--text-admin-body)] leading-6 text-neutral-600">
             Entre em um projeto para editar seus dados, arquivos e blocos da página.
           </p>
         </div>
         <Link
-          className="inline-flex min-h-11 items-center justify-center border border-neutral-950 px-5 text-sm uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+          className="inline-flex min-h-11 items-center justify-center border border-neutral-950 px-5 text-[var(--text-admin-label)] uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
           href="/admin/projetos/novo"
         >
           Criar novo projeto
@@ -90,10 +90,10 @@ function ProjectList({ projects }: { projects: AdminProject[] }) {
           {projects.map((project) => (
             <li className="grid gap-4 py-5 md:grid-cols-[1fr_auto] md:items-center" key={project.id}>
               <div>
-                <p className="font-[var(--font-display)] text-3xl font-normal tracking-[-0.04em]">
+                <p className="font-[var(--font-display)] text-[var(--text-admin-card-title)] font-normal tracking-[-0.04em]">
                   {project.title}
                 </p>
-                <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-neutral-600">
+                <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[var(--text-admin-body)] text-neutral-600">
                   <div>
                     <dt className="sr-only">Ano</dt>
                     <dd>{project.year}</dd>
@@ -106,14 +106,14 @@ function ProjectList({ projects }: { projects: AdminProject[] }) {
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  className="inline-flex min-h-11 items-center border border-neutral-950 px-4 text-sm uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+                  className="inline-flex min-h-11 items-center border border-neutral-950 px-4 text-[var(--text-admin-label)] uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
                   href={`/admin/projetos/${project.id}`}
                 >
                   Editar
                 </Link>
                 {project.isPublished ? (
                   <Link
-                    className="inline-flex min-h-11 items-center border border-neutral-300 px-4 text-sm uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+                    className="inline-flex min-h-11 items-center border border-neutral-300 px-4 text-[var(--text-admin-label)] uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
                     href={`/projetos/${project.slug}`}
                     target="_blank"
                   >
@@ -125,7 +125,7 @@ function ProjectList({ projects }: { projects: AdminProject[] }) {
           ))}
         </ul>
       ) : (
-        <p className="mt-6 border border-neutral-200 px-4 py-3 text-sm text-neutral-600">
+        <p className="mt-6 border border-neutral-200 px-4 py-3 text-[var(--text-admin-body)] text-neutral-600">
           Nenhum projeto criado ainda.
         </p>
       )}
