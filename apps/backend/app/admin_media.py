@@ -15,6 +15,14 @@ from app.dependencies import get_current_admin
 admin_media_router = APIRouter(prefix="/admin", tags=["admin-media"])
 
 
+class MediaAssetNotFound(ValueError):
+    pass
+
+
+class MediaAssetInUse(ValueError):
+    pass
+
+
 class MediaAssetCreateRequest(BaseModel):
     storageKey: Optional[str] = None
     url: Optional[str] = None
@@ -40,6 +48,9 @@ class AdminMediaRepository(Protocol):
         ...
 
     def create_media_assets(self, inputs: List[Mapping[str, object]]) -> List[dict[str, object]]:
+        ...
+
+    def delete_media_asset(self, asset_id: str) -> dict[str, object]:
         ...
 
 
@@ -285,6 +296,69 @@ class PostgresAdminMediaRepository:
 
         return rows
 
+    def _get_media_asset(self, asset_id: str, connection: psycopg.Connection) -> Optional[dict[str, object]]:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"""
+                select {MEDIA_COLUMNS}
+                from media_assets
+                where id = %s
+                limit 1
+                """,
+                (asset_id,),
+            )
+            return map_media_asset_row(cursor.fetchone())
+
+    def _get_media_asset_reference(self, asset_id: str, connection: psycopg.Connection) -> Optional[Mapping[str, object]]:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                select source
+                from (
+                    select 'projects' as source from projects where hero_video_asset_id = %s
+                    union all
+                    select 'projects' as source from projects where fallback_image_asset_id = %s
+                    union all
+                    select 'projects' as source from projects where client_architect_image_asset_id = %s
+                    union all
+                    select 'site_profile' as source from site_profile where portrait_image_asset_id = %s
+                    union all
+                    select 'project_sections' as source from project_sections where primary_media_asset_id = %s
+                    union all
+                    select 'project_sections' as source from project_sections where poster_media_asset_id = %s
+                ) references
+                limit 1
+                """,
+                (asset_id, asset_id, asset_id, asset_id, asset_id, asset_id),
+            )
+            return cursor.fetchone()
+
+    def delete_media_asset(self, asset_id: str) -> dict[str, object]:
+        with self._connection(write=True) as connection:
+            asset = self._get_media_asset(asset_id, connection)
+            if asset is None:
+                raise MediaAssetNotFound("Media asset not found")
+
+            if self._get_media_asset_reference(asset_id, connection) is not None:
+                raise MediaAssetInUse("Arquivo em uso. Remova-o do projeto antes de apagar.")
+
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    delete from media_assets
+                    where id = %s
+                    returning {MEDIA_COLUMNS}
+                    """,
+                    (asset_id,),
+                )
+                deleted_asset = map_media_asset_row(cursor.fetchone())
+
+        if deleted_asset is None:
+            raise MediaAssetNotFound("Media asset not found")
+
+        storage.delete_media_objects([str(deleted_asset["storageKey"])])
+        return deleted_asset
+
 
 def get_admin_media_repository() -> AdminMediaRepository:
     return PostgresAdminMediaRepository()
@@ -328,5 +402,21 @@ def create_admin_media(
 ) -> dict[str, object]:
     try:
         return repository.create_media_asset(_request_data(body))
+    except ValueError as error:
+        raise _bad_request(error) from error
+
+
+@admin_media_router.delete("/media/{asset_id}")
+def delete_admin_media(
+    asset_id: str,
+    current_admin: Annotated[AdminUser, Depends(get_current_admin)],
+    repository: Annotated[AdminMediaRepository, Depends(get_admin_media_repository)],
+) -> dict[str, object]:
+    try:
+        return repository.delete_media_asset(asset_id)
+    except MediaAssetNotFound as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    except MediaAssetInUse as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
     except ValueError as error:
         raise _bad_request(error) from error

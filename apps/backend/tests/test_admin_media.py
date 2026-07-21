@@ -133,6 +133,10 @@ class FakeAdminMediaRepository:
         self.calls.append(("create_media_assets", (tuple(dict(input_data) for input_data in inputs),)))
         return created_assets
 
+    def delete_media_asset(self, asset_id: str) -> dict[str, object]:
+        self.calls.append(("delete_media_asset", (asset_id,)))
+        return map_media_asset_row(media_row(id=asset_id))
+
 
 @pytest.fixture
 def admin_user() -> AdminUser:
@@ -386,6 +390,56 @@ def test_create_media_asset_reraises_other_database_errors() -> None:
         )
 
 
+def test_delete_media_asset_removes_unused_row_and_storage_object(monkeypatch: pytest.MonkeyPatch) -> None:
+    deleted_storage_keys: List[List[str]] = []
+    connection = FakeConnection(one_rows=[media_row(), None, media_row()])
+    monkeypatch.setattr(admin_media.storage, "delete_media_objects", lambda keys: deleted_storage_keys.append(list(keys)))
+
+    asset = PostgresAdminMediaRepository(connection).delete_media_asset("asset-id")
+
+    assert asset["id"] == "asset-id"
+    assert "from media_assets" in connection.cursor_instance.queries[0]
+    assert "from projects" in connection.cursor_instance.queries[1]
+    assert "from project_sections" in connection.cursor_instance.queries[1]
+    assert "delete from media_assets" in connection.cursor_instance.queries[2]
+    assert connection.cursor_instance.params[0] == ("asset-id",)
+    assert connection.cursor_instance.params[1] == ("asset-id",) * 6
+    assert connection.cursor_instance.params[2] == ("asset-id",)
+    assert deleted_storage_keys == [[DEFAULT_STORAGE_KEY]]
+
+
+def test_delete_media_asset_raises_not_found_when_asset_is_missing() -> None:
+    connection = FakeConnection(one_rows=[None])
+
+    with pytest.raises(admin_media.MediaAssetNotFound, match="Media asset not found"):
+        PostgresAdminMediaRepository(connection).delete_media_asset("missing-id")
+
+    assert len(connection.cursor_instance.queries) == 1
+    assert "delete from media_assets" not in " ".join(connection.cursor_instance.queries)
+
+
+def test_delete_media_asset_blocks_when_asset_is_referenced() -> None:
+    connection = FakeConnection(one_rows=[media_row(), {"source": "projects"}])
+
+    with pytest.raises(admin_media.MediaAssetInUse, match="Arquivo em uso"):
+        PostgresAdminMediaRepository(connection).delete_media_asset("asset-id")
+
+    assert len(connection.cursor_instance.queries) == 2
+    assert "delete from media_assets" not in " ".join(connection.cursor_instance.queries)
+
+
+def test_delete_media_asset_commits_and_closes_owned_connection(monkeypatch: pytest.MonkeyPatch) -> None:
+    connection = FakeConnection(one_rows=[media_row(), None, media_row()])
+    monkeypatch.setattr(admin_media.psycopg, "connect", lambda *args, **kwargs: connection)
+    monkeypatch.setattr(admin_media.storage, "delete_media_objects", lambda keys: None)
+
+    PostgresAdminMediaRepository().delete_media_asset("asset-id")
+
+    assert connection.commits == 1
+    assert connection.rollbacks == 0
+    assert connection.closes == 1
+
+
 def test_admin_list_site_media_route_requires_auth(route_repository: FakeAdminMediaRepository) -> None:
     app = create_app()
     app.dependency_overrides[admin_media.get_admin_media_repository] = lambda: route_repository
@@ -485,3 +539,55 @@ def test_admin_create_media_route_returns_400_for_repository_error(
 
     assert response.status_code == 400
     assert response.json() == {"detail": "Project not found"}
+
+
+def test_admin_delete_media_route_requires_auth(route_repository: FakeAdminMediaRepository) -> None:
+    app = create_app()
+    app.dependency_overrides[admin_media.get_admin_media_repository] = lambda: route_repository
+    test_client = TestClient(app)
+
+    response = test_client.delete("/admin/media/asset-id")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Authentication required."}
+    assert route_repository.calls == []
+
+
+def test_admin_delete_media_route(client: TestClient, route_repository: FakeAdminMediaRepository) -> None:
+    response = client.delete("/admin/media/asset-id")
+
+    assert response.status_code == 200
+    assert response.json()["id"] == "asset-id"
+    assert route_repository.calls == [("delete_media_asset", ("asset-id",))]
+
+
+def test_admin_delete_media_route_returns_404_for_missing_asset(
+    client: TestClient,
+    route_repository: FakeAdminMediaRepository,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def raise_error(asset_id: str) -> dict[str, object]:
+        raise admin_media.MediaAssetNotFound("Media asset not found")
+
+    monkeypatch.setattr(route_repository, "delete_media_asset", raise_error)
+
+    response = client.delete("/admin/media/missing-id")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Media asset not found"}
+
+
+def test_admin_delete_media_route_returns_409_for_referenced_asset(
+    client: TestClient,
+    route_repository: FakeAdminMediaRepository,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def raise_error(asset_id: str) -> dict[str, object]:
+        raise admin_media.MediaAssetInUse("Arquivo em uso. Remova-o do projeto antes de apagar.")
+
+    monkeypatch.setattr(route_repository, "delete_media_asset", raise_error)
+
+    response = client.delete("/admin/media/asset-id")
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Arquivo em uso. Remova-o do projeto antes de apagar."}
