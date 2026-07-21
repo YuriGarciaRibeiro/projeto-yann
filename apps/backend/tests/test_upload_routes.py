@@ -123,8 +123,8 @@ def test_video_upload_processes_two_variants_and_creates_media_rows(
             output_file.write(b"scrub-bytes" if "scroll" in output_path else b"standard-bytes")
 
     def fake_create_media_storage_key(file_name: str) -> str:
-        if file_name == "hero-rolagem.webm":
-            return "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.webm"
+        if file_name == "hero-rolagem.mp4":
+            return "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4"
         return "uploads/2026/07/123e4567-e89b-12d3-a456-426614174001-hero-normal.mp4"
 
     def fake_put_media_object(input_data: Mapping[str, object]) -> None:
@@ -176,15 +176,15 @@ def test_video_upload_processes_two_variants_and_creates_media_rows(
     assert len(ffmpeg_calls) == 2
     assert [call[0:2] for call in ffmpeg_calls] == [["-y", "-i"], ["-y", "-i"]]
     assert "-an" in ffmpeg_calls[0]
-    assert "libvpx-vp9" in ffmpeg_calls[0]
+    assert "libx264" in ffmpeg_calls[0]
     assert "-g" in ffmpeg_calls[0]
     assert "-c:a" in ffmpeg_calls[1]
     assert put_calls == [
         {
             "body": b"scrub-bytes",
-            "contentType": "video/webm",
+            "contentType": "video/mp4",
             "contentLength": 11,
-            "storageKey": "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.webm",
+            "storageKey": "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4",
         },
         {
             "body": b"standard-bytes",
@@ -195,8 +195,8 @@ def test_video_upload_processes_two_variants_and_creates_media_rows(
     ]
     assert route_repository.created_assets == [
         {
-            "storageKey": "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.webm",
-            "mimeType": "video/webm",
+            "storageKey": "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4",
+            "mimeType": "video/mp4",
             "sizeBytes": 11,
             "altText": "Hero video - rolagem otimizado",
             "usageScope": "project",
@@ -256,7 +256,7 @@ def test_video_upload_deletes_uploaded_objects_when_metadata_fails(
     assert events[-1]["requestId"]
     assert deleted_keys == [
         [
-            "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.webm",
+            "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4",
             "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-normal.mp4",
         ]
     ]
@@ -377,7 +377,7 @@ def test_video_upload_deletes_first_uploaded_object_when_second_upload_fails(
     assert events[-1]["event"] == "failed"
     assert events[-1]["ok"] is False
     assert events[-1]["error"] == "storage failed"
-    assert deleted_keys == [["uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.webm"]]
+    assert deleted_keys == [["uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero-rolagem.mp4"]]
 
 
 @pytest.mark.parametrize(

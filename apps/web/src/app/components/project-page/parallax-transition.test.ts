@@ -191,6 +191,18 @@ assert.match(
 );
 
 assert.match(
+  scrollVideoParallaxSource,
+  /damping: 36,[\s\S]*stiffness: 72,/,
+  "scroll scrub spring should be damped enough to reduce Windows mouse wheel stepping",
+);
+
+assert.match(
+  scrollVideoParallaxSource,
+  /Math\.abs\(delta\) > 0\.03[\s\S]*delta \* 0\.16/,
+  "scroll scrub video seeks should ignore tiny deltas and ease toward target time gently",
+);
+
+assert.match(
   parallaxVideoSequenceSource,
   /style=\{\{ scaleX: smoothScrollYProgress \}\}/,
   "parallax video sequences should expose a bottom progress indicator linked to the smoothed combined sequence scroll progress",
