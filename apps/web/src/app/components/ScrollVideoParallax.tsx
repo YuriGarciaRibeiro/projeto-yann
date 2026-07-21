@@ -1,22 +1,29 @@
 "use client";
 
-import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import {
+  motion,
+  type MotionValue,
+  useMotionValueEvent,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import {
   PROJECT_MEDIA_READY_EVENT,
   type ProjectMediaReadyDetail,
 } from "./project-page/projectMediaReadyEvent";
-
-const MIN_SCROLL_HEIGHT_SVH = 260;
-const MAX_SCROLL_HEIGHT_SVH = 600;
-const SCROLL_HEIGHT_PER_SECOND_SVH = 55;
+import { getScrubScrollHeightSvh } from "./scrollVideoScrub";
 
 type ScrollVideoParallaxProps = {
   alt: string;
   className?: string;
+  controlledProgress?: number | MotionValue<number>;
+  onDurationChange?: (durationSeconds: number, scrollHeightSvh: number) => void;
   onVideoError: () => void;
+  posterSrc?: string | null;
   scrollRangeClassName?: string;
+  shouldWriteScrollHeight?: boolean;
   title: string;
   videoMimeType: string;
   videoSrc: string;
@@ -25,8 +32,12 @@ type ScrollVideoParallaxProps = {
 export function ScrollVideoParallax({
   alt,
   className = "",
+  controlledProgress,
+  onDurationChange,
   onVideoError,
+  posterSrc = null,
   scrollRangeClassName = "hero-scroll-range",
+  shouldWriteScrollHeight = true,
   title,
   videoMimeType,
   videoSrc,
@@ -46,12 +57,49 @@ export function ScrollVideoParallax({
     offset: ["start start", "end end"],
   });
   const shadeOpacity = useTransform(scrollYProgress, [0, 0.6, 1], [0.18, 0.34, 0.56]);
+  const controlledMotionProgress =
+    typeof controlledProgress === "number" ? null : (controlledProgress ?? null);
+
+  const updateTargetProgress = (progress: number, snapVideo = false) => {
+    latestProgressRef.current = Math.min(Math.max(progress, 0), 1);
+    targetTimeRef.current = latestProgressRef.current * Math.max(durationRef.current - 0.08, 0);
+
+    if (snapVideo && videoRef.current && durationRef.current > 0) {
+      videoRef.current.currentTime = targetTimeRef.current;
+    }
+  };
 
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
-    latestProgressRef.current = Math.min(Math.max(progress, 0), 1);
-    targetTimeRef.current =
-      latestProgressRef.current * Math.max(durationRef.current - 0.08, 0);
+    if (controlledProgress !== undefined) {
+      return;
+    }
+
+    updateTargetProgress(progress);
   });
+
+  useMotionValueEvent(controlledMotionProgress ?? scrollYProgress, "change", (progress) => {
+    if (!controlledMotionProgress) {
+      return;
+    }
+
+    updateTargetProgress(progress);
+  });
+
+  useLayoutEffect(() => {
+    if (!controlledMotionProgress) {
+      return;
+    }
+
+    updateTargetProgress(controlledMotionProgress.get(), true);
+  }, [controlledMotionProgress]);
+
+  useLayoutEffect(() => {
+    if (typeof controlledProgress !== "number") {
+      return;
+    }
+
+    updateTargetProgress(controlledProgress, true);
+  }, [controlledProgress]);
 
   const setScrollTarget = (node: HTMLDivElement | null) => {
     containerRef.current = node;
@@ -85,9 +133,11 @@ export function ScrollVideoParallax({
 
     return () => {
       observer.disconnect();
-      target.style.removeProperty("--scrub-scroll-height");
+      if (shouldWriteScrollHeight) {
+        target.style.removeProperty("--scrub-scroll-height");
+      }
     };
-  }, []);
+  }, [shouldWriteScrollHeight]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -115,19 +165,23 @@ export function ScrollVideoParallax({
     const syncDuration = () => {
       if (Number.isFinite(video.duration) && video.duration > 0) {
         durationRef.current = video.duration;
-        const scrollHeight = Math.min(
-          Math.max(video.duration * SCROLL_HEIGHT_PER_SECOND_SVH, MIN_SCROLL_HEIGHT_SVH),
-          MAX_SCROLL_HEIGHT_SVH,
-        );
+        const scrollHeight = getScrubScrollHeightSvh(video.duration);
 
         if (scrollHeightRef.current !== scrollHeight) {
           scrollHeightRef.current = scrollHeight;
-          scrollTarget?.style.setProperty("--scrub-scroll-height", `${scrollHeight}svh`);
+          if (shouldWriteScrollHeight) {
+            scrollTarget?.style.setProperty("--scrub-scroll-height", `${scrollHeight}svh`);
+          }
+          onDurationChange?.(video.duration, scrollHeight);
           window.requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
         }
 
         targetTimeRef.current =
           latestProgressRef.current * Math.max(durationRef.current - 0.08, 0);
+
+        if (controlledProgress !== undefined) {
+          video.currentTime = targetTimeRef.current;
+        }
       }
     };
 
@@ -152,14 +206,15 @@ export function ScrollVideoParallax({
       }
 
     };
-  }, [isNearViewport]);
+  }, [controlledProgress, isNearViewport, onDurationChange, shouldWriteScrollHeight]);
 
   return (
     <div
       aria-label={alt}
-      className={`scrub-media absolute inset-0 z-0 ${className}`}
+      className={`scrub-media absolute inset-0 z-0 bg-cover bg-center ${className}`}
       ref={setScrollTarget}
       role="img"
+      style={posterSrc ? { backgroundImage: `url(${posterSrc})` } : undefined}
     >
       <div className="absolute inset-0">
         <video
@@ -173,13 +228,21 @@ export function ScrollVideoParallax({
           onError={onVideoError}
           onLoadedData={handleVideoReady}
           playsInline
+          poster={posterSrc ?? undefined}
           preload={isNearViewport || isVideoFrameReady ? "auto" : "none"}
         >
           <source src={videoSrc} type={videoMimeType} />
         </video>
       </div>
       <motion.div className="absolute inset-0 bg-black" style={{ opacity: shadeOpacity }} />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_42%,transparent_0%,rgb(0_0_0/0.16)_48%,rgb(0_0_0/0.54)_100%)]" />
+      {controlledProgress === undefined ? (
+        <div className="pointer-events-none absolute inset-x-5 bottom-5 z-40 h-px bg-white/20 sm:inset-x-8 lg:inset-x-16">
+          <motion.div
+            className="h-full origin-left bg-white"
+            style={{ scaleX: scrollYProgress }}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

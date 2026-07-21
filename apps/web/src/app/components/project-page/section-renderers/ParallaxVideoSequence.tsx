@@ -1,0 +1,257 @@
+"use client";
+
+import { motion, useMotionValue, useMotionValueEvent, useScroll } from "framer-motion";
+import {
+  type CSSProperties,
+  type SyntheticEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import { ProjectScrollMedia } from "../../ProjectScrollMedia";
+import { getScrubScrollHeightSvh } from "../../scrollVideoScrub";
+import {
+  getParallaxSequenceProgress,
+  getTotalSegmentScrollHeight,
+} from "../parallaxSequenceProgress";
+import type { PublishedProjectPageData } from "../ProjectPage";
+
+type ProjectSectionRow = PublishedProjectPageData["sections"][number];
+
+type ParallaxVideoSequenceProps = {
+  sectionRows: ProjectSectionRow[];
+};
+
+export function ParallaxVideoSequence({ sectionRows }: ParallaxVideoSequenceProps) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const activeIndexRef = useRef(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [canEnhanceSequence, setCanEnhanceSequence] = useState(false);
+  const activeSegmentProgress = useMotionValue(0);
+  const [segmentScrollHeights, setSegmentScrollHeights] = useState(() =>
+    sectionRows.map(() => getScrubScrollHeightSvh(0)),
+  );
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  });
+
+  const totalScrollHeight = getTotalSegmentScrollHeight(segmentScrollHeights);
+  const activeRow = sectionRows[activeIndex] ?? sectionRows[0];
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(
+      "(prefers-reduced-motion: no-preference) and (pointer: fine)",
+    );
+    const updateEnhancement = () => setCanEnhanceSequence(mediaQuery.matches);
+
+    updateEnhancement();
+    mediaQuery.addEventListener("change", updateEnhancement);
+
+    return () => mediaQuery.removeEventListener("change", updateEnhancement);
+  }, []);
+
+  useMotionValueEvent(scrollYProgress, "change", (progress) => {
+    const { activeIndex: nextActiveIndex, localProgress } = getParallaxSequenceProgress(
+      segmentScrollHeights,
+      progress,
+    );
+
+    activeSegmentProgress.set(localProgress);
+    if (activeIndexRef.current !== nextActiveIndex) {
+      activeIndexRef.current = nextActiveIndex;
+      setActiveIndex(nextActiveIndex);
+    }
+  });
+
+  const handleDurationChange = useCallback((index: number, _duration: number, scrollHeight: number) => {
+    setSegmentScrollHeights((currentHeights) => {
+      if (currentHeights[index] === scrollHeight) {
+        return currentHeights;
+      }
+
+      const nextHeights = [...currentHeights];
+      nextHeights[index] = scrollHeight;
+      return nextHeights;
+    });
+  }, []);
+  const handleMetadataLoaded = useCallback(
+    (index: number, event: SyntheticEvent<HTMLVideoElement>) => {
+      const { duration } = event.currentTarget;
+
+      if (Number.isFinite(duration) && duration > 0) {
+        handleDurationChange(index, duration, getScrubScrollHeightSvh(duration));
+      }
+    },
+    [handleDurationChange],
+  );
+
+  if (!activeRow) {
+    return null;
+  }
+
+  if (!canEnhanceSequence) {
+    return (
+      <section
+        aria-label="Sequencia de videos do projeto"
+        className="project-parallax-sequence bg-[var(--black)] text-white"
+        data-header-theme="light"
+        data-sequence-mode="fallback"
+        ref={sectionRef}
+      >
+        {sectionRows.map((sectionRow) => {
+          const { section, primaryMediaAsset, posterMediaAsset } = sectionRow;
+          const mediaAlt =
+            posterMediaAsset?.altText ??
+            primaryMediaAsset?.altText ??
+            section.title ??
+            "Imagem do projeto.";
+
+          return (
+            <article
+              aria-labelledby={section.title ? `${section.id}-title` : undefined}
+              className="relative min-h-svh overflow-hidden border-t border-white/12 first:border-t-0"
+              key={section.id}
+            >
+              {posterMediaAsset?.url ? (
+                <div
+                  aria-label={mediaAlt}
+                  className="absolute inset-0 z-0 bg-[var(--black)] bg-cover bg-center"
+                  role="img"
+                  style={{ backgroundImage: `url(${posterMediaAsset.url})` }}
+                />
+              ) : (
+                <div
+                  aria-label={mediaAlt}
+                  className="absolute inset-0 z-0 grid place-items-center bg-[var(--charcoal)] text-white"
+                  role="img"
+                >
+                  <p className="max-w-xs border-t border-white/18 pt-4 text-center text-sm leading-6 text-white/62">
+                    {mediaAlt}
+                  </p>
+                </div>
+              )}
+              <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(90deg,rgb(0_0_0/0.62)_0%,rgb(0_0_0/0.28)_44%,transparent_76%)]" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/2 bg-[linear-gradient(0deg,rgb(0_0_0/0.6)_0%,transparent_68%)]" />
+
+              <div className="relative z-20 mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-16 lg:pb-16">
+                <div className="col-span-4 sm:col-span-5 lg:col-span-6">
+                  {section.title ? (
+                    <h2
+                      className="font-[var(--font-display)] text-[var(--text-h1)] font-normal leading-[0.95] tracking-[-0.045em]"
+                      id={`${section.id}-title`}
+                    >
+                      {section.title}
+                    </h2>
+                  ) : null}
+                  {section.body ? (
+                    <p className="mt-6 max-w-2xl whitespace-pre-line text-[var(--text-body-lg)] leading-[1.55] text-white/76">
+                      {section.body}
+                    </p>
+                  ) : null}
+                </div>
+                {section.caption ? (
+                  <p className="col-span-4 mt-10 border-t border-white/20 pt-4 text-sm leading-6 text-white/60 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
+                    {section.caption}
+                  </p>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
+      </section>
+    );
+  }
+
+  const { section } = activeRow;
+
+  return (
+    <section
+      aria-labelledby={section.title ? `${section.id}-title` : undefined}
+      className="project-scroll-range project-scrub-flow project-parallax-sequence relative bg-[var(--black)] text-white"
+      data-header-theme="light"
+      ref={sectionRef}
+      style={{ "--scrub-scroll-height": `${totalScrollHeight}svh` } as CSSProperties}
+    >
+      <div className="project-scroll-stage sticky top-0 min-h-svh overflow-hidden">
+        {sectionRows.map((sectionRow, index) => {
+          const isActive = index === activeIndex;
+          const { section: mediaSection, primaryMediaAsset, posterMediaAsset } = sectionRow;
+          const mediaAlt =
+            posterMediaAsset?.altText ??
+            primaryMediaAsset?.altText ??
+            mediaSection.title ??
+            "Video do projeto.";
+
+          return (
+            <div
+              className={`absolute inset-0 transition-opacity duration-500 ${
+                isActive ? "opacity-100" : "opacity-0"
+              }`}
+              key={mediaSection.id}
+            >
+              <ProjectScrollMedia
+                alt={mediaAlt}
+                controlledProgress={isActive ? activeSegmentProgress : index < activeIndex ? 1 : 0}
+                onDurationChange={(duration, scrollHeight) => {
+                  handleDurationChange(index, duration, scrollHeight);
+                }}
+                posterSrc={posterMediaAsset?.url ?? null}
+                scrollRangeClassName="project-scroll-range"
+                shouldWriteScrollHeight={false}
+                title={mediaSection.title ?? "Projeto"}
+                videoMimeType={primaryMediaAsset?.mimeType ?? null}
+                videoSrc={primaryMediaAsset?.url ?? null}
+              />
+              {primaryMediaAsset?.url && primaryMediaAsset.mimeType ? (
+                <video
+                  aria-hidden="true"
+                  className="pointer-events-none absolute size-px overflow-hidden opacity-0"
+                  muted
+                  onLoadedMetadata={(event) => handleMetadataLoaded(index, event)}
+                  preload="auto"
+                  tabIndex={-1}
+                >
+                  <source src={primaryMediaAsset.url} type={primaryMediaAsset.mimeType} />
+                </video>
+              ) : null}
+            </div>
+          );
+        })}
+        <div className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(90deg,rgb(0_0_0/0.58)_0%,rgb(0_0_0/0.22)_40%,transparent_72%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1/2 bg-[linear-gradient(0deg,rgb(0_0_0/0.56)_0%,transparent_68%)]" />
+        <div className="pointer-events-none absolute inset-x-5 bottom-5 z-40 h-px bg-white/20 sm:inset-x-8 lg:inset-x-16">
+          <motion.div
+            className="h-full origin-left bg-white"
+            style={{ scaleX: scrollYProgress }}
+          />
+        </div>
+
+        <div className="relative z-30 mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-16 lg:pb-16">
+          <div className="col-span-4 sm:col-span-5 lg:col-span-6">
+            {section.title ? (
+              <h2
+                className="font-[var(--font-display)] text-[var(--text-h1)] font-normal leading-[0.95] tracking-[-0.045em]"
+                id={`${section.id}-title`}
+              >
+                {section.title}
+              </h2>
+            ) : null}
+            {section.body ? (
+              <p className="mt-6 max-w-2xl whitespace-pre-line text-[var(--text-body-lg)] leading-[1.55] text-white/76">
+                {section.body}
+              </p>
+            ) : null}
+          </div>
+          {section.caption ? (
+            <p className="col-span-4 mt-10 border-t border-white/20 pt-4 text-sm leading-6 text-white/60 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
+              {section.caption}
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}

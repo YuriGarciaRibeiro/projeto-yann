@@ -7,12 +7,18 @@ import {
   type ProjectMediaReadyDetail,
 } from "./projectMediaReadyEvent";
 
-const PRELOADER_TIMEOUT_MS = 3500;
+const PRELOADER_TIMEOUT_MS = 15000;
 const OVERLAY_EXIT_MS = 500;
+
+export type ProjectPreloadMedia = {
+  mimeType: string;
+  src: string;
+};
 
 type ProjectPreloaderProps = {
   children: ReactNode;
   posterSrc: string | null;
+  preloadMedia: ProjectPreloadMedia[];
   projectTitle: string;
   videoMimeType: string | null;
   videoSrc: string | null;
@@ -21,6 +27,7 @@ type ProjectPreloaderProps = {
 export function ProjectPreloader({
   children,
   posterSrc,
+  preloadMedia,
   projectTitle,
   videoMimeType,
   videoSrc,
@@ -53,13 +60,14 @@ export function ProjectPreloader({
       });
     }
 
-    async function waitForVideoMetadata() {
-      if (!videoSrc || !videoMimeType?.startsWith("video/")) {
+    async function waitForVideo(media: ProjectPreloadMedia) {
+      if (!media.mimeType.startsWith("video/")) {
         return;
       }
 
       await new Promise<void>((resolve) => {
         let settled = false;
+        const video = document.createElement("video");
         const complete = (event?: Event) => {
           if (settled) {
             return;
@@ -67,20 +75,39 @@ export function ProjectPreloader({
 
           const mediaEvent = event as CustomEvent<ProjectMediaReadyDetail> | undefined;
 
-          if (mediaEvent?.detail?.src && mediaEvent.detail.src !== videoSrc) {
+          if (mediaEvent?.detail?.src && mediaEvent.detail.src !== media.src) {
             return;
           }
 
           settled = true;
+          video.removeEventListener("canplaythrough", complete);
+          video.removeEventListener("canplay", complete);
+          video.removeEventListener("loadeddata", complete);
+          video.removeEventListener("error", complete);
           window.removeEventListener(PROJECT_MEDIA_READY_EVENT, complete);
           resolve();
         };
 
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = "auto";
+        video.addEventListener("canplaythrough", complete, { once: true });
+        video.addEventListener("canplay", complete, { once: true });
+        video.addEventListener("loadeddata", complete, { once: true });
+        video.addEventListener("error", complete, { once: true });
         window.addEventListener(PROJECT_MEDIA_READY_EVENT, complete);
+        video.src = media.src;
+        video.load();
       });
     }
 
-    Promise.all([waitForPoster(), waitForVideoMetadata()]).finally(() => {
+    const mediaToPreload = preloadMedia.length
+      ? preloadMedia
+      : videoSrc && videoMimeType
+        ? [{ mimeType: videoMimeType, src: videoSrc }]
+        : [];
+
+    Promise.all([waitForPoster(), ...mediaToPreload.map(waitForVideo)]).finally(() => {
       window.clearTimeout(timeoutId);
       if (!cancelled) {
         setIsReady(true);
@@ -91,7 +118,7 @@ export function ProjectPreloader({
       cancelled = true;
       window.clearTimeout(timeoutId);
     };
-  }, [posterSrc, videoMimeType, videoSrc]);
+  }, [posterSrc, preloadMedia, videoMimeType, videoSrc]);
 
   useEffect(() => {
     if (!isReady) {

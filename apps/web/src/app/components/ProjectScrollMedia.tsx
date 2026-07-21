@@ -1,5 +1,6 @@
 "use client";
 
+import type { MotionValue } from "framer-motion";
 import { useState } from "react";
 
 import { ScrollVideoParallax } from "./ScrollVideoParallax";
@@ -7,8 +8,11 @@ import { ScrollVideoParallax } from "./ScrollVideoParallax";
 type ProjectScrollMediaProps = {
   alt: string;
   className?: string;
+  controlledProgress?: number | MotionValue<number>;
+  onDurationChange?: (durationSeconds: number, scrollHeightSvh: number) => void;
   posterSrc: string | null;
   scrollRangeClassName?: string;
+  shouldWriteScrollHeight?: boolean;
   title: string;
   videoMimeType: string | null;
   videoSrc: string | null;
@@ -17,8 +21,11 @@ type ProjectScrollMediaProps = {
 export function ProjectScrollMedia({
   alt,
   className = "",
+  controlledProgress,
+  onDurationChange,
   posterSrc,
   scrollRangeClassName,
+  shouldWriteScrollHeight,
   title,
   videoMimeType,
   videoSrc,
@@ -30,8 +37,12 @@ export function ProjectScrollMedia({
       <ScrollVideoParallax
         alt={alt}
         className={className}
+        controlledProgress={controlledProgress}
+        onDurationChange={onDurationChange}
         onVideoError={() => setVideoFailed(true)}
+        posterSrc={posterSrc}
         scrollRangeClassName={scrollRangeClassName}
+        shouldWriteScrollHeight={shouldWriteScrollHeight}
         title={title}
         videoMimeType={videoMimeType}
         videoSrc={videoSrc}
