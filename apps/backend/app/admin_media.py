@@ -326,7 +326,7 @@ class PostgresAdminMediaRepository:
                     select 'project_sections' as source from project_sections where primary_media_asset_id = %s
                     union all
                     select 'project_sections' as source from project_sections where poster_media_asset_id = %s
-                ) references
+                ) media_references
                 limit 1
                 """,
                 (asset_id, asset_id, asset_id, asset_id, asset_id, asset_id),
@@ -347,14 +347,19 @@ class PostgresAdminMediaRepository:
                     f"""
                     delete from media_assets
                     where id = %s
+                    and not exists (select 1 from projects where hero_video_asset_id = %s)
+                    and not exists (select 1 from projects where fallback_image_asset_id = %s)
+                    and not exists (select 1 from projects where client_architect_image_asset_id = %s)
+                    and not exists (select 1 from site_profile where portrait_image_asset_id = %s)
+                    and not exists (select 1 from project_sections where primary_media_asset_id = %s)
+                    and not exists (select 1 from project_sections where poster_media_asset_id = %s)
                     returning {MEDIA_COLUMNS}
                     """,
-                    (asset_id,),
+                    (asset_id, asset_id, asset_id, asset_id, asset_id, asset_id, asset_id),
                 )
                 deleted_asset = map_media_asset_row(cursor.fetchone())
-
-        if deleted_asset is None:
-            raise MediaAssetNotFound("Media asset not found")
+                if deleted_asset is None:
+                    raise MediaAssetInUse("Arquivo em uso. Remova-o do projeto antes de apagar.")
 
         storage.delete_media_objects([str(deleted_asset["storageKey"])])
         return deleted_asset

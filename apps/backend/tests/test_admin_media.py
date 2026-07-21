@@ -401,10 +401,19 @@ def test_delete_media_asset_removes_unused_row_and_storage_object(monkeypatch: p
     assert "from media_assets" in connection.cursor_instance.queries[0]
     assert "from projects" in connection.cursor_instance.queries[1]
     assert "from project_sections" in connection.cursor_instance.queries[1]
+    assert "media_references" in connection.cursor_instance.queries[1]
+    assert ") references" not in connection.cursor_instance.queries[1]
     assert "delete from media_assets" in connection.cursor_instance.queries[2]
+    assert connection.cursor_instance.queries[2].count("not exists") == 6
+    assert "hero_video_asset_id = %s" in connection.cursor_instance.queries[2]
+    assert "fallback_image_asset_id = %s" in connection.cursor_instance.queries[2]
+    assert "client_architect_image_asset_id = %s" in connection.cursor_instance.queries[2]
+    assert "portrait_image_asset_id = %s" in connection.cursor_instance.queries[2]
+    assert "primary_media_asset_id = %s" in connection.cursor_instance.queries[2]
+    assert "poster_media_asset_id = %s" in connection.cursor_instance.queries[2]
     assert connection.cursor_instance.params[0] == ("asset-id",)
     assert connection.cursor_instance.params[1] == ("asset-id",) * 6
-    assert connection.cursor_instance.params[2] == ("asset-id",)
+    assert connection.cursor_instance.params[2] == ("asset-id",) * 7
     assert deleted_storage_keys == [[DEFAULT_STORAGE_KEY]]
 
 
@@ -426,6 +435,20 @@ def test_delete_media_asset_blocks_when_asset_is_referenced() -> None:
 
     assert len(connection.cursor_instance.queries) == 2
     assert "delete from media_assets" not in " ".join(connection.cursor_instance.queries)
+
+
+def test_delete_media_asset_blocks_when_reference_appears_before_delete(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    deleted_storage_keys: List[List[str]] = []
+    connection = FakeConnection(one_rows=[media_row(), None, None])
+    monkeypatch.setattr(admin_media.storage, "delete_media_objects", lambda keys: deleted_storage_keys.append(list(keys)))
+
+    with pytest.raises(admin_media.MediaAssetInUse, match="Arquivo em uso"):
+        PostgresAdminMediaRepository(connection).delete_media_asset("asset-id")
+
+    assert "delete from media_assets" in connection.cursor_instance.queries[2]
+    assert deleted_storage_keys == []
 
 
 def test_delete_media_asset_commits_and_closes_owned_connection(monkeypatch: pytest.MonkeyPatch) -> None:
