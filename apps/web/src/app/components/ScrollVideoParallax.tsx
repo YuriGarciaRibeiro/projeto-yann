@@ -30,7 +30,7 @@ type ScrollVideoParallaxProps = {
   videoSrc: string;
 };
 
-const MIN_SEEK_INTERVAL_MS = 16;
+const MIN_SEEK_INTERVAL_MS = 22;
 
 export function ScrollVideoParallax({
   alt,

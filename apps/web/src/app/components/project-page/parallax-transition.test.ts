@@ -341,8 +341,8 @@ assert.match(
 
 assert.match(
   scrollVideoParallaxSource,
-  /const MIN_SEEK_INTERVAL_MS = 16/,
-  "active scroll scrub should throttle video seeks to roughly 60fps",
+  /const MIN_SEEK_INTERVAL_MS = 22/,
+  "active scroll scrub should throttle video seeks to roughly 45fps",
 );
 
 assert.match(
