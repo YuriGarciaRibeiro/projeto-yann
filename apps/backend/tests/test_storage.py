@@ -372,3 +372,98 @@ def test_get_media_object_maps_invalid_range(monkeypatch: pytest.MonkeyPatch) ->
 
     with pytest.raises(storage.MediaRangeNotSatisfiable, match="Range header is not satisfiable"):
         storage.get_media_object({"storage_key": key, "range": "bytes=1000-2000"}, settings())
+
+
+def test_create_raw_media_storage_key_uses_raw_prefix_and_sanitizes_filename(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(storage.uuid, "uuid4", lambda: "123e4567-e89b-12d3-a456-426614174000")
+
+    key = storage.create_raw_media_storage_key("Vídeo Bruto 01.MP4", datetime(2026, 7, 21, tzinfo=timezone.utc))
+
+    assert key == "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-video-bruto-01.mp4"
+    storage.validate_raw_upload_storage_key(key)
+
+
+def test_validate_raw_upload_storage_key_rejects_normal_and_private_keys() -> None:
+    with pytest.raises(ValueError, match="Raw upload storage key is invalid"):
+        storage.validate_raw_upload_storage_key("uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-video.mp4")
+
+    with pytest.raises(ValueError, match="Raw upload storage key is invalid"):
+        storage.validate_raw_upload_storage_key("../private/video.mp4")
+
+
+def test_create_signed_raw_video_upload_validates_video_and_presigns_raw_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_client = FakeS3Client()
+    monkeypatch.setattr(storage, "get_s3_presign_client", lambda settings: fake_client)
+    monkeypatch.setattr(
+        storage,
+        "create_raw_media_storage_key",
+        lambda file_name: "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4",
+    )
+
+    signed_upload = storage.create_signed_raw_video_upload(
+        {"file_name": "Hero.MP4", "mime_type": "video/mp4", "size_bytes": 1024},
+        settings(),
+    )
+
+    assert signed_upload == {
+        "sourceStorageKey": "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4",
+        "uploadUrl": "https://uploads.example.com/signed-put",
+    }
+    assert fake_client.presigned_calls == [
+        {
+            "client_method": "put_object",
+            "params": {
+                "Bucket": "portfolio-media",
+                "Key": "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4",
+                "ContentType": "video/mp4",
+                "ContentLength": 1024,
+            },
+            "expires_in": 300,
+            "http_method": "PUT",
+        }
+    ]
+
+
+def test_create_signed_raw_video_upload_rejects_images() -> None:
+    with pytest.raises(ValueError, match="Raw video uploads require MP4 or WebM video files"):
+        storage.create_signed_raw_video_upload(
+            {"file_name": "Hero.JPG", "mime_type": "image/jpeg", "size_bytes": 1024},
+            settings(),
+        )
+
+
+def test_get_and_delete_raw_media_object_use_raw_key_validator(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_client = FakeS3Client()
+    monkeypatch.setattr(storage, "get_s3_client", lambda settings: fake_client)
+    key = "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4"
+
+    media_object = storage.get_raw_media_object(key, settings())
+    storage.delete_raw_media_object(key, settings())
+
+    assert media_object == fake_client.get_response
+    assert fake_client.get_calls == [{"Bucket": "portfolio-media", "Key": key}]
+    assert fake_client.delete_calls == [
+        {
+            "Bucket": "portfolio-media",
+            "Delete": {"Objects": [{"Key": key}], "Quiet": True},
+        }
+    ]
+
+
+def test_delete_raw_media_object_raises_when_s3_reports_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_client = FakeS3Client()
+    fake_client.delete_response = {
+        "Errors": [
+            {
+                "Key": "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4",
+                "Code": "InternalError",
+            }
+        ]
+    }
+    monkeypatch.setattr(storage, "get_s3_client", lambda settings: fake_client)
+
+    with pytest.raises(ValueError, match="Media object could not be deleted"):
+        storage.delete_raw_media_object(
+            "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4",
+            settings(),
+        )

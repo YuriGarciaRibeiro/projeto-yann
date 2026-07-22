@@ -106,6 +106,336 @@ def test_sign_upload_returns_signed_put_payload(client: TestClient, monkeypatch:
     assert calls == [{"fileName": "hero.jpg", "mimeType": "image/jpeg", "sizeBytes": 1024}]
 
 
+def test_sign_video_upload_returns_signed_raw_payload(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: List[Mapping[str, object]] = []
+
+    def fake_create_signed_raw_video_upload(input_data: Mapping[str, object]) -> Dict[str, str]:
+        calls.append(dict(input_data))
+        return {
+            "sourceStorageKey": "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4",
+            "uploadUrl": "https://uploads.example.com/signed-raw-put",
+        }
+
+    monkeypatch.setattr(storage, "create_signed_raw_video_upload", fake_create_signed_raw_video_upload)
+
+    response = client.post(
+        "/admin/uploads/video/sign",
+        json={"fileName": "hero.mp4", "mimeType": "video/mp4", "size": 1024},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "sourceStorageKey": "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4",
+        "uploadUrl": "https://uploads.example.com/signed-raw-put",
+    }
+    assert calls == [{"fileName": "hero.mp4", "mimeType": "video/mp4", "sizeBytes": 1024}]
+
+
+def test_sign_video_upload_rejects_image(client: TestClient) -> None:
+    response = client.post(
+        "/admin/uploads/video/sign",
+        json={"fileName": "hero.jpg", "mimeType": "image/jpeg", "size": 1024},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Raw video uploads require MP4 or WebM video files."
+
+
+def test_process_video_rejects_non_raw_source_key(client: TestClient) -> None:
+    response = client.post(
+        "/admin/uploads/video/process",
+        json={
+            "sourceStorageKey": "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4",
+            "altText": "Hero video",
+            "usageScope": "site",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Raw upload storage key is invalid."
+
+
+def test_process_video_stream_fails_and_deletes_raw_source_when_content_type_is_not_video(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    deleted_raw_keys: List[str] = []
+
+    class FakeRawBody:
+        def __init__(self) -> None:
+            self.close_count = 0
+
+        def close(self) -> None:
+            self.close_count += 1
+
+    raw_body = FakeRawBody()
+    source_key = "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4"
+    monkeypatch.setattr(
+        storage,
+        "get_raw_media_object",
+        lambda key: {"Body": raw_body, "ContentLength": 12, "ContentType": "image/jpeg"},
+    )
+    monkeypatch.setattr(storage, "delete_raw_media_object", lambda key: deleted_raw_keys.append(key))
+
+    response = client.post(
+        "/admin/uploads/video/process",
+        json={
+            "sourceStorageKey": source_key,
+            "altText": "Hero video",
+            "usageScope": "site",
+        },
+    )
+
+    assert response.status_code == 200
+    events = parse_progress_events(response)
+    assert events[-1]["event"] == "failed"
+    assert events[-1]["ok"] is False
+    assert events[-1]["error"] == "Este envio otimizado aceita apenas videos."
+    assert raw_body.close_count == 1
+    assert deleted_raw_keys == [source_key]
+
+
+def test_process_video_stream_fails_and_deletes_raw_source_when_content_type_body_close_fails(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    deleted_raw_keys: List[str] = []
+
+    class FakeRawBody:
+        def close(self) -> None:
+            raise RuntimeError("close failed")
+
+    source_key = "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4"
+    monkeypatch.setattr(
+        storage,
+        "get_raw_media_object",
+        lambda key: {"Body": FakeRawBody(), "ContentLength": 12, "ContentType": "image/jpeg"},
+    )
+    monkeypatch.setattr(storage, "delete_raw_media_object", lambda key: deleted_raw_keys.append(key))
+
+    response = client.post(
+        "/admin/uploads/video/process",
+        json={"sourceStorageKey": source_key, "altText": "Hero video", "usageScope": "site"},
+    )
+
+    assert response.status_code == 200
+    events = parse_progress_events(response)
+    assert events[-1]["event"] == "failed"
+    assert events[-1]["ok"] is False
+    assert events[-1]["error"] == "Este envio otimizado aceita apenas videos."
+    assert deleted_raw_keys == [source_key]
+
+
+def test_process_video_does_not_fetch_raw_object_before_stream_iteration(
+    route_repository: FakeAdminMediaRepository,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import app.upload_routes as upload_routes
+
+    get_raw_calls: List[str] = []
+    monkeypatch.setattr(storage, "get_raw_media_object", lambda key: get_raw_calls.append(key))
+
+    response = upload_routes.process_admin_video_upload(
+        body=upload_routes.ProcessVideoUploadRequest(
+            sourceStorageKey="uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4",
+            altText="Hero video",
+            usageScope="site",
+        ),
+        current_admin=AdminUser(id="admin-id", email="admin@example.com", password_hash="hash"),
+        repository=route_repository,
+    )
+
+    assert response.status_code == 200
+    assert get_raw_calls == []
+
+
+def test_process_video_deletes_raw_source_when_processing_fails(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import app.upload_routes as upload_routes
+
+    deleted_raw_keys: List[str] = []
+
+    class FakeRawBody:
+        def iter_chunks(self) -> List[bytes]:
+            return [b"source-video"]
+
+    def fake_run_ffmpeg(args: List[str]) -> None:
+        raise RuntimeError("ffmpeg failed")
+
+    monkeypatch.setattr(
+        storage,
+        "get_raw_media_object",
+        lambda key: {"Body": FakeRawBody(), "ContentLength": 12, "ContentType": "video/mp4"},
+    )
+    monkeypatch.setattr(storage, "delete_raw_media_object", lambda key: deleted_raw_keys.append(key))
+    monkeypatch.setattr(upload_routes, "run_ffmpeg", fake_run_ffmpeg)
+
+    source_key = "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4"
+    response = client.post(
+        "/admin/uploads/video/process",
+        json={"sourceStorageKey": source_key, "altText": "Hero video", "usageScope": "site"},
+    )
+
+    assert response.status_code == 200
+    events = parse_progress_events(response)
+    assert events[-1]["event"] == "failed"
+    assert events[-1]["ok"] is False
+    assert events[-1]["error"] == "ffmpeg failed"
+    assert deleted_raw_keys == [source_key]
+
+
+def test_process_video_deletes_raw_source_when_processing_failure_body_close_fails(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import app.upload_routes as upload_routes
+
+    deleted_raw_keys: List[str] = []
+
+    class FakeRawBody:
+        def iter_chunks(self) -> List[bytes]:
+            return [b"source-video"]
+
+        def close(self) -> None:
+            raise RuntimeError("close failed")
+
+    def fake_run_ffmpeg(args: List[str]) -> None:
+        raise RuntimeError("ffmpeg failed")
+
+    monkeypatch.setattr(
+        storage,
+        "get_raw_media_object",
+        lambda key: {"Body": FakeRawBody(), "ContentLength": 12, "ContentType": "video/mp4"},
+    )
+    monkeypatch.setattr(storage, "delete_raw_media_object", lambda key: deleted_raw_keys.append(key))
+    monkeypatch.setattr(upload_routes, "run_ffmpeg", fake_run_ffmpeg)
+
+    source_key = "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4"
+    response = client.post(
+        "/admin/uploads/video/process",
+        json={"sourceStorageKey": source_key, "altText": "Hero video", "usageScope": "site"},
+    )
+
+    assert response.status_code == 200
+    events = parse_progress_events(response)
+    assert events[-1]["event"] == "failed"
+    assert events[-1]["ok"] is False
+    assert events[-1]["error"] == "ffmpeg failed"
+    assert deleted_raw_keys == [source_key]
+
+
+def test_process_video_deletes_raw_source_when_success_body_close_fails(
+    client: TestClient,
+    route_repository: FakeAdminMediaRepository,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import app.upload_routes as upload_routes
+
+    deleted_raw_keys: List[str] = []
+
+    class FakeRawBody:
+        def iter_chunks(self) -> List[bytes]:
+            return [b"source-video"]
+
+        def close(self) -> None:
+            raise RuntimeError("close failed")
+
+    def fake_run_ffmpeg(args: List[str]) -> None:
+        with open(args[-1], "wb") as output_file:
+            output_file.write(b"scrub-bytes" if "scroll" in args[-1] else b"standard-bytes")
+
+    monkeypatch.setattr(
+        storage,
+        "get_raw_media_object",
+        lambda key: {"Body": FakeRawBody(), "ContentLength": 12, "ContentType": "video/mp4"},
+    )
+    monkeypatch.setattr(storage, "delete_raw_media_object", lambda key: deleted_raw_keys.append(key))
+    monkeypatch.setattr(upload_routes, "run_ffmpeg", fake_run_ffmpeg)
+    monkeypatch.setattr(
+        storage,
+        "create_media_storage_key",
+        lambda file_name: "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-" + file_name,
+    )
+    monkeypatch.setattr(storage, "get_media_delivery_url", lambda key: f"/media/{key}")
+    monkeypatch.setattr(storage, "put_media_object", lambda input_data: None)
+
+    source_key = "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4"
+    response = client.post(
+        "/admin/uploads/video/process",
+        json={"sourceStorageKey": source_key, "altText": "Hero video", "usageScope": "site"},
+    )
+
+    assert response.status_code == 200
+    events = parse_progress_events(response)
+    assert events[-1]["event"] == "completed"
+    assert events[-1]["ok"] is True
+    assert deleted_raw_keys == [source_key]
+    assert len(route_repository.created_assets) == 2
+
+
+def test_process_video_reads_raw_object_and_deletes_it_after_success(
+    client: TestClient,
+    route_repository: FakeAdminMediaRepository,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import app.upload_routes as upload_routes
+
+    ffmpeg_calls: List[List[str]] = []
+    deleted_raw_keys: List[str] = []
+
+    class FakeRawBody:
+        def iter_chunks(self) -> List[bytes]:
+            return [b"source-", b"video"]
+
+    def fake_run_ffmpeg(args: List[str]) -> None:
+        ffmpeg_calls.append(args)
+        with open(args[-1], "wb") as output_file:
+            output_file.write(b"scrub-bytes" if "scroll" in args[-1] else b"standard-bytes")
+
+    monkeypatch.setattr(
+        storage,
+        "get_raw_media_object",
+        lambda key: {"Body": FakeRawBody(), "ContentLength": 12, "ContentType": "video/mp4"},
+    )
+    monkeypatch.setattr(storage, "delete_raw_media_object", lambda key: deleted_raw_keys.append(key))
+    monkeypatch.setattr(upload_routes, "run_ffmpeg", fake_run_ffmpeg)
+    monkeypatch.setattr(
+        storage,
+        "create_media_storage_key",
+        lambda file_name: "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-" + file_name,
+    )
+    monkeypatch.setattr(storage, "get_media_delivery_url", lambda key: f"/media/{key}")
+    monkeypatch.setattr(storage, "put_media_object", lambda input_data: None)
+
+    source_key = "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4"
+    response = client.post(
+        "/admin/uploads/video/process",
+        json={"sourceStorageKey": source_key, "altText": "Hero video", "usageScope": "site"},
+    )
+
+    assert response.status_code == 200
+    events = parse_progress_events(response)
+    assert [event["event"] for event in events] == [
+        "request-started",
+        "file-received",
+        "scrub-started",
+        "scrub-finished",
+        "standard-started",
+        "standard-finished",
+        "storage-upload-started",
+        "storage-upload-finished",
+        "database-write-started",
+        "database-write-finished",
+        "completed",
+    ]
+    assert events[-1]["ok"] is True
+    assert len(ffmpeg_calls) == 2
+    assert deleted_raw_keys == [source_key]
+    assert len(route_repository.created_assets) == 2
+
+
 def test_video_upload_processes_two_variants_and_creates_media_rows(
     client: TestClient,
     route_repository: FakeAdminMediaRepository,

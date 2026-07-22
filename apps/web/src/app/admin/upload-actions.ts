@@ -20,6 +20,19 @@ export type SignedAdminUploadResponse = {
   url?: string;
 };
 
+export type SignedAdminVideoUploadResponse = {
+  error?: string;
+  sourceStorageKey?: string;
+  uploadUrl?: string;
+};
+
+export type ProcessAdminVideoUploadInput = {
+  altText: string;
+  projectId?: string | null;
+  sourceStorageKey: string;
+  usageScope: string;
+};
+
 export type VideoUploadProgressEvent = {
   error?: string;
   event: string;
@@ -103,4 +116,38 @@ export async function createSignedAdminUploadAction(
   }
 
   return (await response.json()) as SignedAdminUploadResponse;
+}
+
+export async function createSignedAdminVideoUploadAction(
+  input: SignedAdminUploadInput,
+): Promise<SignedAdminVideoUploadResponse> {
+  const token = await getAdminBearerToken();
+
+  if (!token) {
+    return { error: "Missing admin access token." };
+  }
+
+  let response: Response;
+
+  try {
+    response = await fetch(buildBackendUrl("/admin/uploads/video/sign"), {
+      body: JSON.stringify(input),
+      cache: "no-store",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+  } catch {
+    return { error: "Não foi possível preparar o envio do vídeo." };
+  }
+
+  if (!response.ok) {
+    return {
+      error: await readEndpointError(response, "Não foi possível preparar o envio do vídeo."),
+    };
+  }
+
+  return (await response.json()) as SignedAdminVideoUploadResponse;
 }

@@ -17,7 +17,10 @@ const mediaUploadFieldSource = readFileSync(
 );
 const uploadModalDomSource = readFileSync(join(currentDir, "components", "upload-modal-dom.ts"), "utf8");
 const adminActionsSource = readFileSync(join(currentDir, "actions.ts"), "utf8");
-const videoUploadRouteSource = readFileSync(join(currentDir, "uploads", "video", "route.ts"), "utf8");
+const videoProcessRouteSource = readFileSync(
+  join(currentDir, "uploads", "video", "process", "route.ts"),
+  "utf8",
+);
 const contactCreditFooterSource = readFileSync(
   join(currentDir, "..", "components", "project-page", "section-renderers", "ProjectContactCreditFooter.tsx"),
   "utf8",
@@ -114,15 +117,63 @@ assert.doesNotMatch(
 );
 
 assert.equal(
-  videoUploadRouteSource.includes("request.formData()"),
+  uploadActionsSource.includes("createSignedAdminVideoUploadAction"),
+  true,
+  "video uploads must request a signed raw storage URL through a server action",
+);
+
+assert.equal(
+  videoProcessRouteSource.includes('buildBackendUrl("/admin/uploads/video/process")'),
+  true,
+  "video processing proxy must call the backend process endpoint",
+);
+
+assert.equal(
+  videoProcessRouteSource.includes("request.json()"),
+  true,
+  "video processing proxy must forward JSON metadata instead of multipart file bodies",
+);
+
+assert.equal(
+  videoProcessRouteSource.includes("request.formData()"),
   false,
-  "video upload route must forward the multipart request body without buffering formData",
+  "video processing proxy must not parse large multipart uploads",
 );
 
 assert.equal(
   mediaUploadFieldSource.includes("response.body.getReader()"),
   true,
   "video upload field must stream backend progress events",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("createSignedAdminVideoUploadAction"),
+  true,
+  "video uploads must use signed raw upload action before processing",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("signedVideoUpload.uploadUrl"),
+  true,
+  "video uploads must PUT directly to the signed storage URL",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes('fetch("/admin/uploads/video/process"'),
+  true,
+  "video uploads must start processing through the lightweight processing proxy",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes('fetch("/admin/uploads/video", {'),
+  false,
+  "video uploads must not post the raw file to the Next video proxy",
+);
+
+assert.equal(
+  mediaUploadFieldSource.includes("Content-Length"),
+  false,
+  "client upload fetches must not set the forbidden Content-Length header",
 );
 
 assert.equal(

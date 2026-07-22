@@ -8,7 +8,11 @@ import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { MediaUsageScope } from "@/lib/api/project-types";
 
 import { deleteMediaAssetAction, saveMediaAssetAction } from "../actions";
-import { createSignedAdminUploadAction, type VideoUploadProgressEvent } from "../upload-actions";
+import {
+  createSignedAdminUploadAction,
+  createSignedAdminVideoUploadAction,
+  type VideoUploadProgressEvent,
+} from "../upload-actions";
 import {
   applyUploadModalInert,
   clearUploadModalInert,
@@ -176,20 +180,43 @@ export function MediaUploadField({
     const displayName = getDisplayNameFromFileName(file.name);
 
     if (file.type.startsWith("video/")) {
-      setStatus("uploading");
-      setMessage(`Enviando ${file.name} e criando versões para rolagem e com áudio...`);
+      setStatus("signing");
+      setMessage(`Preparando envio de ${file.name}...`);
 
-      const videoFormData = new FormData();
-      videoFormData.append("file", file);
-      videoFormData.append("altText", displayName);
-      videoFormData.append("usageScope", usageScope);
-      if (projectId) {
-        videoFormData.append("projectId", projectId);
+      const signedVideoUpload = await createSignedAdminVideoUploadAction({
+        fileName: file.name,
+        mimeType: file.type,
+        size: file.size,
+      });
+
+      if (!signedVideoUpload.uploadUrl || !signedVideoUpload.sourceStorageKey) {
+        throw new Error(signedVideoUpload.error || `Não foi possível preparar o envio de ${file.name}.`);
       }
 
-      const response = await fetch("/admin/uploads/video", {
-        body: videoFormData,
+      setStatus("uploading");
+      setMessage(`Enviando ${file.name} para o storage...`);
+
+      const uploadResponse = await fetch(signedVideoUpload.uploadUrl, {
+        body: file,
+        headers: { "Content-Type": file.type },
+        method: "PUT",
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`O envio de ${file.name} falhou. Verifique as configurações do storage.`);
+      }
+
+      setMessage(`Processando ${file.name}...`);
+
+      const response = await fetch("/admin/uploads/video/process", {
+        body: JSON.stringify({
+          altText: displayName,
+          projectId,
+          sourceStorageKey: signedVideoUpload.sourceStorageKey,
+          usageScope,
+        }),
         cache: "no-store",
+        headers: { "Content-Type": "application/json" },
         method: "POST",
       });
 

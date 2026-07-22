@@ -29,6 +29,10 @@ UPLOAD_STORAGE_KEY_PATTERN = re.compile(
     r"^uploads/\d{4}/\d{2}/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}-[a-z0-9._-]{1,120}$",
     re.IGNORECASE,
 )
+RAW_UPLOAD_STORAGE_KEY_PATTERN = re.compile(
+    r"^uploads/raw/\d{4}/\d{2}/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}-[a-z0-9._-]{1,120}$",
+    re.IGNORECASE,
+)
 
 
 class MediaObjectNotFound(ValueError):
@@ -113,6 +117,11 @@ def validate_upload_storage_key(storage_key: str) -> None:
         raise ValueError("Upload storage key is invalid.")
 
 
+def validate_raw_upload_storage_key(storage_key: str) -> None:
+    if not isinstance(storage_key, str) or not RAW_UPLOAD_STORAGE_KEY_PATTERN.match(storage_key):
+        raise ValueError("Raw upload storage key is invalid.")
+
+
 def _encode_storage_key(storage_key: str) -> str:
     return "/".join(quote(part, safe="") for part in storage_key.split("/"))
 
@@ -132,6 +141,20 @@ def create_media_storage_key(file_name: str, now: Optional[datetime] = None) -> 
     current_time = current_time.astimezone(timezone.utc)
 
     return "uploads/{year}/{month}/{identifier}-{file_name}".format(
+        year=current_time.year,
+        month=str(current_time.month).zfill(2),
+        identifier=uuid.uuid4(),
+        file_name=_sanitize_file_name(file_name),
+    )
+
+
+def create_raw_media_storage_key(file_name: str, now: Optional[datetime] = None) -> str:
+    current_time = now if now is not None else datetime.now(timezone.utc)
+    if current_time.tzinfo is None:
+        current_time = current_time.replace(tzinfo=timezone.utc)
+    current_time = current_time.astimezone(timezone.utc)
+
+    return "uploads/raw/{year}/{month}/{identifier}-{file_name}".format(
         year=current_time.year,
         month=str(current_time.month).zfill(2),
         identifier=uuid.uuid4(),
@@ -179,6 +202,33 @@ def create_signed_put_upload(input_data: Mapping[str, Any], settings: Optional[S
         "uploadUrl": upload_url,
         "url": get_media_delivery_url(storage_key, resolved_settings),
     }
+
+
+def create_signed_raw_video_upload(input_data: Mapping[str, Any], settings: Optional[Settings] = None) -> Dict[str, str]:
+    validate_media_upload_input(input_data)
+    resolved_settings = _resolve_settings(settings)
+    file_name = _input_value(input_data, "file_name", "fileName")
+    mime_type = _input_value(input_data, "mime_type", "mimeType")
+    size_bytes = _input_value(input_data, "size_bytes", "sizeBytes")
+
+    if not isinstance(mime_type, str) or mime_type not in {"video/mp4", "video/webm"}:
+        raise ValueError("Raw video uploads require MP4 or WebM video files.")
+
+    storage_key = create_raw_media_storage_key(str(file_name))
+    validate_raw_upload_storage_key(storage_key)
+    upload_url = get_s3_presign_client(resolved_settings).generate_presigned_url(
+        "put_object",
+        Params={
+            "Bucket": resolved_settings.s3_bucket,
+            "Key": storage_key,
+            "ContentType": mime_type,
+            "ContentLength": size_bytes,
+        },
+        ExpiresIn=60 * 5,
+        HttpMethod="PUT",
+    )
+
+    return {"sourceStorageKey": storage_key, "uploadUrl": upload_url}
 
 
 def put_media_object(input_data: Mapping[str, Any], settings: Optional[Settings] = None) -> Any:
@@ -244,6 +294,22 @@ def get_media_object(input_data: Mapping[str, Any], settings: Optional[Settings]
         raise
 
 
+def get_raw_media_object(storage_key: str, settings: Optional[Settings] = None) -> Dict[str, Any]:
+    resolved_settings = _resolve_settings(settings)
+    validate_raw_upload_storage_key(storage_key)
+
+    try:
+        return get_s3_client(resolved_settings).get_object(
+            Bucket=resolved_settings.s3_bucket,
+            Key=storage_key,
+        )
+    except ClientError as error:
+        error_code = error.response.get("Error", {}).get("Code")
+        if error_code in {"NoSuchKey", "404", "NotFound"}:
+            raise MediaObjectNotFound("Media object not found.") from error
+        raise
+
+
 def delete_media_objects(storage_keys: Sequence[str], settings: Optional[Settings] = None) -> None:
     resolved_settings = _resolve_settings(settings)
     unique_storage_keys = list(dict.fromkeys(storage_keys))
@@ -265,6 +331,17 @@ def delete_media_objects(storage_keys: Sequence[str], settings: Optional[Setting
         )
         if response.get("Errors"):
             raise ValueError("Media object could not be deleted.")
+
+
+def delete_raw_media_object(storage_key: str, settings: Optional[Settings] = None) -> None:
+    resolved_settings = _resolve_settings(settings)
+    validate_raw_upload_storage_key(storage_key)
+    response = get_s3_client(resolved_settings).delete_objects(
+        Bucket=resolved_settings.s3_bucket,
+        Delete={"Objects": [{"Key": storage_key}], "Quiet": True},
+    )
+    if response.get("Errors"):
+        raise ValueError("Media object could not be deleted.")
 
 
 def verify_uploaded_media_object(input_data: Mapping[str, Any], settings: Optional[Settings] = None) -> None:

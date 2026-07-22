@@ -35,7 +35,7 @@ def create_app() -> FastAPI:
     @app.middleware("http")
     async def log_unauthorized_video_upload(request, call_next):
         response = await call_next(request)
-        if request.url.path == "/admin/uploads/video" and response.status_code == 401:
+        if request.url.path in {"/admin/uploads/video", "/admin/uploads/video/process"} and response.status_code == 401:
             logger.info(
                 json.dumps(
                     {

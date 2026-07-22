@@ -3,10 +3,16 @@ import { readFileSync } from "node:fs";
 
 const nextConfigSource = readFileSync("apps/web/next.config.ts", "utf8");
 
-assert.match(
+assert.doesNotMatch(
   nextConfigSource,
-  /proxyClientMaxBodySize:\s*["']501mb["']/,
-  "video uploads pass through the admin proxy, so proxyClientMaxBodySize must allow full 500MB videos",
+  /proxyClientMaxBodySize/,
+  "video uploads go directly to storage, so Next must not keep a proxy body allowance",
+);
+
+assert.doesNotMatch(
+  nextConfigSource,
+  /bodySizeLimit/,
+  "video uploads go directly to storage, so Server Actions must not keep a body allowance",
 );
 
 assert.doesNotMatch(

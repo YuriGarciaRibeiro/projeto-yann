@@ -36,25 +36,28 @@ export async function POST(request: Request) {
     return Response.json({ error: "Missing admin access token." }, { status: 401 });
   }
 
+  let payload: unknown;
+
+  try {
+    payload = await request.json();
+  } catch {
+    return Response.json({ error: "Payload de processamento inválido." }, { status: 400 });
+  }
+
   let backendResponse: Response;
 
   try {
-    const headers = new Headers({ authorization: `Bearer ${token}` });
-    const contentType = request.headers.get("content-type");
-
-    if (contentType) {
-      headers.set("content-type", contentType);
-    }
-
-    backendResponse = await fetch(buildBackendUrl("/admin/uploads/video"), {
-      body: request.body,
+    backendResponse = await fetch(buildBackendUrl("/admin/uploads/video/process"), {
+      body: JSON.stringify(payload),
       cache: "no-store",
-      duplex: "half",
-      headers,
+      headers: {
+        authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
       method: "POST",
-    } as RequestInit & { duplex: "half" });
+    });
   } catch {
-    return Response.json({ error: "Não foi possível otimizar o vídeo." }, { status: 502 });
+    return Response.json({ error: "Não foi possível processar o vídeo." }, { status: 502 });
   }
 
   const headers = new Headers();
