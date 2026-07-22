@@ -5,8 +5,13 @@ import { fileURLToPath } from "node:url";
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const projectPageSource = readFileSync(join(currentDir, "ProjectPage.tsx"), "utf8");
+const projectHeroSource = readFileSync(join(currentDir, "ProjectHero.tsx"), "utf8");
 const scrollVideoParallaxSource = readFileSync(
   join(currentDir, "..", "ScrollVideoParallax.tsx"),
+  "utf8",
+);
+const parallaxVideoSectionSource = readFileSync(
+  join(currentDir, "section-renderers", "ParallaxVideoSection.tsx"),
   "utf8",
 );
 const parallaxVideoSequenceSource = readFileSync(
@@ -15,6 +20,42 @@ const parallaxVideoSequenceSource = readFileSync(
 );
 const globalsSource = readFileSync(join(currentDir, "..", "..", "globals.css"), "utf8");
 const projectPreloaderSource = readFileSync(join(currentDir, "ProjectPreloader.tsx"), "utf8");
+
+assert.match(
+  projectPageSource,
+  /import Image from "next\/image";/,
+  "project pages should import Next Image for the persistent project logo",
+);
+
+assert.match(
+  projectPageSource,
+  /<header className="(?=[^"]*pointer-events-none)(?=[^"]*fixed)(?=[^"]*inset-x-0)(?=[^"]*top-0)(?=[^"]*z-50)(?=[^"]*px-5)(?=[^"]*py-5)(?=[^"]*text-white)(?=[^"]*sm:px-8)(?=[^"]*lg:px-16)[^"]*">/,
+  "project pages should render a fixed header so the logo follows the full page",
+);
+
+assert.match(
+  projectPageSource,
+  /className="(?=[^"]*h-12)(?=[^"]*w-auto)(?=[^"]*sm:h-14)(?=[^"]*lg:h-16)[^"]*"/,
+  "the persistent logo should use the approved moderate smaller responsive scale",
+);
+
+assert.doesNotMatch(
+  projectHeroSource,
+  /src="\/logo\.png"/,
+  "ProjectHero should not render a duplicate hero-only logo after ProjectPage owns the fixed header",
+);
+
+assert.doesNotMatch(
+  projectHeroSource,
+  /project-scrub-flow/,
+  "ProjectHero should not use scrub-flow transition gradients that darken hero video edges",
+);
+
+assert.doesNotMatch(
+  projectHeroSource,
+  /bg-\[linear-gradient\((90deg|0deg),rgb\(0_0_0\/0\./,
+  "ProjectHero should not render full-frame dark gradient overlays over hero media",
+);
 
 assert.match(
   projectPageSource,
@@ -38,6 +79,42 @@ assert.doesNotMatch(
   globalsSource,
   /margin-top:\s*-\d+svh/,
   "parallax sections should not use negative margins to stack one video over another",
+);
+
+assert.match(
+  globalsSource,
+  /--text-hero-title: clamp\(3\.25rem, 7\.5vw, 6\.75rem\);/,
+  "project hero title token should use the approved moderate smaller scale",
+);
+
+assert.match(
+  globalsSource,
+  /--text-project-title: clamp\(2\.25rem, 4\.25vw, 4\.25rem\);/,
+  "project parallax title token should use the approved moderate smaller scale",
+);
+
+assert.match(
+  globalsSource,
+  /--text-body-large: clamp\(1rem, 1\.15vw, 1\.1875rem\);/,
+  "large project body text should use the approved moderate smaller scale",
+);
+
+assert.match(
+  globalsSource,
+  /--text-caption: 0\.975rem;/,
+  "project captions should use the approved moderate smaller scale",
+);
+
+assert.match(
+  globalsSource,
+  /--text-meta: 0\.875rem;/,
+  "project metadata should use the approved moderate smaller scale",
+);
+
+assert.match(
+  globalsSource,
+  /--text-label: 0\.625rem;/,
+  "project labels should use the approved moderate smaller scale",
 );
 
 assert.doesNotMatch(
@@ -64,15 +141,27 @@ assert.doesNotMatch(
   "scroll video media should not add a global vignette that darkens the video borders",
 );
 
+assert.doesNotMatch(
+  scrollVideoParallaxSource,
+  /shadeOpacity/,
+  "scroll video media should not animate a black shade overlay over the video while scrubbing",
+);
+
+assert.doesNotMatch(
+  scrollVideoParallaxSource,
+  /<motion\.div className="absolute inset-0 bg-black"/,
+  "scroll video media should not render a full-frame black darkening overlay over the video",
+);
+
 assert.match(
   parallaxVideoSequenceSource,
-  /className="project-scroll-range project-scrub-flow project-parallax-sequence/,
+  /className="(?=[^"]*project-scroll-range)(?=[^"]*project-scrub-flow)(?=[^"]*project-parallax-sequence)[^"]*"/,
   "parallax video sequences should expose the expected outer scroll range classes",
 );
 
 assert.match(
   parallaxVideoSequenceSource,
-  /className="project-scroll-stage sticky top-0 min-h-svh overflow-hidden"/,
+  /className="(?=[^"]*project-scroll-stage)(?=[^"]*sticky)(?=[^"]*top-0)(?=[^"]*min-h-svh)(?=[^"]*overflow-hidden)[^"]*"/,
   "parallax video sequences should use the standard sticky stage classes",
 );
 
@@ -80,6 +169,42 @@ assert.doesNotMatch(
   parallaxVideoSequenceSource,
   /margin-top:\s*-\d+svh/,
   "parallax video sequences should not use negative margins to stack segments",
+);
+
+assert.doesNotMatch(
+  parallaxVideoSectionSource,
+  /bg-\[linear-gradient\(90deg,rgb\(0_0_0\/0\.58\)/,
+  "standalone parallax videos should not add a constant left darkening overlay",
+);
+
+assert.doesNotMatch(
+  parallaxVideoSectionSource,
+  /bg-\[linear-gradient\(0deg,rgb\(0_0_0\/0\.56\)/,
+  "standalone parallax videos should not add a constant bottom darkening overlay",
+);
+
+assert.doesNotMatch(
+  parallaxVideoSequenceSource,
+  /bg-\[linear-gradient\(90deg,rgb\(0_0_0\/0\.(58|62)\)/,
+  "parallax video sequences should not add constant left darkening overlays",
+);
+
+assert.doesNotMatch(
+  parallaxVideoSequenceSource,
+  /bg-\[linear-gradient\(0deg,rgb\(0_0_0\/0\.(56|6)\)/,
+  "parallax video sequences should not add constant bottom darkening overlays",
+);
+
+assert.match(
+  globalsSource,
+  /\.project-scrub-flow::before\s*\{[^}]*rgb\(5 5 5 \/ 0\.72\)/,
+  "transition darkening between parallax blocks should remain in the project scrub flow before gradient",
+);
+
+assert.match(
+  globalsSource,
+  /\.project-scrub-flow::after\s*\{[^}]*rgb\(5 5 5 \/ 0\.74\)/,
+  "transition darkening between parallax blocks should remain in the project scrub flow after gradient",
 );
 
 assert.match(
@@ -96,13 +221,13 @@ assert.match(
 
 assert.match(
   parallaxVideoSequenceSource,
-  /controlledProgress=\{isActive \? activeSegmentProgress : index < activeIndex \? 1 : 0\}/,
+  /controlledProgress=\{[\s\S]*isActive[\s\S]*activeSegmentProgress[\s\S]*index < activeIndex[\s\S]*1[\s\S]*0[\s\S]*\}/,
   "parallax video sequences should scrub only the active mounted video with local segment progress",
 );
 
 assert.match(
   parallaxVideoSequenceSource,
-  /shouldWriteScrollHeight=\{false\}/,
+  /shouldWriteScrollHeight=\{\s*false\s*\}/,
   "parallax video sequences should prevent child media from overwriting the aggregate range height",
 );
 
@@ -216,8 +341,8 @@ assert.match(
 
 assert.match(
   scrollVideoParallaxSource,
-  /const MIN_SEEK_INTERVAL_MS = 33/,
-  "active scroll scrub should throttle video seeks to roughly 30fps",
+  /const MIN_SEEK_INTERVAL_MS = 16/,
+  "active scroll scrub should throttle video seeks to roughly 60fps",
 );
 
 assert.match(
@@ -228,7 +353,7 @@ assert.match(
 
 assert.match(
   scrollVideoParallaxSource,
-  /preload=\{shouldAnimateVideo && \(isNearViewport \|\| isVideoFrameReady\) \? "auto" : "none"\}/,
+  /preload=\{[\s\S]*shouldAnimateVideo[\s\S]*isNearViewport[\s\S]*isVideoFrameReady[\s\S]*"auto"[\s\S]*"none"[\s\S]*\}/,
   "inactive sequence videos should not preload full video data while another video is active",
 );
 

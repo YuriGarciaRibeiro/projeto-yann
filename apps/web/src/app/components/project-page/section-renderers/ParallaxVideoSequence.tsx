@@ -147,11 +147,8 @@ export function ParallaxVideoSequence({ sectionRows }: ParallaxVideoSequenceProp
                   </p>
                 </div>
               )}
-              <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(90deg,rgb(0_0_0/0.62)_0%,rgb(0_0_0/0.28)_44%,transparent_76%)]" />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/2 bg-[linear-gradient(0deg,rgb(0_0_0/0.6)_0%,transparent_68%)]" />
-
               <div className="relative z-20 mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-16 lg:pb-16">
-                <div className="col-span-4 sm:col-span-5 lg:col-span-6">
+                <div className="col-span-4 [text-shadow:0_2px_18px_rgb(0_0_0/0.55)] sm:col-span-5 lg:col-span-6">
                   {section.title ? (
                     <h2
                       className="font-display text-project-title font-normal leading-[0.95] tracking-[-0.045em]"
@@ -234,8 +231,6 @@ export function ParallaxVideoSequence({ sectionRows }: ParallaxVideoSequenceProp
             </div>
           );
         })}
-        <div className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(90deg,rgb(0_0_0/0.58)_0%,rgb(0_0_0/0.22)_40%,transparent_72%)]" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1/2 bg-[linear-gradient(0deg,rgb(0_0_0/0.56)_0%,transparent_68%)]" />
         <div className="pointer-events-none absolute inset-x-5 bottom-5 z-40 h-px bg-white/20 sm:inset-x-8 lg:inset-x-16">
           <motion.div
             className="h-full origin-left bg-white"
@@ -252,7 +247,7 @@ export function ParallaxVideoSequence({ sectionRows }: ParallaxVideoSequenceProp
             key={section.id}
             transition={{ duration: shouldReduceMotion ? 0 : 0.41, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="col-span-4 sm:col-span-5 lg:col-span-6">
+            <div className="col-span-4 [text-shadow:0_2px_18px_rgb(0_0_0/0.55)] sm:col-span-5 lg:col-span-6">
               {section.title ? (
                 <h2
                   className="font-display text-project-title font-normal leading-[0.95] tracking-[-0.045em]"

@@ -1,5 +1,6 @@
 import type { PublishedProjectPageData } from "@/lib/api/public-projects";
 import type { ProjectPreloadMedia } from "./ProjectPreloader";
+import Image from "next/image";
 
 export type { PublishedProjectPageData };
 
@@ -53,6 +54,24 @@ export function ProjectPage({ data }: ProjectPageProps) {
       videoSrc={data.heroVideoAsset?.url ?? null}
     >
       <main className="overflow-x-clip bg-paper text-ink">
+        <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-5 py-5 text-white sm:px-8 lg:px-16">
+          <div className="pointer-events-none mx-auto flex max-w-360 items-center justify-between gap-6">
+            <a
+              aria-label="Yann"
+              className="pointer-events-auto block outline-offset-4 transition-opacity hover:opacity-65"
+              href="#project-title"
+            >
+              <Image
+                alt=""
+                className="h-12 w-auto sm:h-14 lg:h-16 mix-blend-difference"
+                height={1598}
+                src="/logo.png"
+                unoptimized
+                width={3554}
+              />
+            </a>
+          </div>
+        </header>
         <ProjectHero data={data} />
         <article aria-label={`Conteudo do projeto ${data.project.title}`}>
           {renderGroups.map((group) =>

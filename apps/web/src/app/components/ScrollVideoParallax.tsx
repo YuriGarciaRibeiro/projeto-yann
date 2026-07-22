@@ -6,7 +6,6 @@ import {
   useMotionValueEvent,
   useScroll,
   useSpring,
-  useTransform,
 } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
@@ -31,7 +30,7 @@ type ScrollVideoParallaxProps = {
   videoSrc: string;
 };
 
-const MIN_SEEK_INTERVAL_MS = 33;
+const MIN_SEEK_INTERVAL_MS = 16;
 
 export function ScrollVideoParallax({
   alt,
@@ -67,7 +66,6 @@ export function ScrollVideoParallax({
     restDelta: 0.001,
     stiffness: 100,
   });
-  const shadeOpacity = useTransform(smoothScrollYProgress, [0, 0.6, 1], [0.18, 0.34, 0.56]);
   const controlledMotionProgress =
     typeof controlledProgress === "number" ? null : (controlledProgress ?? null);
   const shouldAnimateVideo =
@@ -248,7 +246,6 @@ export function ScrollVideoParallax({
           <source src={videoSrc} type={videoMimeType} />
         </video>
       </div>
-      <motion.div className="absolute inset-0 bg-black" style={{ opacity: shadeOpacity }} />
       {showProgress && controlledProgress === undefined ? (
         <div className="pointer-events-none absolute inset-x-5 bottom-5 z-40 h-px bg-white/20 sm:inset-x-8 lg:inset-x-16">
           <motion.div

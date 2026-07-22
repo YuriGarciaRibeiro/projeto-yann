@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
-import Image from "next/image";
 import { useRef } from "react";
 
 import { ProjectScrollMedia } from "../ProjectScrollMedia";
@@ -31,30 +30,10 @@ export function ProjectHero({ data }: ProjectHeroProps) {
   return (
     <section
       aria-labelledby="project-title"
-      className="hero-scroll-range project-scrub-flow relative bg-black text-white"
+      className="hero-scroll-range relative bg-black text-white"
       data-header-theme="light"
       ref={sectionRef}
     >
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-40 px-5 py-5 text-white sm:px-8 lg:px-16">
-        <div className="pointer-events-auto mx-auto flex max-w-360 items-center justify-between gap-6 text-label font-medium uppercase tracking-[0.18em]">
-          <a
-            aria-label="Yann"
-            className="block outline-offset-4 transition-opacity hover:opacity-65"
-            href="#project-title"
-          >
-            <Image
-              alt=""
-              className="h-20 w-auto"
-              height={1598}
-              priority
-              src="/logo.png"
-              unoptimized
-              width={3554}
-            />
-          </a>
-        </div>
-      </header>
-
       <div className="hero-scroll-stage sticky top-0 min-h-svh overflow-hidden">
         <ProjectScrollMedia
           alt={mediaAlt}
@@ -64,10 +43,6 @@ export function ProjectHero({ data }: ProjectHeroProps) {
           videoMimeType={heroVideoAsset?.mimeType ?? null}
           videoSrc={heroVideoAsset?.url ?? null}
         />
-
-        <div className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(90deg,rgb(0_0_0/0.66)_0%,rgb(0_0_0/0.28)_42%,transparent_74%)]" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1/2 bg-[linear-gradient(0deg,rgb(0_0_0/0.64)_0%,transparent_70%)]" />
-
         <motion.div
           className="relative z-30 mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-16 lg:pb-16"
           style={{ y: contentY }}
