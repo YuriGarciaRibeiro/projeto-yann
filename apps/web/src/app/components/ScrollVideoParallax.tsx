@@ -31,6 +31,8 @@ type ScrollVideoParallaxProps = {
   videoSrc: string;
 };
 
+const MIN_SEEK_INTERVAL_MS = 33;
+
 export function ScrollVideoParallax({
   alt,
   className = "",
@@ -53,6 +55,7 @@ export function ScrollVideoParallax({
   const scrollHeightRef = useRef(0);
   const targetTimeRef = useRef(0);
   const latestProgressRef = useRef(0);
+  const lastSeekAtRef = useRef(0);
   const [isNearViewport, setIsNearViewport] = useState(false);
   const [isVideoFrameReady, setIsVideoFrameReady] = useState(false);
   const { scrollYProgress } = useScroll({
@@ -162,10 +165,11 @@ export function ScrollVideoParallax({
       return;
     }
 
-    const tick = () => {
+    const tick = (now: number) => {
       const delta = targetTimeRef.current - video.currentTime;
 
-      if (Math.abs(delta) > 0.015) {
+      if (Math.abs(delta) > 0.015 && now - lastSeekAtRef.current >= MIN_SEEK_INTERVAL_MS) {
+        lastSeekAtRef.current = now;
         video.currentTime += delta * 0.22;
       }
 

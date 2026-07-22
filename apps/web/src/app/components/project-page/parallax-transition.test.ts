@@ -215,6 +215,18 @@ assert.match(
 );
 
 assert.match(
+  scrollVideoParallaxSource,
+  /const MIN_SEEK_INTERVAL_MS = 33/,
+  "active scroll scrub should throttle video seeks to roughly 30fps",
+);
+
+assert.match(
+  scrollVideoParallaxSource,
+  /now - lastSeekAtRef\.current >= MIN_SEEK_INTERVAL_MS/,
+  "scroll scrub should not assign currentTime on every requestAnimationFrame",
+);
+
+assert.match(
   parallaxVideoSequenceSource,
   /style=\{\{ scaleX: smoothScrollYProgress \}\}/,
   "parallax video sequences should expose a bottom progress indicator linked to the smoothed combined sequence scroll progress",
