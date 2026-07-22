@@ -34,17 +34,17 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --text-hero-title: clamp(3.25rem, 7.5vw, 6.75rem);
+  --text-hero-title: clamp(2.6rem, 5.8vw, 5.25rem);
   --text-page-title: clamp(3.5rem, 12vw, 10rem);
-  --text-project-title: clamp(2.25rem, 4.25vw, 4.25rem);
+  --text-project-title: clamp(1.9rem, 3.4vw, 3.35rem);
   --text-section-title: clamp(2.25rem, 4vw, 4rem);
   --text-card-title: clamp(1.75rem, 2.8vw, 2.75rem);
   --text-preloader-title: clamp(2.5rem, 12vw, 5.5rem);
-  --text-body-large: clamp(1rem, 1.15vw, 1.1875rem);
+  --text-body-large: clamp(0.925rem, 1vw, 1.0625rem);
   --text-body: clamp(1rem, 1.1vw, 1.125rem);
-  --text-caption: 0.975rem;
-  --text-meta: 0.875rem;
-  --text-label: 0.625rem;
+  --text-caption: 0.875rem;
+  --text-meta: 0.8125rem;
+  --text-label: 0.5625rem;
   --text-admin-title: clamp(2.25rem, 6vw, 3.75rem);
   --text-admin-page-title: 2.25rem;
   --text-admin-section-title: 1.25rem;

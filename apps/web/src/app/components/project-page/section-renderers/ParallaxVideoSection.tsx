@@ -34,7 +34,7 @@ export function ParallaxVideoSection({
           videoSrc={primaryMediaAsset?.url ?? null}
         />
 
-        <div className="relative z-30 mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-16 lg:pb-16">
+        <div className="relative z-30 grid min-h-svh max-w-none grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-8 lg:pb-16 xl:px-10">
           <div className="col-span-4 [text-shadow:0_2px_18px_rgb(0_0_0/0.55)] sm:col-span-5 lg:col-span-6">
             {section.title ? (
               <h2
@@ -51,7 +51,7 @@ export function ParallaxVideoSection({
             ) : null}
           </div>
           {section.caption ? (
-            <p className="col-span-4 mt-10 self-end border border-white/10 bg-white/[0.08] px-4 py-3 text-caption leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
+            <p className="col-span-4 mt-10 self-end border border-white/10 bg-white/[0.08] px-4 py-3 text-caption leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0 xl:col-start-10">
               {section.caption}
             </p>
           ) : null}

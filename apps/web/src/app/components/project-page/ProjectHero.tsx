@@ -44,7 +44,7 @@ export function ProjectHero({ data }: ProjectHeroProps) {
           videoSrc={heroVideoAsset?.url ?? null}
         />
         <motion.div
-          className="relative z-30 mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-16 lg:pb-16"
+          className="relative z-30 grid min-h-svh max-w-none grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-8 lg:pb-16 xl:px-10"
           style={{ y: contentY }}
         >
           <div className="col-span-4 sm:col-span-5 lg:col-span-7">
@@ -64,7 +64,7 @@ export function ProjectHero({ data }: ProjectHeroProps) {
             ) : null}
           </div>
 
-          <dl className="col-span-4 mt-12 grid content-end gap-4 text-meta leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0">
+          <dl className="col-span-4 mt-12 grid content-end gap-4 text-meta leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0 xl:col-start-10">
             <HeroFact label="Cliente / arquiteto" value={project.clientArchitectName} />
             <HeroFact label="Local" value={project.location} />
             <HeroFact label="Ano" value={String(project.year)} />

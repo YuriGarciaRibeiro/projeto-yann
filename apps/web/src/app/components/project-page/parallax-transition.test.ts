@@ -83,38 +83,56 @@ assert.doesNotMatch(
 
 assert.match(
   globalsSource,
-  /--text-hero-title: clamp\(3\.25rem, 7\.5vw, 6\.75rem\);/,
-  "project hero title token should use the approved moderate smaller scale",
+  /--text-hero-title: clamp\(2\.6rem, 5\.8vw, 5\.25rem\);/,
+  "project hero title token should use the approved smaller scale",
 );
 
 assert.match(
   globalsSource,
-  /--text-project-title: clamp\(2\.25rem, 4\.25vw, 4\.25rem\);/,
-  "project parallax title token should use the approved moderate smaller scale",
+  /--text-project-title: clamp\(1\.9rem, 3\.4vw, 3\.35rem\);/,
+  "project parallax title token should use the approved smaller scale",
 );
 
 assert.match(
   globalsSource,
-  /--text-body-large: clamp\(1rem, 1\.15vw, 1\.1875rem\);/,
-  "large project body text should use the approved moderate smaller scale",
+  /--text-body-large: clamp\(0\.925rem, 1vw, 1\.0625rem\);/,
+  "large project body text should use the approved smaller scale",
 );
 
 assert.match(
   globalsSource,
-  /--text-caption: 0\.975rem;/,
-  "project captions should use the approved moderate smaller scale",
+  /--text-caption: 0\.875rem;/,
+  "project captions should use the approved smaller scale",
 );
 
 assert.match(
   globalsSource,
-  /--text-meta: 0\.875rem;/,
-  "project metadata should use the approved moderate smaller scale",
+  /--text-meta: 0\.8125rem;/,
+  "project metadata should use the approved smaller scale",
 );
 
 assert.match(
   globalsSource,
-  /--text-label: 0\.625rem;/,
-  "project labels should use the approved moderate smaller scale",
+  /--text-label: 0\.5625rem;/,
+  "project labels should use the approved smaller scale",
+);
+
+assert.match(
+  projectHeroSource,
+  /className="(?=[^"]*max-w-none)(?=[^"]*lg:px-8)(?=[^"]*xl:px-10)[^"]*"/,
+  "project hero text grid should use a wider lateral layout",
+);
+
+assert.match(
+  parallaxVideoSectionSource,
+  /className="(?=[^"]*max-w-none)(?=[^"]*lg:px-8)(?=[^"]*xl:px-10)[^"]*"/,
+  "standalone parallax text grid should use a wider lateral layout",
+);
+
+assert.match(
+  parallaxVideoSequenceSource,
+  /className="(?=[^"]*max-w-none)(?=[^"]*lg:px-8)(?=[^"]*xl:px-10)[^"]*"/,
+  "parallax sequence text grids should use a wider lateral layout",
 );
 
 assert.doesNotMatch(
