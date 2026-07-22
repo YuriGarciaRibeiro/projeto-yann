@@ -67,6 +67,8 @@ export function ScrollVideoParallax({
   const shadeOpacity = useTransform(smoothScrollYProgress, [0, 0.6, 1], [0.18, 0.34, 0.56]);
   const controlledMotionProgress =
     typeof controlledProgress === "number" ? null : (controlledProgress ?? null);
+  const shouldAnimateVideo =
+    controlledProgress === undefined || controlledMotionProgress !== null;
 
   const updateTargetProgress = (progress: number, snapVideo = false) => {
     latestProgressRef.current = Math.min(Math.max(progress, 0), 1);
@@ -151,7 +153,7 @@ export function ScrollVideoParallax({
     const video = videoRef.current;
     const scrollTarget = sectionRef.current ?? containerRef.current;
 
-    if (!video || !isNearViewport) {
+    if (!video || !isNearViewport || !shouldAnimateVideo) {
       if (frameRef.current !== null) {
         window.cancelAnimationFrame(frameRef.current);
         frameRef.current = null;
@@ -214,7 +216,7 @@ export function ScrollVideoParallax({
       }
 
     };
-  }, [controlledProgress, isNearViewport, onDurationChange, shouldWriteScrollHeight]);
+  }, [controlledProgress, isNearViewport, onDurationChange, shouldAnimateVideo, shouldWriteScrollHeight]);
 
   return (
     <div

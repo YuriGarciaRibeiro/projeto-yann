@@ -203,6 +203,18 @@ assert.match(
 );
 
 assert.match(
+  scrollVideoParallaxSource,
+  /const shouldAnimateVideo =[\s\S]*controlledProgress === undefined[\s\S]*controlledMotionProgress !== null/,
+  "inactive sequence videos with numeric controlled progress should not run requestAnimationFrame scrub loops",
+);
+
+assert.match(
+  scrollVideoParallaxSource,
+  /if \(!video \|\| !isNearViewport \|\| !shouldAnimateVideo\)/,
+  "scroll scrub should skip RAF work when a mounted sequence video is not active",
+);
+
+assert.match(
   parallaxVideoSequenceSource,
   /style=\{\{ scaleX: smoothScrollYProgress \}\}/,
   "parallax video sequences should expose a bottom progress indicator linked to the smoothed combined sequence scroll progress",
