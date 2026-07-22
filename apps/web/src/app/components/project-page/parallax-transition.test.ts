@@ -227,6 +227,24 @@ assert.match(
 );
 
 assert.match(
+  scrollVideoParallaxSource,
+  /preload=\{shouldAnimateVideo && \(isNearViewport \|\| isVideoFrameReady\) \? "auto" : "none"\}/,
+  "inactive sequence videos should not preload full video data while another video is active",
+);
+
+assert.match(
+  parallaxVideoSequenceSource,
+  /preload="metadata"/,
+  "hidden sequence metadata probes should not preload full videos",
+);
+
+assert.doesNotMatch(
+  parallaxVideoSequenceSource,
+  /className="pointer-events-none absolute size-px overflow-hidden opacity-0"[\s\S]*preload="auto"/,
+  "hidden sequence metadata probes should avoid duplicate full-video downloads",
+);
+
+assert.match(
   parallaxVideoSequenceSource,
   /style=\{\{ scaleX: smoothScrollYProgress \}\}/,
   "parallax video sequences should expose a bottom progress indicator linked to the smoothed combined sequence scroll progress",

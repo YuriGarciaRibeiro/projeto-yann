@@ -225,7 +225,7 @@ export function ParallaxVideoSequence({ sectionRows }: ParallaxVideoSequenceProp
                   className="pointer-events-none absolute size-px overflow-hidden opacity-0"
                   muted
                   onLoadedMetadata={(event) => handleMetadataLoaded(index, event)}
-                  preload="auto"
+                  preload="metadata"
                   tabIndex={-1}
                 >
                   <source src={primaryMediaAsset.url} type={primaryMediaAsset.mimeType} />

@@ -243,7 +243,7 @@ export function ScrollVideoParallax({
           onLoadedData={handleVideoReady}
           playsInline
           poster={posterSrc ?? undefined}
-          preload={isNearViewport || isVideoFrameReady ? "auto" : "none"}
+          preload={shouldAnimateVideo && (isNearViewport || isVideoFrameReady) ? "auto" : "none"}
         >
           <source src={videoSrc} type={videoMimeType} />
         </video>
