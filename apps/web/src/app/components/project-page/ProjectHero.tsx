@@ -44,10 +44,10 @@ export function ProjectHero({ data }: ProjectHeroProps) {
           videoSrc={heroVideoAsset?.url ?? null}
         />
         <motion.div
-          className="relative z-30 grid min-h-svh max-w-none grid-cols-4 content-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-8 lg:pb-16 xl:px-10"
+          className="relative z-30 grid min-h-svh max-w-none grid-cols-4 content-end items-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-8 lg:pb-16 xl:px-10"
           style={{ y: contentY }}
         >
-          <div className="col-span-4 sm:col-span-5 lg:col-span-7">
+          <div className="col-span-4 self-end sm:col-span-5 lg:col-span-7">
             <p className="text-label font-medium uppercase tracking-[0.16em] text-white/68">
               {project.category} / {project.location} / {project.year}
             </p>
@@ -64,7 +64,7 @@ export function ProjectHero({ data }: ProjectHeroProps) {
             ) : null}
           </div>
 
-          <dl className="col-span-4 mt-12 grid content-end gap-4 text-meta leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0 xl:col-start-10">
+          <dl className="col-span-4 mt-12 grid self-end border border-white/10 bg-white/[0.045] px-4 py-3 content-end gap-4 text-meta leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0 xl:col-start-10">
             <HeroFact label="Cliente / arquiteto" value={project.clientArchitectName} />
             <HeroFact label="Local" value={project.location} />
             <HeroFact label="Ano" value={String(project.year)} />
@@ -83,7 +83,7 @@ function HeroFact({ label, value }: { label: string; value: string | null }) {
 
   return (
     <div className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-white/12 pb-3 last:border-b-0">
-      <dt className="text-label font-medium uppercase tracking-[0.16em] text-white/45">
+      <dt className="text-label font-medium uppercase tracking-[0.16em] text-white/72">
         {label}
       </dt>
       <dd>{value}</dd>

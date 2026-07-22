@@ -125,8 +125,38 @@ assert.match(
 
 assert.match(
   projectHeroSource,
-  /className="(?=[^"]*max-w-none)(?=[^"]*lg:px-8)(?=[^"]*xl:px-10)[^"]*"/,
-  "project hero text grid should use a wider lateral layout",
+  /className="(?=[^"]*max-w-none)(?=[^"]*items-end)(?=[^"]*lg:px-8)(?=[^"]*xl:px-10)[^"]*"/,
+  "project hero text grid should use a wider lateral layout with bottom-aligned blocks",
+);
+
+assert.match(
+  projectHeroSource,
+  /className="(?=[^"]*col-span-4)(?=[^"]*self-end)(?=[^"]*lg:col-span-7)[^"]*"/,
+  "project hero title block should align to the bottom of the hero text row",
+);
+
+assert.match(
+  projectHeroSource,
+  /<dl className="(?=[^"]*col-span-4)(?=[^"]*self-end)(?=[^"]*border-white\/10)(?=[^"]*bg-white\/\[0\.045\])(?=[^"]*px-4)(?=[^"]*py-3)(?=[^"]*lg:col-start-10)[^"]*"/,
+  "project hero metadata block should align to the bottom and use the shared subtle white text background",
+);
+
+assert.match(
+  projectHeroSource,
+  /<dt className="(?=[^"]*text-label)(?=[^"]*text-white\/72)[^"]*"/,
+  "project hero metadata labels should use the same color as the metadata values",
+);
+
+assert.match(
+  parallaxVideoSectionSource,
+  /className="(?=[^"]*border-white\/10)(?=[^"]*bg-white\/\[0\.045\])(?=[^"]*text-caption)[^"]*"/,
+  "standalone parallax captions should use the shared subtle white text background",
+);
+
+assert.match(
+  parallaxVideoSequenceSource,
+  /className="(?=[^"]*border-white\/10)(?=[^"]*bg-white\/\[0\.045\])(?=[^"]*text-caption)[^"]*"/,
+  "parallax sequence captions should use the shared subtle white text background",
 );
 
 assert.match(

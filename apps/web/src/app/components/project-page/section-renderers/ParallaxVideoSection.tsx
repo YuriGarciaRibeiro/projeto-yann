@@ -51,7 +51,7 @@ export function ParallaxVideoSection({
             ) : null}
           </div>
           {section.caption ? (
-            <p className="col-span-4 mt-10 self-end border border-white/10 bg-white/[0.08] px-4 py-3 text-caption leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0 xl:col-start-10">
+            <p className="col-span-4 mt-10 self-end border border-white/10 bg-white/[0.045] px-4 py-3 text-caption leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0 xl:col-start-10">
               {section.caption}
             </p>
           ) : null}
