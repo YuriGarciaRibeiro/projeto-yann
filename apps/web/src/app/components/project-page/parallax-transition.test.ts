@@ -29,14 +29,20 @@ assert.match(
 
 assert.match(
   projectPageSource,
-  /<header className="(?=[^"]*pointer-events-none)(?=[^"]*fixed)(?=[^"]*inset-x-0)(?=[^"]*top-0)(?=[^"]*z-50)(?=[^"]*px-5)(?=[^"]*py-5)(?=[^"]*text-white)(?=[^"]*sm:px-8)(?=[^"]*lg:px-16)[^"]*">/,
-  "project pages should render a fixed header so the logo follows the full page",
+  /<header className="(?=[^"]*pointer-events-none)(?=[^"]*fixed)(?=[^"]*inset-x-0)(?=[^"]*top-0)(?=[^"]*z-50)(?=[^"]*px-5)(?=[^"]*py-5)(?=[^"]*text-white)(?=[^"]*sm:px-8)(?=[^"]*lg:px-8)(?=[^"]*xl:px-10)[^"]*">/,
+  "project pages should align the fixed logo header with the hero text grid",
 );
 
 assert.match(
   projectPageSource,
-  /className="(?=[^"]*h-12)(?=[^"]*w-auto)(?=[^"]*sm:h-14)(?=[^"]*lg:h-16)[^"]*"/,
-  "the persistent logo should use the approved moderate smaller responsive scale",
+  /className="(?=[^"]*h-9)(?=[^"]*w-auto)(?=[^"]*sm:h-10)(?=[^"]*lg:h-11)[^"]*"/,
+  "the persistent logo should use the approved smaller responsive scale",
+);
+
+assert.doesNotMatch(
+  projectPageSource,
+  /max-w-360/,
+  "fixed logo header should not use a centered max-width that misaligns with project text",
 );
 
 assert.doesNotMatch(

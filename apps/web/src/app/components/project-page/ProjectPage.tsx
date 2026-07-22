@@ -54,8 +54,8 @@ export function ProjectPage({ data }: ProjectPageProps) {
       videoSrc={data.heroVideoAsset?.url ?? null}
     >
       <main className="overflow-x-clip bg-paper text-ink">
-        <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-5 py-5 text-white sm:px-8 lg:px-16">
-          <div className="pointer-events-none mx-auto flex max-w-360 items-center justify-between gap-6">
+        <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-5 py-5 text-white sm:px-8 lg:px-8 xl:px-10">
+          <div className="pointer-events-none flex items-center justify-between gap-6">
             <a
               aria-label="Yann"
               className="pointer-events-auto block outline-offset-4 transition-opacity hover:opacity-65"
@@ -63,7 +63,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
             >
               <Image
                 alt=""
-                className="h-12 w-auto sm:h-14 lg:h-16 mix-blend-difference"
+                className="h-9 w-auto sm:h-10 lg:h-11 mix-blend-difference"
                 height={1598}
                 src="/logo.png"
                 unoptimized
