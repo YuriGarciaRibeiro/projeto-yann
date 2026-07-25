@@ -74,7 +74,7 @@ export function ProjectContactCreditFooter({
         <div className="lg:col-span-5 lg:col-start-8">
           <dl className="grid gap-0">
             {project.clientArchitectName ? (
-              <ContactRow label="Cliente / arquiteto" value={project.clientArchitectName} />
+              <ContactRow label="Arquiteto(a)" value={project.clientArchitectName} />
             ) : null}
             {contacts.map((contact) => (
               <ContactRow

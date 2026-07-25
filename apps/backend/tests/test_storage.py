@@ -168,7 +168,6 @@ def test_create_signed_put_upload_validates_and_presigns_put(monkeypatch: pytest
                 "Bucket": "portfolio-media",
                 "Key": "uploads/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.jpg",
                 "ContentType": "image/jpeg",
-                "ContentLength": 1024,
             },
             "expires_in": 300,
             "http_method": "PUT",
@@ -207,7 +206,8 @@ def test_create_signed_put_upload_presigned_url_signs_required_put_headers() -> 
 
     assert signed_upload["storageKey"] in unquote(parsed_url.path)
     assert parsed_url.path.startswith("/portfolio-media/")
-    assert {"content-length", "content-type", "host"}.issubset(signed_headers)
+    assert {"content-type", "host"}.issubset(signed_headers)
+    assert "content-length" not in signed_headers
 
 
 def test_create_signed_put_upload_uses_presign_endpoint_for_browser_put_url() -> None:
@@ -226,7 +226,8 @@ def test_create_signed_put_upload_uses_presign_endpoint_for_browser_put_url() ->
     assert parsed_url.netloc == "localhost:9000"
     assert signed_upload["storageKey"] in unquote(parsed_url.path)
     assert parsed_url.path.startswith("/portfolio-media/")
-    assert {"content-length", "content-type", "host"}.issubset(signed_headers)
+    assert {"content-type", "host"}.issubset(signed_headers)
+    assert "content-length" not in signed_headers
 
 
 def test_backend_media_object_operations_use_internal_s3_endpoint_when_presign_endpoint_is_configured(
@@ -416,7 +417,6 @@ def test_create_signed_raw_video_upload_validates_video_and_presigns_raw_key(mon
                 "Bucket": "portfolio-media",
                 "Key": "uploads/raw/2026/07/123e4567-e89b-12d3-a456-426614174000-hero.mp4",
                 "ContentType": "video/mp4",
-                "ContentLength": 1024,
             },
             "expires_in": 300,
             "http_method": "PUT",

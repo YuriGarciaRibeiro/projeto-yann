@@ -21,7 +21,7 @@ export function TechnicalInfoSection({ project, sectionRow }: TechnicalInfoSecti
           ["Categoria", project.category],
           ["Local", project.location],
           ["Ano", String(project.year)],
-          ["Cliente / arquiteto", project.clientArchitectName ?? ""],
+          ["Arquiteto(a)", project.clientArchitectName ?? ""],
         ].filter(([, value]) => value);
 
   return (

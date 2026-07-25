@@ -181,7 +181,6 @@ def create_signed_put_upload(input_data: Mapping[str, Any], settings: Optional[S
     resolved_settings = _resolve_settings(settings)
     file_name = _input_value(input_data, "file_name", "fileName")
     mime_type = _input_value(input_data, "mime_type", "mimeType")
-    size_bytes = _input_value(input_data, "size_bytes", "sizeBytes")
 
     storage_key = create_media_storage_key(str(file_name))
     validate_upload_storage_key(storage_key)
@@ -191,7 +190,6 @@ def create_signed_put_upload(input_data: Mapping[str, Any], settings: Optional[S
             "Bucket": resolved_settings.s3_bucket,
             "Key": storage_key,
             "ContentType": mime_type,
-            "ContentLength": size_bytes,
         },
         ExpiresIn=60 * 5,
         HttpMethod="PUT",
@@ -209,7 +207,6 @@ def create_signed_raw_video_upload(input_data: Mapping[str, Any], settings: Opti
     resolved_settings = _resolve_settings(settings)
     file_name = _input_value(input_data, "file_name", "fileName")
     mime_type = _input_value(input_data, "mime_type", "mimeType")
-    size_bytes = _input_value(input_data, "size_bytes", "sizeBytes")
 
     if not isinstance(mime_type, str) or mime_type not in {"video/mp4", "video/webm"}:
         raise ValueError("Raw video uploads require MP4 or WebM video files.")
@@ -222,7 +219,6 @@ def create_signed_raw_video_upload(input_data: Mapping[str, Any], settings: Opti
             "Bucket": resolved_settings.s3_bucket,
             "Key": storage_key,
             "ContentType": mime_type,
-            "ContentLength": size_bytes,
         },
         ExpiresIn=60 * 5,
         HttpMethod="PUT",
