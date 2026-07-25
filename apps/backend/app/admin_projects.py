@@ -21,6 +21,7 @@ class ProjectUpsertRequest(BaseModel):
     slug: Optional[str] = None
     title: Optional[str] = None
     subtitle: Optional[str] = None
+    heroDisplayName: Optional[str] = None
     category: Optional[str] = None
     location: Optional[str] = None
     year: Optional[int] = None
@@ -83,6 +84,7 @@ PROJECT_COLUMNS = """
     slug,
     title,
     subtitle,
+    hero_display_name,
     category,
     location,
     year,
@@ -120,6 +122,7 @@ PROJECT_INPUT_COLUMNS = {
     "slug": "slug",
     "title": "title",
     "subtitle": "subtitle",
+    "heroDisplayName": "hero_display_name",
     "category": "category",
     "location": "location",
     "year": "year",
@@ -320,6 +323,7 @@ def map_project_row(row: Mapping[str, object]) -> dict[str, object]:
         "slug": row["slug"],
         "title": row["title"],
         "subtitle": row["subtitle"],
+        "heroDisplayName": row["hero_display_name"],
         "category": row["category"],
         "location": row["location"],
         "year": row["year"],

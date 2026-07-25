@@ -80,6 +80,7 @@ def project_row(**overrides: object) -> dict[str, object]:
         "slug": "project-slug",
         "title": "Project Title",
         "subtitle": "Project Subtitle",
+        "hero_display_name": "Hero Nickname",
         "category": "Residential",
         "location": "Sao Paulo",
         "year": 2026,
@@ -222,6 +223,7 @@ def test_map_project_payload_includes_project_assets_and_sections() -> None:
     payload = map_project_payload(row, [section])
 
     assert payload["project"]["shortDescription"] == "Short project description"
+    assert payload["project"]["heroDisplayName"] == "Hero Nickname"
     assert payload["heroVideoAsset"]["id"] == "hero_video_asset-id"
     assert payload["fallbackImageAsset"]["id"] == "fallback_image_asset-id"
     assert payload["clientArchitectImageAsset"]["id"] == "client_architect_image_asset-id"
@@ -296,6 +298,16 @@ def test_get_project_by_slug_returns_none_when_project_row_missing_and_passes_sl
     assert "slug = %s" in connection.cursor_instance.queries[0]
     assert "is_published = true" in connection.cursor_instance.queries[0]
     assert connection.cursor_instance.params[0] == ("missing-slug",)
+
+
+def test_get_project_by_slug_selects_hero_display_name_for_project_mapping() -> None:
+    connection = FakeConnection([project_row()], [[]])
+
+    project = PostgresPublicProjectRepository(connection).get_project_by_slug("project-slug")
+
+    assert project is not None
+    assert project["project"]["heroDisplayName"] == "Hero Nickname"
+    assert "p.hero_display_name" in connection.cursor_instance.queries[0]
 
 
 def test_get_project_by_slug_filters_hero_video_to_scrub_variant() -> None:

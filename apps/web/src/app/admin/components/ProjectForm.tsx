@@ -95,6 +95,14 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
             name="subtitle"
           />
           <TextField
+            defaultValue={fieldValue("heroDisplayName")}
+            error={fieldErrors.heroDisplayName}
+            helpText="Nome curto que aparece acima do título na Hero."
+            idPrefix={idPrefix}
+            label="Apelido da Hero"
+            name="heroDisplayName"
+          />
+          <TextField
             defaultValue={fieldValue("category")}
             error={fieldErrors.category}
             idPrefix={idPrefix}
@@ -262,7 +270,7 @@ function TextField({
   const id = `${idPrefix}-${name}`;
 
   return (
-    <div className="grid min-w-0 gap-2">
+    <div className="grid min-w-0 grid-rows-[auto_auto_minmax(1.25rem,_auto)] gap-2">
       <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
       </label>
@@ -274,7 +282,7 @@ function TextField({
         required={required}
         type={type}
       />
-      {helpText ? <p className="text-admin-help leading-5 text-neutral-500">{helpText}</p> : null}
+      <p className="text-admin-help leading-5 text-neutral-500">{helpText ?? ""}</p>
       {error ? <p className="text-admin-body leading-5 text-red-700">{error}</p> : null}
     </div>
   );

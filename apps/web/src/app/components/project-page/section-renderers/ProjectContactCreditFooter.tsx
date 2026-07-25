@@ -47,7 +47,7 @@ export function ProjectContactCreditFooter({
       <div className="mx-auto grid max-w-[1440px] gap-12 border-t border-white/18 pt-8 lg:grid-cols-12 lg:items-center">
         <div className="lg:col-span-5">
           <p className="text-label font-medium uppercase tracking-[0.16em] text-white/45">
-            Contato / credito
+            Arquiteto(a)
           </p>
           <h2
             className="mt-5 font-display text-section-title font-normal leading-[1] tracking-[-0.045em]"
@@ -55,6 +55,9 @@ export function ProjectContactCreditFooter({
           >
             {title ?? project.clientArchitectName ?? project.title}
           </h2>
+          <p className="mt-4 text-label uppercase tracking-[0.18em] text-white">
+            Produzido por Yann | Archviz Studio
+          </p>
           {mediaAsset ? (
             <ProjectImage
               alt={mediaAsset.altText ?? ""}
@@ -73,9 +76,6 @@ export function ProjectContactCreditFooter({
 
         <div className="lg:col-span-5 lg:col-start-8">
           <dl className="grid gap-0">
-            {project.clientArchitectName ? (
-              <ContactRow label="Arquiteto(a)" value={project.clientArchitectName} />
-            ) : null}
             {contacts.map((contact) => (
               <ContactRow
                 href={contact.href ?? undefined}
@@ -85,9 +85,6 @@ export function ProjectContactCreditFooter({
               />
             ))}
           </dl>
-          <p className="mt-12 text-label uppercase tracking-[0.18em] text-white/40">
-            Produzido por Yann | Archviz Studio
-          </p>
         </div>
       </div>
     </footer>

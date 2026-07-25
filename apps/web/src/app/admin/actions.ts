@@ -41,6 +41,7 @@ type ProjectFormField =
   | "clientArchitectPhone"
   | "clientArchitectWebsite"
   | "fallbackImageAssetId"
+  | "heroDisplayName"
   | "heroVideoAssetId"
   | "location"
   | "shortDescription"
@@ -179,6 +180,7 @@ function getProjectFormValues(formData: FormData): ProjectFormValues {
     clientArchitectPhone: getString(formData, "clientArchitectPhone"),
     clientArchitectWebsite: getString(formData, "clientArchitectWebsite"),
     fallbackImageAssetId: getString(formData, "fallbackImageAssetId"),
+    heroDisplayName: getString(formData, "heroDisplayName"),
     heroVideoAssetId: getString(formData, "heroVideoAssetId"),
     id: getString(formData, "id"),
     isPublished: getBoolean(formData, "isPublished"),
@@ -231,6 +233,7 @@ function getProjectUpsertInput(values: ProjectFormValues): {
       clientArchitectPhone: nullableString(values.clientArchitectPhone),
       clientArchitectWebsite: nullableString(values.clientArchitectWebsite),
       fallbackImageAssetId: nullableString(values.fallbackImageAssetId),
+      heroDisplayName: nullableString(values.heroDisplayName),
       heroVideoAssetId: nullableString(values.heroVideoAssetId),
       isPublished: values.isPublished,
       location: values.location,
@@ -335,6 +338,7 @@ export async function saveProjectAction(formData: FormData) {
       clientArchitectPhone: nullableString(getString(formData, "clientArchitectPhone")),
       clientArchitectWebsite: nullableString(getString(formData, "clientArchitectWebsite")),
       fallbackImageAssetId: nullableString(getString(formData, "fallbackImageAssetId")),
+      heroDisplayName: nullableString(getString(formData, "heroDisplayName")),
       heroVideoAssetId: nullableString(getString(formData, "heroVideoAssetId")),
       isPublished: getBoolean(formData, "isPublished"),
       location: getString(formData, "location"),

@@ -26,6 +26,12 @@ export function ProjectHero({ data }: ProjectHeroProps) {
     stiffness: 100,
   });
   const contentY = useTransform(smoothScrollYProgress, [0.62, 1], [0, shouldReduceMotion ? 0 : -96]);
+  const heroMetadata = [
+    project.heroDisplayName,
+    project.category,
+    project.location,
+    project.year,
+  ].filter(Boolean);
 
   return (
     <section
@@ -48,9 +54,11 @@ export function ProjectHero({ data }: ProjectHeroProps) {
           style={{ y: contentY }}
         >
           <div className="col-span-4 self-end sm:col-span-5 lg:col-span-7">
-            <p className="text-label font-medium uppercase tracking-[0.16em] text-white/68">
-              {project.category} / {project.location} / {project.year}
-            </p>
+            {heroMetadata.length > 0 ? (
+              <p className="text-label font-medium uppercase tracking-[0.16em] text-white/68">
+                {heroMetadata.join(" / ")}
+              </p>
+            ) : null}
             <h1
               className="mt-5 font-display text-hero-title font-normal leading-[0.88] tracking-[-0.045em]"
               id="project-title"
@@ -63,30 +71,8 @@ export function ProjectHero({ data }: ProjectHeroProps) {
               </p>
             ) : null}
           </div>
-
-          <dl className="col-span-4 mt-12 grid self-end border border-white/10 bg-white/[0.045] px-4 py-3 content-end gap-4 text-meta leading-6 text-white/72 sm:col-span-3 lg:col-span-3 lg:col-start-10 lg:mt-0 xl:col-start-10">
-            <HeroFact label="Arquiteto(a)" value={project.clientArchitectName} />
-            <HeroFact label="Local" value={project.location} />
-            <HeroFact label="Ano" value={String(project.year)} />
-            <HeroFact label="Categoria" value={project.category} />
-          </dl>
         </motion.div>
       </div>
     </section>
-  );
-}
-
-function HeroFact({ label, value }: { label: string; value: string | null }) {
-  if (!value) {
-    return null;
-  }
-
-  return (
-    <div className="grid grid-cols-[7.5rem_1fr] gap-4 border-b border-white/12 pb-3 last:border-b-0">
-      <dt className="text-label font-medium uppercase tracking-[0.16em] text-white/72">
-        {label}
-      </dt>
-      <dd>{value}</dd>
-    </div>
   );
 }

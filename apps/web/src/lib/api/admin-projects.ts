@@ -15,6 +15,7 @@ export type AdminProject = {
   slug: string;
   title: string;
   subtitle: string | null;
+  heroDisplayName: string | null;
   category: string | null;
   location: string | null;
   year: number | null;
@@ -53,6 +54,7 @@ export type ProjectUpsertInput = {
   slug: string;
   title: string;
   subtitle: string;
+  heroDisplayName?: string | null;
   category: string;
   location: string;
   year: number;

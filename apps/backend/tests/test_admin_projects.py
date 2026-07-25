@@ -78,6 +78,7 @@ def project_row(**overrides: object) -> dict[str, object]:
         "slug": "project-slug",
         "title": "Project Title",
         "subtitle": "Project Subtitle",
+        "hero_display_name": "Hero Nickname",
         "category": "Residential",
         "location": "Sao Paulo",
         "year": 2026,
@@ -161,6 +162,7 @@ def test_map_project_row_returns_camel_case_keys() -> None:
     project = map_project_row(project_row())
 
     assert project["shortDescription"] == "Short project description"
+    assert project["heroDisplayName"] == "Hero Nickname"
     assert project["clientArchitectName"] == "Architect Name"
     assert project["clientArchitectImageAssetId"] == "client-image-id"
     assert project["isPublished"] is True

@@ -43,6 +43,13 @@
       "when": 1784305778349,
       "tag": "0005_legal_warbird",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785000000000,
+      "tag": "0006_hero_display_name",
+      "breakpoints": true
     }
   ]
 }

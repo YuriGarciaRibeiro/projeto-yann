@@ -29,6 +29,10 @@ const sectionTypeLabels: Record<ProjectSectionType, string> = {
   video_block: "Vídeo simples",
 };
 
+const creatableProjectSectionTypes = projectSectionTypes.filter(
+  (type) => type !== "contact_credit",
+);
+
 function getMediaDisplayName(asset: Pick<AdminMediaAsset, "altText"> | { altText: string | null }) {
   return (asset.altText ?? "Arquivo sem descrição").replace(
     / - (rolagem otimizado|normal com áudio)$/,
@@ -214,7 +218,12 @@ export function ProjectSectionForm({
         {!fieldConfig.youtubeUrl ? <input name="youtubeUrl" type="hidden" value="" /> : null}
 
         <div className="grid gap-5 md:grid-cols-2">
-          <SectionTypeSelect currentType={selectedType} idPrefix={idPrefix} onChange={setSelectedType} />
+          <SectionTypeSelect
+            currentType={selectedType}
+            idPrefix={idPrefix}
+            onChange={setSelectedType}
+            types={isEditing ? projectSectionTypes : creatableProjectSectionTypes}
+          />
           <TextField defaultValue={sectionData?.title ?? ""} idPrefix={idPrefix} label="Título" name="title" />
         </div>
 
@@ -344,10 +353,12 @@ function SectionTypeSelect({
   currentType,
   idPrefix,
   onChange,
+  types,
 }: {
   currentType: ProjectSectionType;
   idPrefix: string;
   onChange: (type: ProjectSectionType) => void;
+  types: readonly ProjectSectionType[];
 }) {
   const id = `${idPrefix}-type`;
 
@@ -364,7 +375,7 @@ function SectionTypeSelect({
         required
         value={currentType}
       >
-        {projectSectionTypes.map((type) => (
+        {types.map((type) => (
           <option key={type} value={type}>
             {sectionTypeLabels[type]}
           </option>
