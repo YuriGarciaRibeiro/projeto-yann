@@ -45,6 +45,7 @@ const sectionFieldConfig: Record<
     primaryMediaLabel?: string;
     poster?: boolean;
     text?: boolean;
+    youtubeUrl?: boolean;
   }
 > = {
   contact_credit: {
@@ -73,9 +74,8 @@ const sectionFieldConfig: Record<
   },
   video_block: {
     caption: true,
-    primaryMedia: "video",
-    primaryMediaLabel: "Vídeo principal",
     text: true,
+    youtubeUrl: true,
   },
 };
 
@@ -96,6 +96,7 @@ export function ProjectSectionForm({
     : "Sem foto ou vídeo principal";
   const blockTitle = sectionData?.title || "Sem título";
   const visibleOrder = displayOrder ?? sectionCount + 1;
+  const submittedSortOrder = sectionData ? String(sectionData.sortOrder) : String(visibleOrder);
   const [selectedType, setSelectedType] = useState<ProjectSectionType>(
     sectionData?.type ?? "text_block",
   );
@@ -104,6 +105,10 @@ export function ProjectSectionForm({
   const [deleteMessage, setDeleteMessage] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const fieldConfig = sectionFieldConfig[selectedType];
+  const hiddenPrimaryMediaAssetId =
+    sectionData?.type === "video_block" && selectedType === "video_block"
+      ? (sectionData.primaryMediaAssetId ?? "")
+      : "";
 
   async function handleSaveSection(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -200,12 +205,13 @@ export function ProjectSectionForm({
       <form className="mt-5 grid gap-5" noValidate onSubmit={(event) => void handleSaveSection(event)}>
         <input name="id" type="hidden" value={sectionData?.id ?? ""} />
         <input name="projectId" type="hidden" value={projectId} />
-        <input name="sortOrder" type="hidden" value={String(visibleOrder)} />
+        <input name="sortOrder" type="hidden" value={submittedSortOrder} />
         {!fieldConfig.caption ? <input name="caption" type="hidden" value="" /> : null}
         {!fieldConfig.metadata ? <input name="metadata" type="hidden" value="{}" /> : null}
-        {!fieldConfig.primaryMedia ? <input name="primaryMediaAssetId" type="hidden" value="" /> : null}
+        {!fieldConfig.primaryMedia ? <input name="primaryMediaAssetId" type="hidden" value={hiddenPrimaryMediaAssetId} /> : null}
         {!fieldConfig.poster ? <input name="posterMediaAssetId" type="hidden" value="" /> : null}
         {!fieldConfig.text ? <input name="body" type="hidden" value="" /> : null}
+        {!fieldConfig.youtubeUrl ? <input name="youtubeUrl" type="hidden" value="" /> : null}
 
         <div className="grid gap-5 md:grid-cols-2">
           <SectionTypeSelect currentType={selectedType} idPrefix={idPrefix} onChange={setSelectedType} />
@@ -219,6 +225,19 @@ export function ProjectSectionForm({
             label={selectedType === "technical_info" ? "Texto de apoio" : "Texto"}
             name="body"
             rows={5}
+          />
+        ) : null}
+
+        {fieldConfig.youtubeUrl ? (
+          <TextField
+            defaultValue={
+              typeof sectionData?.metadata?.youtubeUrl === "string"
+                ? sectionData.metadata.youtubeUrl
+                : ""
+            }
+            idPrefix={idPrefix}
+            label="URL do YouTube"
+            name="youtubeUrl"
           />
         ) : null}
 

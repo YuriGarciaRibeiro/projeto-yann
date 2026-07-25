@@ -391,18 +391,26 @@ async function saveProjectSectionFromFormData(formData: FormData) {
     throw new Error("A posição do bloco precisa ser válida.");
   }
 
+  const metadata = parseJsonObject(getString(formData, "metadata"));
+  const type = parseProjectSectionType(getString(formData, "type"));
+  const youtubeUrl = getString(formData, "youtubeUrl");
+  const sectionMetadata =
+    type === "video_block" && youtubeUrl ? { ...metadata, youtubeUrl } : metadata;
+  const sectionId = nullableString(getString(formData, "id")) ?? undefined;
+  const submittedSortOrder = sectionId ? sortOrder : sortOrder * 10;
+
   await upsertAdminProjectSection({
-    id: nullableString(getString(formData, "id")) ?? undefined,
+    id: sectionId,
     body: nullableString(getString(formData, "body")),
     caption: nullableString(getString(formData, "caption")),
     isEnabled: formData.get("isEnabled") === "on",
-    metadata: parseJsonObject(getString(formData, "metadata")),
+    metadata: sectionMetadata,
     posterMediaAssetId: nullableString(getString(formData, "posterMediaAssetId")),
     primaryMediaAssetId: nullableString(getString(formData, "primaryMediaAssetId")),
     projectId,
-    sortOrder: sortOrder * 10,
+    sortOrder: submittedSortOrder,
     title: nullableString(getString(formData, "title")),
-    type: parseProjectSectionType(getString(formData, "type")),
+    type,
   });
 
   return projectId;

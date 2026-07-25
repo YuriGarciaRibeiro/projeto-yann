@@ -1,5 +1,6 @@
 import type { PublishedProjectPageData } from "../ProjectPage";
 import { MediaPlaceholder, ProjectImage, ProjectVideo } from "../ProjectMediaFallback";
+import { getYouTubeEmbedUrl } from "./youtubeEmbed";
 
 type ProjectSectionRow = PublishedProjectPageData["sections"][number];
 
@@ -11,6 +12,7 @@ export function VideoBlockSection({ sectionRow }: VideoBlockSectionProps) {
   const { section, primaryMediaAsset, posterMediaAsset } = sectionRow;
   const videoAlt = primaryMediaAsset?.altText ?? section.title ?? section.caption ?? "Video do projeto";
   const posterAlt = posterMediaAsset?.altText ?? section.title ?? section.caption ?? "Video do projeto";
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(section.metadata?.youtubeUrl);
 
   return (
     <section
@@ -21,7 +23,17 @@ export function VideoBlockSection({ sectionRow }: VideoBlockSectionProps) {
       <div className="mx-auto grid max-w-[1440px] gap-8 lg:grid-cols-12 lg:gap-4">
         <div className="lg:col-span-8 lg:col-start-3">
           <div className="aspect-video overflow-hidden bg-charcoal">
-            {primaryMediaAsset ? (
+            {youtubeEmbedUrl ? (
+              <iframe
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="h-full w-full"
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                src={youtubeEmbedUrl}
+                title={videoAlt}
+              />
+            ) : primaryMediaAsset ? (
               <ProjectVideo
                 alt={videoAlt}
                 className="h-full w-full object-cover"
