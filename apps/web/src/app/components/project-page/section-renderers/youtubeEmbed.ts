@@ -28,6 +28,8 @@ export function getYouTubeEmbedUrl(value: unknown): string | null {
       videoId = url.searchParams.get("v");
     } else if (url.pathname.startsWith("/embed/")) {
       videoId = url.pathname.split("/").filter(Boolean)[1] ?? null;
+    } else if (url.pathname.startsWith("/shorts/")) {
+      videoId = url.pathname.split("/").filter(Boolean)[1] ?? null;
     }
   }
 
@@ -35,5 +37,5 @@ export function getYouTubeEmbedUrl(value: unknown): string | null {
     return null;
   }
 
-  return `https://www.youtube.com/embed/${videoId}`;
+  return `https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0`;
 }
