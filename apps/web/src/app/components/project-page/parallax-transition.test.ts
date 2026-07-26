@@ -21,6 +21,30 @@ const parallaxVideoSequenceSource = readFileSync(
 const globalsSource = readFileSync(join(currentDir, "..", "..", "globals.css"), "utf8");
 const projectPreloaderSource = readFileSync(join(currentDir, "ProjectPreloader.tsx"), "utf8");
 
+assert.doesNotMatch(
+  globalsSource,
+  /pointer:\s*fine/,
+  "project parallax should not be gated to fine pointers in globals.css",
+);
+
+assert.doesNotMatch(
+  globalsSource,
+  /pointer:\s*coarse/,
+  "project parallax should not be gated to coarse pointers in globals.css",
+);
+
+assert.match(
+  scrollVideoParallaxSource,
+  /useReducedMotion/,
+  "scroll video media should read reduced-motion preference before enabling scrub behavior",
+);
+
+assert.match(
+  scrollVideoParallaxSource,
+  /shouldReduceMotion[\s\S]*return \([\s\S]*className=\{`absolute inset-0 z-0 bg-cover bg-center \$\{className\}`\}/,
+  "reduced-motion scroll video media should render static poster markup without the scrub-media class",
+);
+
 assert.match(
   projectPageSource,
   /import Image from "next\/image";/,
@@ -137,14 +161,14 @@ assert.match(
 
 assert.match(
   projectHeroSource,
-  /<dl className="(?=[^"]*col-span-4)(?=[^"]*self-end)(?=[^"]*border-white\/10)(?=[^"]*bg-white\/\[0\.045\])(?=[^"]*px-4)(?=[^"]*py-3)(?=[^"]*lg:col-start-10)[^"]*"/,
-  "project hero metadata block should align to the bottom and use the shared subtle white text background",
+  /<p className="(?=[^"]*max-w-\[92vw\])(?=[^"]*text-label)(?=[^"]*leading-\[1\.55\])(?=[^"]*text-white\/70)(?=[^"]*\[text-shadow:0_2px_18px_rgb\(0_0_0\/0\.55\)\])[^\"]*">\s*\{heroMetadata\.join\(" \/ "\)\}/,
+  "project hero metadata should use the approved readable mobile text treatment",
 );
 
 assert.match(
   projectHeroSource,
-  /<dt className="(?=[^"]*text-label)(?=[^"]*text-white\/72)[^"]*"/,
-  "project hero metadata labels should use the same color as the metadata values",
+  /className="(?=[^"]*mt-4)(?=[^"]*max-w-\[92vw\])(?=[^"]*text-hero-title)(?=[^"]*\[text-wrap:balance\])(?=[^"]*sm:mt-5)[^"]*"/,
+  "project hero title should use the approved readable mobile text treatment",
 );
 
 assert.match(
@@ -287,8 +311,14 @@ assert.match(
 
 assert.match(
   parallaxVideoSequenceSource,
-  /prefers-reduced-motion: no-preference\) and \(pointer: fine/,
-  "parallax video sequences should only enhance sticky scrubbing for fine pointers without reduced motion",
+  /prefers-reduced-motion: no-preference/,
+  "parallax video sequences should enhance sticky scrubbing whenever reduced motion is not requested",
+);
+
+assert.doesNotMatch(
+  parallaxVideoSequenceSource,
+  /pointer:\s*fine/,
+  "parallax video sequences should not disable sticky scrubbing on touch pointers",
 );
 
 assert.match(

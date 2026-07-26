@@ -50,23 +50,23 @@ export function ProjectHero({ data }: ProjectHeroProps) {
           videoSrc={heroVideoAsset?.url ?? null}
         />
         <motion.div
-          className="relative z-30 grid min-h-svh max-w-none grid-cols-4 content-end items-end gap-4 px-5 pb-10 pt-28 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-8 lg:pb-16 xl:px-10"
+          className="relative z-30 grid min-h-svh max-w-none grid-cols-4 content-end items-end gap-4 px-5 pb-8 pt-24 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-8 lg:pb-16 xl:px-10"
           style={{ y: contentY }}
         >
           <div className="col-span-4 self-end sm:col-span-5 lg:col-span-7">
             {heroMetadata.length > 0 ? (
-              <p className="text-label font-medium uppercase tracking-[0.16em] text-white/68">
+              <p className="max-w-[92vw] text-label font-medium uppercase leading-[1.55] tracking-[0.16em] text-white/70 [text-shadow:0_2px_18px_rgb(0_0_0/0.55)]">
                 {heroMetadata.join(" / ")}
               </p>
             ) : null}
             <h1
-              className="mt-5 font-display text-hero-title font-normal leading-[0.88] tracking-[-0.045em]"
+              className="mt-4 max-w-[92vw] font-display text-hero-title font-normal leading-[0.86] tracking-[-0.055em] [text-wrap:balance] [text-shadow:0_2px_22px_rgb(0_0_0/0.48)] sm:mt-5 lg:leading-[0.88] lg:tracking-[-0.045em]"
               id="project-title"
             >
               {project.title}
             </h1>
             {project.subtitle ? (
-              <p className="mt-6 max-w-2xl text-body-large leading-[1.55] text-white/78">
+              <p className="mt-5 max-w-[34rem] text-body-large leading-[1.6] text-white/80 [text-shadow:0_2px_18px_rgb(0_0_0/0.45)] sm:mt-6">
                 {project.subtitle}
               </p>
             ) : null}

@@ -14,24 +14,24 @@ export function ImageBlockSection({ sectionRow }: ImageBlockSectionProps) {
   return (
     <section
       aria-labelledby={section.title ? `${section.id}-title` : undefined}
-      className="bg-paper px-5 py-16 text-ink sm:px-8 sm:py-24 lg:px-16"
+      className="bg-paper px-5 py-14 text-ink sm:px-8 sm:py-24 lg:px-16"
       data-header-theme="dark"
     >
       <div className="mx-auto max-w-[1440px]">
         {primaryMediaAsset ? (
           <ProjectImage
             alt={imageAlt}
-            className="min-h-[55svh] w-full object-cover"
-            placeholderClassName="min-h-[55svh] w-full"
+            className="min-h-[42svh] w-full object-cover sm:min-h-[55svh]"
+            placeholderClassName="min-h-[42svh] w-full sm:min-h-[55svh]"
             src={primaryMediaAsset.url}
           />
         ) : (
           <MediaPlaceholder
-            className="min-h-[55svh] w-full"
+            className="min-h-[42svh] w-full sm:min-h-[55svh]"
             label={section.title ?? section.caption ?? "Imagem do projeto"}
           />
         )}
-        <div className="mt-6 grid gap-4 border-t border-line pt-5 lg:grid-cols-12">
+        <div className="mt-5 grid gap-4 border-t border-line pt-5 sm:mt-6 lg:grid-cols-12">
           {section.title ? (
             <h2
               className="font-display text-card-title font-normal tracking-[-0.035em] lg:col-span-4"

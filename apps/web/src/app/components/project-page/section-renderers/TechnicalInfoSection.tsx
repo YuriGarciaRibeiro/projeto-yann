@@ -27,7 +27,7 @@ export function TechnicalInfoSection({ project, sectionRow }: TechnicalInfoSecti
   return (
     <section
       aria-labelledby={`${section.id}-title`}
-      className="bg-white px-5 py-20 text-ink sm:px-8 sm:py-28 lg:px-16"
+      className="bg-white px-5 py-16 text-ink sm:px-8 sm:py-28 lg:px-16"
       data-header-theme="dark"
     >
       <div className="mx-auto grid max-w-[1440px] gap-10 border-t border-line pt-8 lg:grid-cols-12">
@@ -57,7 +57,7 @@ export function TechnicalInfoSection({ project, sectionRow }: TechnicalInfoSecti
               <dt className="text-label font-medium uppercase tracking-[0.16em] text-mid-gray">
                 {label}
               </dt>
-              <dd className="text-meta leading-6 text-graphite">{value}</dd>
+              <dd className="min-w-0 break-words text-meta leading-6 text-graphite">{value}</dd>
             </div>
           ))}
         </dl>

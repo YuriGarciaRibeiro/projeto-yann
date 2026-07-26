@@ -1,7 +1,9 @@
 from typing import List, Optional, Tuple
 
+import pytest
 from fastapi.testclient import TestClient
 
+from app import public_projects
 from app.main import create_app
 from app.public_projects import (
     PostgresPublicProjectRepository,
@@ -203,6 +205,25 @@ def test_map_media_asset_converts_snake_case_row_to_camel_case_dict() -> None:
         "videoVariant": "desktop",
         "createdAt": "2026-01-05T00:00:00Z",
     }
+
+
+def test_map_media_asset_derives_delivery_url_from_storage_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        public_projects.storage,
+        "get_media_delivery_url",
+        lambda storage_key: f"http://192.168.3.40:8000/media/{storage_key}",
+    )
+
+    media = map_media_asset(
+        {
+            **media_row(),
+            "storage_key": "uploads/2026/07/asset.mp4",
+            "url": "http://localhost:9000/architecture-portfolio/uploads/2026/07/asset.mp4",
+        }
+    )
+
+    assert media is not None
+    assert media["url"] == "http://192.168.3.40:8000/media/uploads/2026/07/asset.mp4"
 
 
 def test_map_media_asset_returns_none_without_row() -> None:

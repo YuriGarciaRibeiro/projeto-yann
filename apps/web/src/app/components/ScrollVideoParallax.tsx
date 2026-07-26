@@ -4,10 +4,11 @@ import {
   motion,
   type MotionValue,
   useMotionValueEvent,
+  useReducedMotion,
   useScroll,
   useSpring,
 } from "framer-motion";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import {
   PROJECT_MEDIA_READY_EVENT,
@@ -46,6 +47,7 @@ export function ScrollVideoParallax({
   videoMimeType,
   videoSrc,
 }: ScrollVideoParallaxProps) {
+  const shouldReduceMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -69,19 +71,24 @@ export function ScrollVideoParallax({
   const controlledMotionProgress =
     typeof controlledProgress === "number" ? null : (controlledProgress ?? null);
   const shouldAnimateVideo =
-    controlledProgress === undefined || controlledMotionProgress !== null;
+    shouldReduceMotion !== true &&
+    (controlledProgress === undefined || controlledMotionProgress !== null);
 
-  const updateTargetProgress = (progress: number, snapVideo = false) => {
+  const updateTargetProgress = useCallback((progress: number, snapVideo = false) => {
+    if (shouldReduceMotion === true) {
+      return;
+    }
+
     latestProgressRef.current = Math.min(Math.max(progress, 0), 1);
     targetTimeRef.current = latestProgressRef.current * Math.max(durationRef.current - 0.08, 0);
 
     if (snapVideo && videoRef.current && durationRef.current > 0) {
       videoRef.current.currentTime = targetTimeRef.current;
     }
-  };
+  }, [shouldReduceMotion]);
 
   useMotionValueEvent(smoothScrollYProgress, "change", (progress) => {
-    if (controlledProgress !== undefined) {
+    if (shouldReduceMotion === true || controlledProgress !== undefined) {
       return;
     }
 
@@ -89,7 +96,7 @@ export function ScrollVideoParallax({
   });
 
   useMotionValueEvent(controlledMotionProgress ?? scrollYProgress, "change", (progress) => {
-    if (!controlledMotionProgress) {
+    if (shouldReduceMotion === true || !controlledMotionProgress) {
       return;
     }
 
@@ -97,20 +104,20 @@ export function ScrollVideoParallax({
   });
 
   useLayoutEffect(() => {
-    if (!controlledMotionProgress) {
+    if (shouldReduceMotion === true || !controlledMotionProgress) {
       return;
     }
 
     updateTargetProgress(controlledMotionProgress.get(), true);
-  }, [controlledMotionProgress]);
+  }, [controlledMotionProgress, shouldReduceMotion, updateTargetProgress]);
 
   useLayoutEffect(() => {
-    if (typeof controlledProgress !== "number") {
+    if (shouldReduceMotion === true || typeof controlledProgress !== "number") {
       return;
     }
 
     updateTargetProgress(controlledProgress, true);
-  }, [controlledProgress]);
+  }, [controlledProgress, shouldReduceMotion, updateTargetProgress]);
 
   const setScrollTarget = (node: HTMLDivElement | null) => {
     containerRef.current = node;
@@ -218,7 +225,36 @@ export function ScrollVideoParallax({
       }
 
     };
-  }, [controlledProgress, isNearViewport, onDurationChange, shouldAnimateVideo, shouldWriteScrollHeight]);
+  }, [
+    controlledProgress,
+    isNearViewport,
+    onDurationChange,
+    shouldAnimateVideo,
+    shouldWriteScrollHeight,
+  ]);
+
+  if (shouldReduceMotion === true) {
+    return (
+      <div
+        aria-label={alt}
+        className={`absolute inset-0 z-0 bg-cover bg-center ${className}`}
+        ref={setScrollTarget}
+        role="img"
+        style={posterSrc ? { backgroundImage: `url(${posterSrc})` } : undefined}
+      >
+        {!posterSrc ? (
+          <div className="absolute inset-0 grid place-items-center bg-charcoal px-6 text-center text-white">
+            <div className="max-w-xs border-t border-white/18 pt-4">
+              <p className="text-label font-medium uppercase tracking-[0.18em] text-white/45">
+                Midia indisponivel
+              </p>
+              <p className="mt-3 text-caption leading-6 text-white/62">{alt}</p>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div

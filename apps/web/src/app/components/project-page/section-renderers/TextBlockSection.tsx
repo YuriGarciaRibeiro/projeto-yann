@@ -12,7 +12,7 @@ export function TextBlockSection({ sectionRow }: TextBlockSectionProps) {
   return (
     <section
       aria-labelledby={section.title ? `${section.id}-title` : undefined}
-      className="bg-paper px-5 py-20 text-ink sm:px-8 sm:py-28 lg:px-16"
+      className="bg-paper px-5 py-16 text-ink sm:px-8 sm:py-28 lg:px-16"
       data-header-theme="dark"
     >
       <div className="mx-auto grid max-w-[1440px] gap-10 border-t border-line pt-8 lg:grid-cols-12">
@@ -28,7 +28,7 @@ export function TextBlockSection({ sectionRow }: TextBlockSectionProps) {
           </h2>
         ) : null}
         {section.body ? (
-          <p className="max-w-3xl whitespace-pre-line text-body-large leading-[1.65] text-graphite lg:col-span-5 lg:col-start-8">
+          <p className="max-w-[38rem] whitespace-pre-line text-body-large leading-[1.7] text-graphite lg:col-span-5 lg:col-start-8">
             {section.body}
           </p>
         ) : null}

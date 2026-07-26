@@ -12,6 +12,8 @@
   --white: #ffffff;
   --background: var(--paper);
   --foreground: var(--ink);
+  --project-mobile-scrub-scroll-height: 280svh;
+  --project-scroll-stage-height: 100svh;
 
   --font-display: var(--font-open-sans), Arial, sans-serif;
   --font-sans: var(--font-open-sans), Arial, sans-serif;
@@ -98,19 +100,19 @@ body {
   transform: translateY(1px);
 }
 
-@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
+@media (prefers-reduced-motion: no-preference) {
   .hero-scroll-range:has(.scrub-media),
   .project-scroll-range:has(.scrub-media) {
-    min-height: var(--scrub-scroll-height, 280svh);
+    min-height: var(--scrub-scroll-height, var(--project-mobile-scrub-scroll-height, 280svh));
   }
 
   .hero-scroll-stage,
   .project-scroll-stage {
-    height: 100svh;
+    height: var(--project-scroll-stage-height, 100svh);
   }
 }
 
-@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+@media (prefers-reduced-motion: reduce) {
   .hero-scroll-stage,
   .project-scroll-stage {
     position: relative;

@@ -41,7 +41,7 @@ export function ProjectContactCreditFooter({
   return (
     <footer
       aria-labelledby={titleId}
-      className="bg-ink px-5 py-20 text-white sm:px-8 sm:py-28 lg:px-16"
+      className="bg-ink px-5 py-16 text-white sm:px-8 sm:py-28 lg:px-16"
       data-header-theme="light"
     >
       <div className="mx-auto grid max-w-[1440px] gap-12 border-t border-white/18 pt-8 lg:grid-cols-12 lg:items-center">
@@ -97,7 +97,7 @@ function ContactRow({ href, label, value }: { href?: string; label: string; valu
       <dt className="text-label font-medium uppercase tracking-[0.16em] text-white/42">
         {label}
       </dt>
-      <dd className="text-meta leading-6 text-white/72">
+      <dd className="break-words text-meta leading-6 text-white/72">
         {href ? (
           <a className="underline decoration-white/28 underline-offset-4 hover:decoration-white" href={href}>
             {value}

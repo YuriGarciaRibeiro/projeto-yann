@@ -5,6 +5,7 @@ import psycopg
 from fastapi import APIRouter, Depends, HTTPException
 from psycopg.rows import dict_row
 
+from app import storage
 from app.config import get_settings
 
 
@@ -135,10 +136,16 @@ def map_media_asset(row: Optional[dict[str, object]]) -> Optional[dict[str, obje
     if row is None:
         return None
 
+    storage_key = str(row["storage_key"])
+    try:
+        delivery_url = storage.get_media_delivery_url(storage_key)
+    except ValueError:
+        delivery_url = row["url"]
+
     return {
         "id": row["id"],
-        "storageKey": row["storage_key"],
-        "url": row["url"],
+        "storageKey": storage_key,
+        "url": delivery_url,
         "mimeType": row["mime_type"],
         "sizeBytes": row["size_bytes"],
         "altText": row["alt_text"],
