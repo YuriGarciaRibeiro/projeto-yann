@@ -28,7 +28,7 @@ export function ProjectSectionsEditor({
   sections,
 }: ProjectSectionsEditorProps) {
   return (
-    <Card className="rounded-none border-t-0">
+    <Card className="border-t-0">
       <CardHeader>
         <CardTitle className="text-admin-section-title font-normal tracking-[-0.02em]">Blocos da página</CardTitle>
         <CardDescription className="max-w-2xl text-admin-body leading-6">

@@ -205,7 +205,7 @@ export function ProjectSectionForm({
   }
 
   return (
-    <Card className="rounded-none">
+    <Card>
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <h4 className="text-admin-label uppercase tracking-[0.14em]">
@@ -233,7 +233,6 @@ export function ProjectSectionForm({
               <AlertDialogTrigger
                 render={(
                   <Button
-                    className="min-h-11 rounded-none px-4 text-admin-label uppercase tracking-[0.16em]"
                     disabled={isDeleting}
                     variant="outline"
                   />
@@ -262,7 +261,7 @@ export function ProjectSectionForm({
               </AlertDialogContent>
             </AlertDialog>
             {deleteMessage ? (
-              <Alert aria-live="polite" className="max-w-72 rounded-none" role="status">
+              <Alert aria-live="polite" className="max-w-72" role="status">
                 <AlertDescription className="text-admin-help leading-5">{deleteMessage}</AlertDescription>
               </Alert>
             ) : null}
@@ -313,6 +312,7 @@ export function ProjectSectionForm({
             idPrefix={idPrefix}
             label="URL do YouTube"
             name="youtubeUrl"
+            type="url"
           />
         ) : null}
 
@@ -390,14 +390,14 @@ export function ProjectSectionForm({
           />
         </Field>
         <Button
-          className="min-h-11 justify-self-start rounded-none px-5 text-admin-label uppercase tracking-[0.16em]"
+          className="justify-self-start"
           disabled={isSaving}
           type="submit"
         >
           {isSaving ? "Salvando…" : isEditing ? "Salvar bloco" : "Criar bloco"}
         </Button>
         {saveMessage ? (
-          <Alert aria-live="polite" className="rounded-none" role="status">
+          <Alert aria-live="polite" role="status">
             <AlertDescription className="text-admin-help leading-5">{saveMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -441,7 +441,7 @@ function SectionTypeSelect({
         onValueChange={(value) => onChange(value as ProjectSectionType)}
         value={currentType}
       >
-        <SelectTrigger className="min-h-12 w-full rounded-none text-admin-control" id={id}>
+        <SelectTrigger className="w-full" id={id}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent alignItemWithTrigger={false}>
@@ -463,11 +463,13 @@ function TextField({
   idPrefix,
   label,
   name,
+  type = "text",
 }: {
   defaultValue?: string;
   idPrefix: string;
   label: string;
   name: string;
+  type?: string;
 }) {
   const id = `${idPrefix}-${name}`;
 
@@ -478,11 +480,10 @@ function TextField({
       </FieldLabel>
       <Input
         autoComplete="off"
-        className="min-h-12 rounded-none text-admin-control"
         defaultValue={defaultValue}
         id={id}
         name={name}
-        type="text"
+        type={type}
       />
     </Field>
   );
@@ -510,7 +511,6 @@ function TextArea({
       </FieldLabel>
       <Textarea
         autoComplete="off"
-        className="rounded-none text-admin-control leading-6"
         defaultValue={defaultValue}
         id={id}
         name={name}
@@ -563,7 +563,7 @@ function MediaSelect({
         {label}
       </FieldLabel>
       <Select defaultValue={currentId ?? ""} items={selectItems} name={name}>
-        <SelectTrigger className="min-h-12 w-full rounded-none text-admin-control" id={id}>
+        <SelectTrigger className="w-full" id={id}>
           <SelectValue>
             {(value: string | null) => {
               const selectedAsset = selectItems.find((item) => item.value === value);

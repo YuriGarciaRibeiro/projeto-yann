@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
@@ -64,37 +71,65 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
   };
 
   const fieldErrors = state.fieldErrors;
+  const formRef = useRef<HTMLFormElement>(null);
+  const formErrorRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const firstErrorField = Object.keys(fieldErrors)[0];
+
+    if (firstErrorField) {
+      const field =
+        document.getElementById(`${idPrefix}-${firstErrorField}`) ??
+        formRef.current?.elements.namedItem(firstErrorField);
+
+      if (field instanceof HTMLElement) {
+        field.focus();
+      }
+
+      return;
+    }
+
+    if (state.formError) {
+      formErrorRef.current?.focus();
+    }
+  }, [fieldErrors, idPrefix, state.formError]);
 
   return (
-    <section className="border border-border bg-card p-5 text-card-foreground md:p-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div>
+    <Card>
+      <CardHeader className="gap-4 md:grid-cols-[1fr_auto] md:items-start">
+        <div className="grid gap-2">
           <h2 className="text-admin-section-title font-normal tracking-[-0.02em]">{title}</h2>
-          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-muted-foreground">
+          <CardDescription className="max-w-2xl text-admin-body leading-6">
             Preencha as informações que aparecem na página pública do projeto.
-          </p>
+          </CardDescription>
         </div>
         {project?.slug ? (
-          <Link
-            className="inline-flex min-h-11 items-center justify-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-            href={`/projetos/${project.slug}`}
-            target="_blank"
-          >
-            Ver página do projeto
-          </Link>
+          <CardAction className="col-auto row-auto justify-self-start md:justify-self-end">
+            <Link
+              className={buttonVariants({ variant: "outline" })}
+              href={`/projetos/${project.slug}`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Ver página do projeto
+            </Link>
+          </CardAction>
         ) : null}
-      </div>
-      <form action={formAction} className="mt-6" key={state.submissionKey} noValidate>
-        <input name="id" type="hidden" value={project?.id ?? ""} />
-        {state.formError ? (
-          <p
-            className="mb-5 border border-destructive bg-destructive/10 px-3 py-2 text-admin-body leading-6 text-destructive"
-            role="alert"
-          >
-            {state.formError}
-          </p>
-        ) : null}
-        <FieldGroup className="gap-5">
+      </CardHeader>
+      <CardContent>
+        <form action={formAction} key={state.submissionKey} noValidate ref={formRef}>
+          <input name="id" type="hidden" value={project?.id ?? ""} />
+          {state.formError ? (
+            <p
+              className="mb-5 border border-destructive bg-destructive/10 px-3 py-2 text-admin-body leading-6 text-destructive"
+              ref={formErrorRef}
+              role="alert"
+              tabIndex={-1}
+            >
+              {state.formError}
+            </p>
+          ) : null}
+          <FieldGroup className="gap-5">
           <FieldGroup className="grid gap-5 md:grid-cols-2">
             <TextField
               defaultValue={fieldValue("title")}
@@ -179,6 +214,7 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
                 idPrefix={idPrefix}
                 label="E-mail"
                 name="clientArchitectEmail"
+                spellCheck={false}
                 type="email"
               />
               <TextField
@@ -251,9 +287,10 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
             </FieldLabel>
           </Field>
           <SubmitButton />
-        </FieldGroup>
-      </form>
-    </section>
+          </FieldGroup>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -262,9 +299,10 @@ function SubmitButton() {
 
   return (
     <Button
-      className="min-h-11 justify-self-start rounded-none px-5 text-admin-label uppercase tracking-[0.16em] disabled:cursor-wait"
+      className="justify-self-start"
       disabled={pending}
       type="submit"
+      variant="secondary"
     >
       {pending ? "Salvando…" : "Salvar projeto"}
     </Button>
@@ -279,6 +317,7 @@ function TextField({
   label,
   name,
   required = false,
+  spellCheck,
   type = "text",
 }: {
   defaultValue?: string;
@@ -288,9 +327,15 @@ function TextField({
   label: string;
   name: string;
   required?: boolean;
+  spellCheck?: boolean;
   type?: string;
 }) {
   const id = `${idPrefix}-${name}`;
+  const descriptionId = `${id}-description`;
+  const errorId = `${id}-error`;
+  const describedBy = [helpText ? descriptionId : null, error ? errorId : null]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <Field className="grid-rows-[auto_auto_minmax(1.25rem,_auto)]" data-invalid={Boolean(error)}>
@@ -298,17 +343,27 @@ function TextField({
         {label}
       </FieldLabel>
       <Input
+        aria-describedby={describedBy || undefined}
+        aria-errormessage={error ? errorId : undefined}
         aria-invalid={Boolean(error) || undefined}
         autoComplete="off"
-        className="min-h-12 rounded-none text-admin-control"
         defaultValue={defaultValue}
         id={id}
         name={name}
         required={required}
+        spellCheck={spellCheck}
         type={type}
       />
-      {helpText ? <FieldDescription className="text-admin-help leading-5">{helpText}</FieldDescription> : null}
-      {error ? <FieldError className="text-admin-body leading-5">{error}</FieldError> : null}
+      {helpText ? (
+        <FieldDescription className="text-admin-help leading-5" id={descriptionId}>
+          {helpText}
+        </FieldDescription>
+      ) : null}
+      {error ? (
+        <FieldError className="text-admin-body leading-5" id={errorId}>
+          {error}
+        </FieldError>
+      ) : null}
     </Field>
   );
 }
@@ -331,6 +386,7 @@ function TextArea({
   rows?: number;
 }) {
   const id = `${idPrefix}-${name}`;
+  const errorId = `${id}-error`;
 
   return (
     <Field data-invalid={Boolean(error)}>
@@ -338,16 +394,21 @@ function TextArea({
         {label}
       </FieldLabel>
       <Textarea
+        aria-describedby={error ? errorId : undefined}
+        aria-errormessage={error ? errorId : undefined}
         aria-invalid={Boolean(error) || undefined}
         autoComplete="off"
-        className="rounded-none text-admin-control leading-6"
         defaultValue={defaultValue}
         id={id}
         name={name}
         required={required}
         rows={rows}
       />
-      {error ? <FieldError className="text-admin-body leading-5">{error}</FieldError> : null}
+      {error ? (
+        <FieldError className="text-admin-body leading-5" id={errorId}>
+          {error}
+        </FieldError>
+      ) : null}
     </Field>
   );
 }
@@ -383,6 +444,7 @@ function MediaSelect({
     return true;
   });
   const id = `${idPrefix}-${name}`;
+  const errorId = `${id}-error`;
   const selectItems = [
     { label: "Nenhum arquivo selecionado", value: "" },
     ...filteredAssets.map((asset) => ({
@@ -398,8 +460,10 @@ function MediaSelect({
       </FieldLabel>
       <Select defaultValue={currentId ?? ""} items={selectItems} name={name}>
         <SelectTrigger
+          aria-describedby={error ? errorId : undefined}
+          aria-errormessage={error ? errorId : undefined}
           aria-invalid={Boolean(error) || undefined}
-          className="min-h-12 w-full rounded-none text-admin-control"
+          className="w-full"
           id={id}
         >
           <SelectValue>
@@ -420,7 +484,11 @@ function MediaSelect({
           </SelectGroup>
         </SelectContent>
       </Select>
-      {error ? <FieldError className="text-admin-body leading-5">{error}</FieldError> : null}
+      {error ? (
+        <FieldError className="text-admin-body leading-5" id={errorId}>
+          {error}
+        </FieldError>
+      ) : null}
     </Field>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { SmoothScrollProvider } from "./components/SmoothScrollProvider";
 import "./globals.css";
 
@@ -25,7 +26,9 @@ export default function RootLayout({
       className={`${openSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        <TooltipProvider>
+          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

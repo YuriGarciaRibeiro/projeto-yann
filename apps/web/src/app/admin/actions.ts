@@ -12,6 +12,7 @@ import {
 import {
   deleteAdminProject,
   deleteAdminProjectSection,
+  getAdminProjectById,
   type ProjectUpsertInput,
   upsertAdminProject,
   upsertAdminProjectSection,
@@ -494,21 +495,37 @@ export async function deleteProjectSectionInlineAction(input: {
 
 export async function deleteProjectAction(formData: FormData) {
   await requireAdminSession();
+  let deletedProjectSlug: string | null = null;
 
   try {
     const projectId = getString(formData, "projectId");
+    const deleteProjectConfirmation = getString(formData, "deleteProjectConfirmation");
 
     if (!projectId) {
       throw new Error("Projeto não encontrado.");
     }
 
+    const project = await getAdminProjectById(projectId);
+
+    if (!project) {
+      throw new Error("Projeto não encontrado.");
+    }
+
+    if (deleteProjectConfirmation !== project.title) {
+      throw new Error("Digite o nome do projeto para confirmar a exclusão.");
+    }
+
     await deleteAdminProject(projectId);
+    deletedProjectSlug = project.slug;
   } catch (error) {
     errorRedirect(error instanceof Error ? error.message : "Não foi possível apagar o projeto.");
   }
 
   revalidatePath(ADMIN_PATH);
   revalidatePath("/");
+  if (deletedProjectSlug) {
+    revalidatePath(`/projetos/${deletedProjectSlug}`);
+  }
   statusRedirect("Projeto apagado.");
 }
 

@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
+import { FileVideoIcon } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -39,6 +41,14 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -55,7 +65,7 @@ import {
   createSignedAdminVideoUploadAction,
   type VideoUploadProgressEvent,
 } from "../upload-actions";
-import { getLibraryItems } from "./media-library-items";
+import { getLibraryItems, type LibraryItem } from "./media-library-items";
 
 type MediaUploadFieldProps = {
   description: string;
@@ -71,6 +81,66 @@ type PendingDeleteAsset = {
   assetIds: string[];
   displayName: string;
 };
+
+type MediaTypeFilter = "all" | "images" | "videos";
+
+const mediaTypeOptions = [
+  { label: "Todos", value: "all" },
+  { label: "Imagens", value: "images" },
+  { label: "Vídeos", value: "videos" },
+] satisfies Array<{ label: string; value: MediaTypeFilter }>;
+
+function formatFileSize(sizeBytes: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: 1,
+    style: "unit",
+    unit: sizeBytes >= 1_000_000 ? "megabyte" : "kilobyte",
+    unitDisplay: "short",
+  }).format(sizeBytes >= 1_000_000 ? sizeBytes / 1_000_000 : sizeBytes / 1_000);
+}
+
+function formatUploadDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeZone: "UTC",
+  }).format(new Date(value));
+}
+
+function getLibraryItemSizeBytes(item: LibraryItem) {
+  return item.assets.reduce((totalSizeBytes, asset) => totalSizeBytes + asset.sizeBytes, 0);
+}
+
+function getLibraryItemCreatedAt(item: LibraryItem) {
+  const earliestAsset = item.assets.reduce<AdminMediaAsset | null>((earliest, asset) => {
+    const assetTimestamp = new Date(asset.createdAt).getTime();
+
+    if (!Number.isFinite(assetTimestamp)) {
+      return earliest;
+    }
+
+    if (!earliest) {
+      return asset;
+    }
+
+    const earliestTimestamp = new Date(earliest.createdAt).getTime();
+
+    return assetTimestamp < earliestTimestamp ? asset : earliest;
+  }, null);
+
+  return earliestAsset?.createdAt ?? item.assets[0]?.createdAt;
+}
+
+function matchesMediaType(mimeType: string, type: MediaTypeFilter) {
+  if (type === "images") {
+    return mimeType.startsWith("image/");
+  }
+
+  if (type === "videos") {
+    return mimeType.startsWith("video/");
+  }
+
+  return true;
+}
 
 function getDisplayNameFromFileName(fileName: string) {
   const extensionlessName = fileName.replace(/\.[^.]+$/, "").trim();
@@ -165,9 +235,22 @@ export function MediaUploadField({
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [deletingAssetId, setDeletingAssetId] = useState<string | null>(null);
   const [pendingDeleteAsset, setPendingDeleteAsset] = useState<PendingDeleteAsset | null>(null);
+  const [libraryQuery, setLibraryQuery] = useState("");
+  const [mediaTypeFilter, setMediaTypeFilter] = useState<MediaTypeFilter>("all");
 
   const isBusy = status === "signing" || status === "uploading" || status === "saving";
   const libraryItems = getLibraryItems(mediaAssets);
+  const normalizedLibraryQuery = libraryQuery.trim().toLocaleLowerCase("pt-BR");
+  const filteredLibraryItems = libraryItems.filter((item) => {
+    const matchesQuery = normalizedLibraryQuery
+      ? [item.displayName, item.mimeType, item.usageScope, item.url]
+          .join(" ")
+          .toLocaleLowerCase("pt-BR")
+          .includes(normalizedLibraryQuery)
+      : true;
+
+    return matchesQuery && matchesMediaType(item.mimeType, mediaTypeFilter);
+  });
   const isMutating = isBusy || deletingAssetId !== null;
 
   async function uploadFile(file: File) {
@@ -355,7 +438,7 @@ export function MediaUploadField({
 
   return (
     <>
-    <Card className="scroll-mt-6 rounded-none" id={usageScope === "site" ? "midias" : undefined}>
+    <Card className="scroll-mt-6" id={usageScope === "site" ? "midias" : undefined}>
       <CardHeader>
           <p className="text-admin-label uppercase tracking-[0.18em] text-muted-foreground">
             {usageScope === "site" ? "Arquivos do site" : "Arquivos deste projeto"}
@@ -374,16 +457,15 @@ export function MediaUploadField({
               </FieldLabel>
               <Input
                 accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
-                className="min-h-12 rounded-none py-2 text-admin-body file:mr-3 file:bg-primary file:px-3 file:py-2 file:text-admin-body file:text-primary-foreground"
                 disabled={isMutating}
                 id="media-upload-file"
                 multiple
+                name="mediaFiles"
                 ref={fileInputRef}
                 type="file"
               />
             </Field>
             <Button
-              className="min-h-12 rounded-none px-5 text-admin-label uppercase tracking-[0.16em]"
               disabled={isMutating}
               type="submit"
             >
@@ -393,7 +475,6 @@ export function MediaUploadField({
         </form>
         {message ? (
           <Alert
-            className="rounded-none"
             aria-live="polite"
             role={status === "error" ? "alert" : "status"}
             variant={status === "error" ? "destructive" : "default"}
@@ -406,53 +487,134 @@ export function MediaUploadField({
         <div className="flex flex-col gap-3">
           <h3 className="text-admin-label uppercase tracking-[0.14em]">Biblioteca</h3>
           {mediaAssets.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Arquivo</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Uso</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {libraryItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="min-w-56 whitespace-normal font-medium">{item.displayName}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{item.mimeType}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {item.usageScope === "site" ? "Site" : "Projeto"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap justify-start gap-2 md:justify-end">
-                        <Button
-                          className="rounded-none text-admin-label uppercase tracking-[0.14em]"
-                          disabled={isMutating}
-                          onClick={() => handleDeleteAsset(item.assets.map((asset) => asset.id), item.displayName)}
-                          type="button"
-                          variant="outline"
-                        >
-                          {deletingAssetId === item.id ? "Apagando…" : "Apagar"}
-                        </Button>
-                        <a
-                          className={buttonVariants({
-                            className: "rounded-none text-admin-label uppercase tracking-[0.14em]",
-                            variant: "outline",
-                          })}
-                          href={item.url}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          Abrir
-                        </a>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <>
+              <FieldGroup className="grid gap-4 md:grid-cols-[minmax(0,1fr)_14rem]">
+                <Field>
+                  <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={`${usageScope}-media-search`}>
+                    Buscar mídia
+                  </FieldLabel>
+                  <Input
+                    autoComplete="off"
+                    id={`${usageScope}-media-search`}
+                    name="mediaSearch"
+                    onChange={(event) => setLibraryQuery(event.target.value)}
+                    placeholder="Sala principal…"
+                    type="search"
+                    value={libraryQuery}
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={`${usageScope}-media-type`}>
+                    Tipo
+                  </FieldLabel>
+                  <Select
+                    items={mediaTypeOptions}
+                    name="mediaTypeFilter"
+                    onValueChange={(value) => setMediaTypeFilter(value as MediaTypeFilter)}
+                    value={mediaTypeFilter}
+                  >
+                    <SelectTrigger className="w-full" id={`${usageScope}-media-type`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false}>
+                      <SelectGroup>
+                        {mediaTypeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </FieldGroup>
+
+              {filteredLibraryItems.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Arquivo</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Uso</TableHead>
+                      <TableHead>Tamanho</TableHead>
+                      <TableHead>Envio</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLibraryItems.map((item) => {
+                      const createdAt = getLibraryItemCreatedAt(item);
+                      const sizeBytes = getLibraryItemSizeBytes(item);
+
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell className="min-w-72 whitespace-normal">
+                            <div className="flex min-w-0 items-center gap-3">
+                              {item.mimeType.startsWith("image/") ? (
+                                <Image
+                                  alt=""
+                                  className="size-12 shrink-0 rounded-md border border-border object-cover"
+                                  height={48}
+                                  src={item.url}
+                                  unoptimized
+                                  width={48}
+                                />
+                              ) : (
+                                <div className="flex size-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
+                                  <FileVideoIcon aria-hidden="true" className="size-5" />
+                                </div>
+                              )}
+                              <span className="min-w-0 break-words font-medium">{item.displayName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{item.mimeType}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {item.usageScope === "site" ? "Site" : "Projeto"}
+                          </TableCell>
+                          <TableCell className="tabular-nums">
+                            {formatFileSize(sizeBytes)}
+                          </TableCell>
+                          <TableCell className="tabular-nums">
+                            {createdAt ? formatUploadDate(createdAt) : "-"}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap justify-start gap-2 md:justify-end">
+                              <Button
+                                disabled={isMutating}
+                                onClick={() => handleDeleteAsset(item.assets.map((asset) => asset.id), item.displayName)}
+                                type="button"
+                                variant="outline"
+                              >
+                                {deletingAssetId === item.id ? "Apagando…" : "Apagar"}
+                              </Button>
+                              <a
+                                className={buttonVariants({ variant: "outline" })}
+                                href={item.url}
+                                rel="noreferrer"
+                                target="_blank"
+                              >
+                                Abrir
+                              </a>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              ) : (
+                <Empty className="border">
+                  <EmptyHeader>
+                    <EmptyTitle>Nenhuma mídia encontrada</EmptyTitle>
+                    <EmptyDescription>
+                      Ajuste a busca ou o filtro de tipo para ver outros arquivos.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              )}
+            </>
           ) : (
             <Empty className="border">
               <EmptyHeader>
@@ -467,7 +629,7 @@ export function MediaUploadField({
       </CardContent>
     </Card>
     <Dialog open={isBusy}>
-      <DialogContent className="rounded-none" showCloseButton={false}>
+      <DialogContent showCloseButton={false}>
         <DialogHeader>
           <p className="text-admin-help uppercase tracking-[0.18em] text-muted-foreground">Upload em andamento</p>
           <DialogTitle className="text-admin-section-title font-normal tracking-[-0.03em]">
@@ -477,7 +639,7 @@ export function MediaUploadField({
             Não feche esta aba até o processamento terminar.
           </DialogDescription>
         </DialogHeader>
-        <Alert aria-live="polite" className="rounded-none" role="status">
+        <Alert aria-live="polite" role="status">
           <AlertDescription className="text-admin-body">
             {message || "Preparando envio…"}
           </AlertDescription>

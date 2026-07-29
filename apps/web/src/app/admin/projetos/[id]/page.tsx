@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { buttonVariants } from "@/components/ui/button";
 import {
   ADMIN_ACCESS_TOKEN_COOKIE,
   verifyAdminAccessToken,
@@ -9,7 +10,6 @@ import {
 import { getAdminProjectMediaAssets } from "@/lib/api/admin-media";
 import { getAdminProjectById, getAdminProjectSections } from "@/lib/api/admin-projects";
 
-import { AdminShell } from "../../components/AdminShell";
 import { DeleteProjectForm } from "../../components/DeleteProjectForm";
 import { MediaUploadField } from "../../components/MediaUploadField";
 import { ProjectForm } from "../../components/ProjectForm";
@@ -17,15 +17,10 @@ import { ProjectSectionsEditor } from "../../components/ProjectSectionsEditor";
 
 type EditProjectPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{
-    error?: string;
-    status?: string;
-  }>;
 };
 
 export default async function EditProjectPage({
   params,
-  searchParams,
 }: EditProjectPageProps) {
   const cookieStore = await cookies();
   let admin: Awaited<ReturnType<typeof verifyAdminAccessToken>> = null;
@@ -42,7 +37,7 @@ export default async function EditProjectPage({
     redirect("/admin/login");
   }
 
-  const [{ id }, pageParams] = await Promise.all([params, searchParams]);
+  const { id } = await params;
   const project = await getAdminProjectById(id);
 
   if (!project) {
@@ -55,19 +50,20 @@ export default async function EditProjectPage({
   ]);
 
   return (
-    <AdminShell error={pageParams.error} status={pageParams.status}>
+    <>
       <section className="flex flex-col gap-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Link
-            className="inline-flex min-h-11 items-center justify-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+            className={buttonVariants({ variant: "outline" })}
             href="/admin"
           >
             Voltar para projetos
           </Link>
           {project.slug ? (
             <Link
-              className="inline-flex min-h-11 items-center justify-center border border-primary px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+              className={buttonVariants()}
               href={`/projetos/${project.slug}`}
+              rel="noreferrer"
               target="_blank"
             >
               Ver página do projeto
@@ -77,9 +73,9 @@ export default async function EditProjectPage({
 
         <div>
           <p className="text-admin-label uppercase tracking-[0.18em] text-muted-foreground">Editar projeto</p>
-          <h2 className="mt-2 font-display text-admin-page-title font-normal tracking-[-0.04em]">
+          <h1 className="mt-2 font-display text-admin-page-title font-normal tracking-[-0.04em]">
             {project.title}
-          </h2>
+          </h1>
           <p className="mt-2 max-w-2xl text-admin-body leading-6 text-muted-foreground">
             Edite os dados, arquivos e blocos desta página. Nenhum outro projeto aparece aqui.
           </p>
@@ -100,6 +96,6 @@ export default async function EditProjectPage({
         />
         <DeleteProjectForm projectId={project.id} projectTitle={project.title} />
       </section>
-    </AdminShell>
+    </>
   );
 }

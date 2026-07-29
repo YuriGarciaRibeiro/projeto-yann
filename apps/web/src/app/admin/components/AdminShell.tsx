@@ -1,9 +1,24 @@
-import Link from "next/link";
+"use client";
+
+import { LogOutIcon } from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarSeparator,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 import { logoutAdminAction } from "../actions";
 import { AdminNavigation } from "./AdminNavigation";
@@ -11,72 +26,89 @@ import { AdminThemeToggle } from "./AdminThemeToggle";
 
 type AdminShellProps = {
   children: ReactNode;
-  error?: string;
-  status?: string;
+  defaultOpen: boolean;
 };
 
-export function AdminShell({ children, error, status }: AdminShellProps) {
+export function AdminShell({ children, defaultOpen }: AdminShellProps) {
+  const pathname = usePathname();
+
+  if (pathname === "/admin/login") {
+    return children;
+  }
+
   return (
-    <main className="min-h-screen overflow-x-hidden bg-background text-foreground lg:grid lg:grid-cols-[17rem_1fr]">
+    <SidebarProvider defaultOpen={defaultOpen}>
       <a
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-background focus:px-4 focus:py-3 focus:text-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
         href="#admin-content"
       >
         Pular para o conteúdo
       </a>
-      <aside className="border-b border-border bg-card px-5 py-5 text-card-foreground lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:justify-between lg:border-b-0 lg:border-r lg:px-6 lg:py-7">
-        <div>
-          <div id="inicio">
-            <p className="text-admin-help uppercase tracking-[0.28em] text-muted-foreground">
-              Área privada
-            </p>
-            <h1 className="mt-2 font-display text-admin-page-title font-normal tracking-[-0.04em]">
-              Conteúdo
-            </h1>
-            <p className="mt-3 max-w-sm text-admin-body leading-6 text-muted-foreground">
-              Organize páginas de projeto, fotos e vídeos.
-            </p>
-          </div>
-
+      <Sidebar collapsible="icon">
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <div className="flex items-center gap-2">
+                <SidebarTrigger className="hidden size-8 md:inline-flex" />
+                <div className="flex min-h-8 flex-1 items-center px-2 text-sm font-medium group-data-[collapsible=icon]:hidden">
+                  Yann | Archviz
+                </div>
+              </div>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+        <SidebarContent>
           <AdminNavigation />
-        </div>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarSeparator />
+          <SidebarMenu className="gap-3">
+            <SidebarMenuItem>
+              <AdminThemeToggle />
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <form action={logoutAdminAction}>
+                <SidebarMenuButton render={<button type="submit" />} tooltip="Sair">
+                  <LogOutIcon aria-hidden="true" />
+                  <span>Sair</span>
+                </SidebarMenuButton>
+              </form>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
 
-        <div className="mt-6 flex flex-col gap-3">
-          <Separator />
-          <AdminThemeToggle />
-          <Link
-            className={buttonVariants({
-              className: "min-h-11 rounded-none text-admin-label uppercase tracking-[0.16em]",
-              variant: "outline",
-            })}
-            href="/"
-          >
-            Ver site
-          </Link>
-          <form action={logoutAdminAction}>
-            <Button
-              className="min-h-11 w-full rounded-none text-admin-label uppercase tracking-[0.16em]"
-              type="submit"
-            >
-              Sair
-            </Button>
-          </form>
+      <SidebarInset className="min-h-screen overflow-x-hidden text-foreground">
+        <div className="px-5 pt-5 md:hidden">
+          <SidebarTrigger className="md:hidden" />
         </div>
-      </aside>
+        <div className="min-w-0 px-5 py-6 md:px-8 md:py-10 xl:px-12" id="admin-content">
+          <AdminRouteMessages />
+          <div className="mx-auto flex max-w-6xl flex-col gap-8">{children}</div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
 
-      <div className="min-w-0 px-5 py-6 md:px-8 md:py-10 xl:px-12" id="admin-content">
-        {status ? (
-          <Alert className="mb-6 rounded-none" role="status">
-            <AlertDescription className="text-admin-body text-card-foreground">{status}</AlertDescription>
-          </Alert>
-        ) : null}
-        {error ? (
-          <Alert className="mb-6 rounded-none" variant="destructive">
-            <AlertDescription className="text-admin-body">{error}</AlertDescription>
-          </Alert>
-        ) : null}
-        <div className="mx-auto flex max-w-6xl flex-col gap-8">{children}</div>
-      </div>
-    </main>
+function AdminRouteMessages() {
+  const searchParams = useSearchParams();
+  const status = searchParams.get("status");
+  const error = searchParams.get("error");
+
+  return (
+    <>
+      {status ? (
+        <Alert className="mb-6" role="status">
+          <AlertDescription className="text-admin-body text-card-foreground">{status}</AlertDescription>
+        </Alert>
+      ) : null}
+      {error ? (
+        <Alert className="mb-6" variant="destructive">
+          <AlertDescription className="text-admin-body">{error}</AlertDescription>
+        </Alert>
+      ) : null}
+    </>
   );
 }

@@ -1,75 +1,35 @@
 "use client";
 
-import { CheckIcon, MoonIcon, SunIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { MoonIcon, SunIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 
 import { useAdminTheme } from "./AdminThemeProvider";
 
-export function AdminThemeToggle() {
+export function AdminThemeToggle({ variant = "sidebar" }: { variant?: "button" | "sidebar" }) {
   const { theme, setTheme } = useAdminTheme();
+  const nextTheme = theme === "dark" ? "light" : "dark";
+  const icon = theme === "dark" ? <MoonIcon aria-hidden="true" /> : <SunIcon aria-hidden="true" />;
+  const label = `Tema ${theme === "dark" ? "dark" : "light"}`;
+
+  if (variant === "button") {
+    return (
+      <Button onClick={() => setTheme(nextTheme)} type="button" variant="outline">
+        {icon}
+        {label}
+      </Button>
+    );
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger render={<Button className="min-h-11 rounded-none text-admin-label uppercase tracking-[0.16em]" variant="outline" />}>
-        {theme === "dark" ? (
-          <MoonIcon aria-hidden="true" data-icon="inline-start" />
-        ) : (
-          <SunIcon aria-hidden="true" data-icon="inline-start" />
-        )}
-        Tema {theme === "dark" ? "dark" : "light"}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-48">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Tema do admin</DropdownMenuLabel>
-          <ThemeMenuItem
-            icon={<MoonIcon aria-hidden="true" data-icon="inline-start" />}
-            isActive={theme === "dark"}
-            label="Dark"
-            onSelect={() => setTheme("dark")}
-          />
-          <ThemeMenuItem
-            icon={<SunIcon aria-hidden="true" data-icon="inline-start" />}
-            isActive={theme === "light"}
-            label="Light"
-            onSelect={() => setTheme("light")}
-          />
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem disabled>Preferência salva neste admin</DropdownMenuItem>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function ThemeMenuItem({
-  icon,
-  isActive,
-  label,
-  onSelect,
-}: {
-  icon: ReactNode;
-  isActive: boolean;
-  label: string;
-  onSelect: () => void;
-}) {
-  return (
-    <DropdownMenuItem onClick={onSelect}>
+    <SidebarMenuButton
+      onClick={() => setTheme(nextTheme)}
+      tooltip={`Tema ${nextTheme}`}
+      type="button"
+    >
       {icon}
-      {label}
-      {isActive ? <CheckIcon aria-hidden="true" className="ml-auto" /> : null}
-    </DropdownMenuItem>
+      <span className="group-data-[collapsible=icon]:hidden">{label}</span>
+    </SidebarMenuButton>
   );
 }

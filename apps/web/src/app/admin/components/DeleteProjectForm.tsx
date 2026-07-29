@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +21,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 import { deleteProjectAction } from "../actions";
 
@@ -28,8 +32,12 @@ type DeleteProjectFormProps = {
 };
 
 export function DeleteProjectForm({ projectId, projectTitle }: DeleteProjectFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [confirmation, setConfirmation] = useState("");
+  const canDelete = confirmation === projectTitle;
+
   return (
-    <Card className="rounded-none border-destructive">
+    <Card className="border-destructive">
       <CardHeader>
         <CardTitle className="text-admin-section-title font-normal tracking-[-0.02em]">Zona de perigo</CardTitle>
         <CardDescription className="max-w-2xl text-admin-body leading-6">
@@ -37,11 +45,18 @@ export function DeleteProjectForm({ projectId, projectTitle }: DeleteProjectForm
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <AlertDialog>
+        <AlertDialog
+          open={isOpen}
+          onOpenChange={(open) => {
+            setIsOpen(open);
+            if (!open) {
+              setConfirmation("");
+            }
+          }}
+        >
           <AlertDialogTrigger
             render={(
               <Button
-                className="min-h-11 rounded-none px-5 text-admin-label uppercase tracking-[0.16em]"
                 variant="destructive"
               />
             )}
@@ -57,9 +72,25 @@ export function DeleteProjectForm({ projectId, projectTitle }: DeleteProjectForm
             </AlertDialogHeader>
             <form action={deleteProjectAction}>
               <input name="projectId" type="hidden" value={projectId} />
+              <Field className="mb-6">
+                <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor="delete-project-confirmation">
+                  Digite o nome do projeto para confirmar
+                </FieldLabel>
+                <Input
+                  aria-describedby="delete-project-confirmation-description"
+                  autoComplete="off"
+                  id="delete-project-confirmation"
+                  name="deleteProjectConfirmation"
+                  onChange={(event) => setConfirmation(event.target.value)}
+                  value={confirmation}
+                />
+                <FieldDescription className="text-admin-help leading-5" id="delete-project-confirmation-description">
+                  O botão de apagar será liberado somente quando o nome estiver igual ao título do projeto.
+                </FieldDescription>
+              </Field>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction type="submit" variant="destructive">
+                <AlertDialogAction disabled={!canDelete} type="submit" variant="destructive">
                   Apagar projeto
                 </AlertDialogAction>
               </AlertDialogFooter>

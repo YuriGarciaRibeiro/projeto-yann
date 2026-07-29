@@ -52,7 +52,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
       </a>
       <section className="mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-xl flex-col justify-center" id="admin-login">
         <div className="mb-10 self-start">
-          <AdminThemeToggle />
+          <AdminThemeToggle variant="button" />
         </div>
         <p className="mb-6 text-admin-help uppercase tracking-[0.32em] text-muted-foreground">
           Acesso admin
@@ -78,7 +78,6 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
               <Input
                 aria-invalid={Boolean(errorMessage) || undefined}
                 autoComplete="email"
-                className="min-h-12 rounded-none text-admin-control"
                 id="email"
                 name="email"
                 required
@@ -94,7 +93,6 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
               <Input
                 aria-invalid={Boolean(errorMessage) || undefined}
                 autoComplete="current-password"
-                className="min-h-12 rounded-none text-admin-control"
                 id="password"
                 name="password"
                 required
@@ -102,7 +100,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
               />
             </Field>
 
-            <Button className="min-h-11 rounded-none px-5 text-admin-label uppercase tracking-[0.18em]" type="submit">
+            <Button type="submit">
               Entrar
             </Button>
           </FieldGroup>
