@@ -48,7 +48,7 @@ export function ProjectContactCreditFooter({
     >
       <div className="mx-auto grid max-w-[1440px] gap-12 border-t border-white/18 pt-8 lg:grid-cols-12 lg:items-center">
         <div className="lg:col-span-5">
-          <p className="text-label font-medium uppercase tracking-[0.16em] text-white/45">
+          <p className="text-label font-medium uppercase tracking-[0.16em] text-white/62">
             Arquiteto(a)
           </p>
           <h2
@@ -99,7 +99,7 @@ export function ProjectContactCreditFooter({
 function ContactRow({ href, label, value }: { href?: string; label: string; value: string }) {
   return (
     <div className="grid gap-2 border-b border-white/14 py-4 sm:grid-cols-[12rem_1fr] sm:gap-6">
-      <dt className="text-label font-medium uppercase tracking-[0.16em] text-white/42">
+      <dt className="text-label font-medium uppercase tracking-[0.16em] text-white/62">
         {label}
       </dt>
       <dd className="break-words text-meta leading-6 text-white/72">

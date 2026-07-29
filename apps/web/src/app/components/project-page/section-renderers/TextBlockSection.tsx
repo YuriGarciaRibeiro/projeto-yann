@@ -16,7 +16,7 @@ export function TextBlockSection({ sectionRow }: TextBlockSectionProps) {
       data-header-theme="dark"
     >
       <div className="mx-auto grid max-w-[1440px] gap-10 border-t border-line pt-8 lg:grid-cols-12">
-        <p className="text-label font-medium uppercase tracking-[0.16em] text-mid-gray lg:col-span-2">
+        <p className="text-label font-medium uppercase tracking-[0.16em] text-graphite lg:col-span-2">
           Editorial
         </p>
         {section.title ? (

@@ -105,7 +105,7 @@ function SectionText({
       ) : null}
       <div className="max-w-[34rem] text-caption leading-6 text-white/70 lg:col-span-4 lg:col-start-5">
         {body ? <p className="whitespace-pre-line">{body}</p> : null}
-        {caption ? <p className="mt-4 text-white/45">{caption}</p> : null}
+        {caption ? <p className="mt-4 text-white/62">{caption}</p> : null}
       </div>
     </div>
   );

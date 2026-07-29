@@ -45,7 +45,7 @@ export function ImageBlockSection({ sectionRow }: ImageBlockSectionProps) {
           ) : null}
           <div className="text-caption leading-6 text-graphite lg:col-span-4 lg:col-start-8">
             {section.body ? <p className="whitespace-pre-line">{section.body}</p> : null}
-            {section.caption ? <p className="mt-4 text-mid-gray">{section.caption}</p> : null}
+            {section.caption ? <p className="mt-4 text-graphite">{section.caption}</p> : null}
           </div>
         </div>
       </div>

@@ -125,7 +125,7 @@ export function MediaPlaceholder({
       role="img"
     >
       <div className={`max-w-xs border-t pt-4 text-center ${isDark ? "border-white/18" : "border-black/18"}`}>
-        <p className={`text-label font-medium uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-mid-gray"}`}>
+        <p className={`text-label font-medium uppercase tracking-[0.18em] ${isDark ? "text-white/72" : "text-graphite"}`}>
           Midia indisponivel
         </p>
         <p className={`mt-3 text-caption leading-6 ${isDark ? "text-white/62" : "text-graphite"}`}>

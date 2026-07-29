@@ -49,13 +49,14 @@ export function ProjectHero({ data }: ProjectHeroProps) {
           videoMimeType={heroVideoAsset?.mimeType ?? null}
           videoSrc={heroVideoAsset?.url ?? null}
         />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[58svh] bg-gradient-to-t from-black/82 via-black/42 to-transparent" />
         <motion.div
-          className="relative z-30 grid min-h-svh max-w-none grid-cols-4 content-end items-end gap-4 px-5 pb-8 pt-24 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-8 lg:pb-16 xl:px-10"
+          className="relative z-30 grid min-h-svh max-w-none grid-cols-4 content-end items-end gap-4 px-5 pb-[calc(3.5rem+env(safe-area-inset-bottom))] pt-24 sm:grid-cols-6 sm:px-8 sm:pb-14 lg:grid-cols-12 lg:px-8 lg:pb-16 xl:px-10"
           style={{ y: contentY }}
         >
           <div className="col-span-4 self-end sm:col-span-5 lg:col-span-7">
             {heroMetadata.length > 0 ? (
-              <p className="max-w-[92vw] text-label font-medium uppercase leading-[1.55] tracking-[0.16em] text-white/70 [text-shadow:0_2px_18px_rgb(0_0_0/0.55)]">
+              <p className="max-w-[92vw] text-label font-medium uppercase leading-[1.55] tracking-[0.16em] text-white/90 [text-shadow:0_2px_18px_rgb(0_0_0/0.72)]">
                 {heroMetadata.join(" / ")}
               </p>
             ) : null}
@@ -66,7 +67,7 @@ export function ProjectHero({ data }: ProjectHeroProps) {
               {project.title}
             </h1>
             {project.subtitle ? (
-              <p className="mt-5 max-w-[34rem] text-body-large leading-[1.6] text-white/80 [text-shadow:0_2px_18px_rgb(0_0_0/0.45)] sm:mt-6">
+              <p className="mt-5 max-w-[34rem] text-body-large leading-[1.6] text-white/92 [text-shadow:0_2px_18px_rgb(0_0_0/0.68)] sm:mt-6">
                 {project.subtitle}
               </p>
             ) : null}
