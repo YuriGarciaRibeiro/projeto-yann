@@ -22,7 +22,6 @@ import {
   CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -660,25 +659,23 @@ function ParallaxGroupItemsEditor({
                       videoVariant="scrub"
                       onChange={(value) => onUpdate(index, "primaryMediaAssetId", value)}
                     />
+
+                    <Field orientation="horizontal" className="rounded-lg bg-muted/30 p-3">
+                      <FieldContent>
+                        <FieldLabel className="text-admin-body" htmlFor={`${itemIdPrefix}-isEnabled`}>
+                          Visível na página
+                        </FieldLabel>
+                      </FieldContent>
+                      <Switch
+                        checked={item.isEnabled}
+                        id={`${itemIdPrefix}-isEnabled`}
+                        name={`${fieldPrefix}[isEnabled]`}
+                        value="on"
+                        onCheckedChange={(checked) => onUpdate(index, "isEnabled", checked)}
+                      />
+                    </Field>
                   </FieldGroup>
                 </CardContent>
-
-                <CardFooter className="justify-between bg-muted/30">
-                  <Field orientation="horizontal" className="w-full">
-                    <FieldContent>
-                      <FieldLabel className="text-admin-body" htmlFor={`${itemIdPrefix}-isEnabled`}>
-                        Visível na página
-                      </FieldLabel>
-                    </FieldContent>
-                    <Switch
-                      checked={item.isEnabled}
-                      id={`${itemIdPrefix}-isEnabled`}
-                      name={`${fieldPrefix}[isEnabled]`}
-                      value="on"
-                      onCheckedChange={(checked) => onUpdate(index, "isEnabled", checked)}
-                    />
-                  </Field>
-                </CardFooter>
               </Card>
             );
           })}
