@@ -36,6 +36,8 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -364,28 +366,30 @@ export function MediaUploadField({
           </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
-        <form className="grid gap-5 md:grid-cols-[1fr_auto] md:items-end" onSubmit={handleSubmit}>
-          <div className="grid gap-2">
-            <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor="media-upload-file">
-              Arquivos
-            </label>
-            <input
-              accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
-              className="min-h-12 border border-input bg-background px-3 py-2 text-admin-body text-foreground outline-none transition-colors file:mr-3 file:border-0 file:bg-primary file:px-3 file:py-2 file:text-admin-body file:text-primary-foreground focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        <form onSubmit={handleSubmit}>
+          <FieldGroup className="grid gap-5 md:grid-cols-[1fr_auto] md:items-end">
+            <Field data-disabled={isMutating || undefined}>
+              <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor="media-upload-file">
+                Arquivos
+              </FieldLabel>
+              <Input
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
+                className="min-h-12 rounded-none py-2 text-admin-body file:mr-3 file:bg-primary file:px-3 file:py-2 file:text-admin-body file:text-primary-foreground"
+                disabled={isMutating}
+                id="media-upload-file"
+                multiple
+                ref={fileInputRef}
+                type="file"
+              />
+            </Field>
+            <Button
+              className="min-h-12 rounded-none px-5 text-admin-label uppercase tracking-[0.16em]"
               disabled={isMutating}
-              id="media-upload-file"
-              multiple
-              ref={fileInputRef}
-              type="file"
-            />
-          </div>
-          <Button
-            className="min-h-12 rounded-none px-5 text-admin-label uppercase tracking-[0.16em]"
-            disabled={isMutating}
-            type="submit"
-          >
-            {isBusy ? "Enviando…" : "Enviar"}
-          </Button>
+              type="submit"
+            >
+              {isBusy ? "Enviando…" : "Enviar"}
+            </Button>
+          </FieldGroup>
         </form>
         {message ? (
           <Alert

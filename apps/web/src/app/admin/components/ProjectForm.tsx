@@ -4,6 +4,27 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { AdminProject } from "@/lib/api/admin-projects";
 
@@ -63,172 +84,174 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
           </Link>
         ) : null}
       </div>
-      <form action={formAction} className="mt-6 grid gap-5" key={state.submissionKey} noValidate>
+      <form action={formAction} className="mt-6" key={state.submissionKey} noValidate>
         <input name="id" type="hidden" value={project?.id ?? ""} />
         {state.formError ? (
-            <p className="border border-destructive bg-destructive/10 px-3 py-2 text-admin-body leading-6 text-destructive" role="alert">
+          <p
+            className="mb-5 border border-destructive bg-destructive/10 px-3 py-2 text-admin-body leading-6 text-destructive"
+            role="alert"
+          >
             {state.formError}
           </p>
         ) : null}
-        <div className="grid gap-5 md:grid-cols-2">
-          <TextField
-            defaultValue={fieldValue("title")}
-            error={fieldErrors.title}
-            idPrefix={idPrefix}
-            label="Nome do projeto"
-            name="title"
-            required
-          />
-          <TextField
-            defaultValue={fieldValue("slug")}
-            error={fieldErrors.slug}
-            helpText="Esse texto vira o endereço público, por exemplo: /projetos/casa-branca."
-            idPrefix={idPrefix}
-            label="Endereço da página"
-            name="slug"
-          />
-          <TextField
-            defaultValue={fieldValue("subtitle")}
-            error={fieldErrors.subtitle}
-            idPrefix={idPrefix}
-            label="Frase curta"
-            name="subtitle"
-          />
-          <TextField
-            defaultValue={fieldValue("heroDisplayName")}
-            error={fieldErrors.heroDisplayName}
-            helpText="Nome curto que aparece acima do título na Hero."
-            idPrefix={idPrefix}
-            label="Apelido da Hero"
-            name="heroDisplayName"
-          />
-          <TextField
-            defaultValue={fieldValue("category")}
-            error={fieldErrors.category}
-            idPrefix={idPrefix}
-            label="Tipo de projeto"
-            name="category"
-          />
-          <TextField
-            defaultValue={fieldValue("location")}
-            error={fieldErrors.location}
-            idPrefix={idPrefix}
-            label="Local"
-            name="location"
-          />
-          <TextField
-            defaultValue={fieldValue("year")}
-            error={fieldErrors.year}
-            idPrefix={idPrefix}
-            label="Ano"
-            name="year"
-            required
-            type="number"
-          />
-        </div>
-        <TextArea
-          defaultValue={fieldValue("shortDescription")}
-          error={fieldErrors.shortDescription}
-          idPrefix={idPrefix}
-          label="Descrição curta"
-          name="shortDescription"
-          required
-          rows={4}
-        />
-        <fieldset className="grid gap-5 border border-border p-4">
-          <legend className="px-1 text-admin-label uppercase tracking-[0.14em]">
-            Arquiteto responsável
-          </legend>
-          <div className="grid gap-5 md:grid-cols-2">
+        <FieldGroup className="gap-5">
+          <FieldGroup className="grid gap-5 md:grid-cols-2">
             <TextField
-              defaultValue={fieldValue("clientArchitectName")}
-              error={fieldErrors.clientArchitectName}
+              defaultValue={fieldValue("title")}
+              error={fieldErrors.title}
               idPrefix={idPrefix}
-              label="Nome"
-              name="clientArchitectName"
+              label="Nome do projeto"
+              name="title"
               required
             />
             <TextField
-              defaultValue={fieldValue("clientArchitectEmail")}
-              error={fieldErrors.clientArchitectEmail}
+              defaultValue={fieldValue("slug")}
+              error={fieldErrors.slug}
+              helpText="Esse texto vira o endereço público, por exemplo: /projetos/casa-branca."
               idPrefix={idPrefix}
-              label="E-mail"
-              name="clientArchitectEmail"
-              type="email"
+              label="Endereço da página"
+              name="slug"
             />
             <TextField
-              defaultValue={fieldValue("clientArchitectPhone")}
-              error={fieldErrors.clientArchitectPhone}
+              defaultValue={fieldValue("subtitle")}
+              error={fieldErrors.subtitle}
               idPrefix={idPrefix}
-              label="Telefone"
-              name="clientArchitectPhone"
-              type="tel"
+              label="Frase curta"
+              name="subtitle"
             />
             <TextField
-              defaultValue={fieldValue("clientArchitectWebsite")}
-              error={fieldErrors.clientArchitectWebsite}
+              defaultValue={fieldValue("heroDisplayName")}
+              error={fieldErrors.heroDisplayName}
+              helpText="Nome curto que aparece acima do título na Hero."
               idPrefix={idPrefix}
-              label="Site"
-              name="clientArchitectWebsite"
-              type="url"
+              label="Apelido da Hero"
+              name="heroDisplayName"
             />
             <TextField
-              defaultValue={fieldValue("clientArchitectInstagram")}
-              error={fieldErrors.clientArchitectInstagram}
+              defaultValue={fieldValue("category")}
+              error={fieldErrors.category}
               idPrefix={idPrefix}
-              label="Instagram"
-              name="clientArchitectInstagram"
+              label="Tipo de projeto"
+              name="category"
+            />
+            <TextField
+              defaultValue={fieldValue("location")}
+              error={fieldErrors.location}
+              idPrefix={idPrefix}
+              label="Local"
+              name="location"
+            />
+            <TextField
+              defaultValue={fieldValue("year")}
+              error={fieldErrors.year}
+              idPrefix={idPrefix}
+              label="Ano"
+              name="year"
+              required
+              type="number"
+            />
+          </FieldGroup>
+          <TextArea
+            defaultValue={fieldValue("shortDescription")}
+            error={fieldErrors.shortDescription}
+            idPrefix={idPrefix}
+            label="Descrição curta"
+            name="shortDescription"
+            required
+            rows={4}
+          />
+          <FieldSet className="border border-border p-4">
+            <FieldLegend className="px-1 text-admin-label uppercase tracking-[0.14em]" variant="label">
+              Arquiteto responsável
+            </FieldLegend>
+            <FieldGroup className="grid gap-5 md:grid-cols-2">
+              <TextField
+                defaultValue={fieldValue("clientArchitectName")}
+                error={fieldErrors.clientArchitectName}
+                idPrefix={idPrefix}
+                label="Nome"
+                name="clientArchitectName"
+                required
+              />
+              <TextField
+                defaultValue={fieldValue("clientArchitectEmail")}
+                error={fieldErrors.clientArchitectEmail}
+                idPrefix={idPrefix}
+                label="E-mail"
+                name="clientArchitectEmail"
+                type="email"
+              />
+              <TextField
+                defaultValue={fieldValue("clientArchitectPhone")}
+                error={fieldErrors.clientArchitectPhone}
+                idPrefix={idPrefix}
+                label="Telefone"
+                name="clientArchitectPhone"
+                type="tel"
+              />
+              <TextField
+                defaultValue={fieldValue("clientArchitectWebsite")}
+                error={fieldErrors.clientArchitectWebsite}
+                idPrefix={idPrefix}
+                label="Site"
+                name="clientArchitectWebsite"
+                type="url"
+              />
+              <TextField
+                defaultValue={fieldValue("clientArchitectInstagram")}
+                error={fieldErrors.clientArchitectInstagram}
+                idPrefix={idPrefix}
+                label="Instagram"
+                name="clientArchitectInstagram"
+              />
+              <MediaSelect
+                assets={mediaAssets}
+                currentId={
+                  values ? fieldValue("clientArchitectImageAssetId") : project?.clientArchitectImageAssetId
+                }
+                error={fieldErrors.clientArchitectImageAssetId}
+                idPrefix={idPrefix}
+                label="Imagem do arquiteto"
+                name="clientArchitectImageAssetId"
+                typePrefix="image/"
+              />
+            </FieldGroup>
+          </FieldSet>
+          <FieldGroup className="grid gap-5 md:grid-cols-2">
+            <MediaSelect
+              assets={mediaAssets}
+              currentId={values ? fieldValue("heroVideoAssetId") : project?.heroVideoAssetId}
+              error={fieldErrors.heroVideoAssetId}
+              idPrefix={idPrefix}
+              label="Vídeo de abertura"
+              name="heroVideoAssetId"
+              typePrefix="video/"
+              videoVariant="scrub"
             />
             <MediaSelect
               assets={mediaAssets}
-              currentId={
-                values ? fieldValue("clientArchitectImageAssetId") : project?.clientArchitectImageAssetId
-              }
-              error={fieldErrors.clientArchitectImageAssetId}
+              currentId={values ? fieldValue("fallbackImageAssetId") : project?.fallbackImageAssetId}
+              error={fieldErrors.fallbackImageAssetId}
               idPrefix={idPrefix}
-              label="Imagem do arquiteto"
-              name="clientArchitectImageAssetId"
+              label="Imagem alternativa"
+              name="fallbackImageAssetId"
               typePrefix="image/"
             />
-          </div>
-        </fieldset>
-        <div className="grid gap-5 md:grid-cols-2">
-          <MediaSelect
-            assets={mediaAssets}
-            currentId={values ? fieldValue("heroVideoAssetId") : project?.heroVideoAssetId}
-            error={fieldErrors.heroVideoAssetId}
-            idPrefix={idPrefix}
-            label="Vídeo de abertura"
-            name="heroVideoAssetId"
-            typePrefix="video/"
-            videoVariant="scrub"
-          />
-          <MediaSelect
-            assets={mediaAssets}
-            currentId={values ? fieldValue("fallbackImageAssetId") : project?.fallbackImageAssetId}
-            error={fieldErrors.fallbackImageAssetId}
-            idPrefix={idPrefix}
-            label="Imagem alternativa"
-            name="fallbackImageAssetId"
-            typePrefix="image/"
-          />
-        </div>
-        <label
-          className="flex min-h-11 items-center gap-3 text-admin-body"
-          htmlFor={`${idPrefix}-isPublished`}
-        >
-            <input name="isPublished" type="hidden" value="false" />
-            <input
-              className="size-4 accent-primary"
+          </FieldGroup>
+          <Field orientation="horizontal">
+            <Checkbox
               defaultChecked={values ? values.isPublished : (project?.isPublished ?? false)}
               id={`${idPrefix}-isPublished`}
               name="isPublished"
-              type="checkbox"
+              uncheckedValue="false"
               value="true"
             />
-            Publicado
-          </label>
-        <SubmitButton />
+            <FieldLabel className="text-admin-body" htmlFor={`${idPrefix}-isPublished`}>
+              Publicado
+            </FieldLabel>
+          </Field>
+          <SubmitButton />
+        </FieldGroup>
       </form>
     </section>
   );
@@ -238,13 +261,13 @@ function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
-    <button
-      className="min-h-11 justify-self-start border border-primary px-5 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-wait disabled:border-input disabled:text-muted-foreground"
+    <Button
+      className="min-h-11 justify-self-start rounded-none px-5 text-admin-label uppercase tracking-[0.16em] disabled:cursor-wait"
       disabled={pending}
       type="submit"
     >
       {pending ? "Salvando…" : "Salvar projeto"}
-    </button>
+    </Button>
   );
 }
 
@@ -270,22 +293,23 @@ function TextField({
   const id = `${idPrefix}-${name}`;
 
   return (
-    <div className="grid min-w-0 grid-rows-[auto_auto_minmax(1.25rem,_auto)] gap-2">
-      <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
+    <Field className="grid-rows-[auto_auto_minmax(1.25rem,_auto)]" data-invalid={Boolean(error)}>
+      <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
-      </label>
-      <input
+      </FieldLabel>
+      <Input
+        aria-invalid={Boolean(error) || undefined}
         autoComplete="off"
-        className="min-h-12 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        className="min-h-12 rounded-none text-admin-control"
         defaultValue={defaultValue}
         id={id}
         name={name}
         required={required}
         type={type}
       />
-      <p className="text-admin-help leading-5 text-muted-foreground">{helpText ?? ""}</p>
-      {error ? <p className="text-admin-body leading-5 text-destructive">{error}</p> : null}
-    </div>
+      {helpText ? <FieldDescription className="text-admin-help leading-5">{helpText}</FieldDescription> : null}
+      {error ? <FieldError className="text-admin-body leading-5">{error}</FieldError> : null}
+    </Field>
   );
 }
 
@@ -309,21 +333,22 @@ function TextArea({
   const id = `${idPrefix}-${name}`;
 
   return (
-    <div className="grid gap-2">
-      <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
+    <Field data-invalid={Boolean(error)}>
+      <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
-      </label>
-      <textarea
+      </FieldLabel>
+      <Textarea
+        aria-invalid={Boolean(error) || undefined}
         autoComplete="off"
-        className="border border-input bg-background px-3 py-3 text-admin-control leading-6 text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        className="rounded-none text-admin-control leading-6"
         defaultValue={defaultValue}
         id={id}
         name={name}
         required={required}
         rows={rows}
       />
-      {error ? <p className="text-admin-body leading-5 text-destructive">{error}</p> : null}
-    </div>
+      {error ? <FieldError className="text-admin-body leading-5">{error}</FieldError> : null}
+    </Field>
   );
 }
 
@@ -358,26 +383,44 @@ function MediaSelect({
     return true;
   });
   const id = `${idPrefix}-${name}`;
+  const selectItems = [
+    { label: "Nenhum arquivo selecionado", value: "" },
+    ...filteredAssets.map((asset) => ({
+      label: `${getMediaDisplayName(asset)} - ${asset.mimeType}`,
+      value: asset.id,
+    })),
+  ];
 
   return (
-    <div className="grid gap-2">
-      <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
+    <Field data-invalid={Boolean(error)}>
+      <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
-      </label>
-      <select
-        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-        defaultValue={currentId ?? ""}
-        id={id}
-        name={name}
-      >
-        <option value="">Nenhum arquivo selecionado</option>
-        {filteredAssets.map((asset) => (
-          <option key={asset.id} value={asset.id}>
-            {getMediaDisplayName(asset)} - {asset.mimeType}
-          </option>
-        ))}
-      </select>
-      {error ? <p className="text-admin-body leading-5 text-destructive">{error}</p> : null}
-    </div>
+      </FieldLabel>
+      <Select defaultValue={currentId ?? ""} items={selectItems} name={name}>
+        <SelectTrigger
+          aria-invalid={Boolean(error) || undefined}
+          className="min-h-12 w-full rounded-none text-admin-control"
+          id={id}
+        >
+          <SelectValue>
+            {(value: string | null) => {
+              const selectedAsset = selectItems.find((item) => item.value === value);
+
+              return selectedAsset?.label ?? "Nenhum arquivo selecionado";
+            }}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent alignItemWithTrigger={false}>
+          <SelectGroup>
+            {selectItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      {error ? <FieldError className="text-admin-body leading-5">{error}</FieldError> : null}
+    </Field>
   );
 }

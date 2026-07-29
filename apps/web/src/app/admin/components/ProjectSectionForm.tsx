@@ -18,6 +18,24 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { AdminProjectSection } from "@/lib/api/admin-projects";
 import {
@@ -253,18 +271,19 @@ export function ProjectSectionForm({
       </CardHeader>
 
       <CardContent>
-        <form className="mt-5 grid gap-5" noValidate onSubmit={(event) => void handleSaveSection(event)}>
-        <input name="id" type="hidden" value={sectionData?.id ?? ""} />
-        <input name="projectId" type="hidden" value={projectId} />
-        <input name="sortOrder" type="hidden" value={submittedSortOrder} />
-        {!fieldConfig.caption ? <input name="caption" type="hidden" value="" /> : null}
-        {!fieldConfig.metadata ? <input name="metadata" type="hidden" value="{}" /> : null}
-        {!fieldConfig.primaryMedia ? <input name="primaryMediaAssetId" type="hidden" value={hiddenPrimaryMediaAssetId} /> : null}
-        {!fieldConfig.poster ? <input name="posterMediaAssetId" type="hidden" value="" /> : null}
-        {!fieldConfig.text ? <input name="body" type="hidden" value="" /> : null}
-        {!fieldConfig.youtubeUrl ? <input name="youtubeUrl" type="hidden" value="" /> : null}
+        <form className="mt-5" noValidate onSubmit={(event) => void handleSaveSection(event)}>
+          <FieldGroup className="gap-5">
+            <input name="id" type="hidden" value={sectionData?.id ?? ""} />
+            <input name="projectId" type="hidden" value={projectId} />
+            <input name="sortOrder" type="hidden" value={submittedSortOrder} />
+            {!fieldConfig.caption ? <input name="caption" type="hidden" value="" /> : null}
+            {!fieldConfig.metadata ? <input name="metadata" type="hidden" value="{}" /> : null}
+            {!fieldConfig.primaryMedia ? <input name="primaryMediaAssetId" type="hidden" value={hiddenPrimaryMediaAssetId} /> : null}
+            {!fieldConfig.poster ? <input name="posterMediaAssetId" type="hidden" value="" /> : null}
+            {!fieldConfig.text ? <input name="body" type="hidden" value="" /> : null}
+            {!fieldConfig.youtubeUrl ? <input name="youtubeUrl" type="hidden" value="" /> : null}
 
-        <div className="grid gap-5 md:grid-cols-2">
+        <FieldGroup className="grid gap-5 md:grid-cols-2">
           <SectionTypeSelect
             currentType={selectedType}
             idPrefix={idPrefix}
@@ -272,7 +291,7 @@ export function ProjectSectionForm({
             types={isEditing ? projectSectionTypes : creatableProjectSectionTypes}
           />
           <TextField defaultValue={sectionData?.title ?? ""} idPrefix={idPrefix} label="Título" name="title" />
-        </div>
+        </FieldGroup>
 
         {fieldConfig.text ? (
           <TextArea
@@ -298,7 +317,7 @@ export function ProjectSectionForm({
         ) : null}
 
         {fieldConfig.primaryMedia || fieldConfig.poster || fieldConfig.caption ? (
-          <div className="grid gap-5 md:grid-cols-3">
+          <FieldGroup className="grid gap-5 md:grid-cols-3">
             {fieldConfig.primaryMedia ? (
               <MediaSelect
                 assets={mediaAssets}
@@ -334,7 +353,7 @@ export function ProjectSectionForm({
                 name="caption"
               />
             ) : null}
-          </div>
+          </FieldGroup>
         ) : null}
 
         {fieldConfig.metadata ? (
@@ -350,26 +369,26 @@ export function ProjectSectionForm({
                 name="metadata"
                 rows={5}
               />
-              <p className="mt-2 text-admin-help leading-5 text-muted-foreground">
+              <FieldDescription className="mt-2 text-admin-help leading-5">
                 Use um objeto JSON com chave e valor para os dados da ficha técnica.
-              </p>
+              </FieldDescription>
             </div>
           </details>
         ) : null}
 
-        <label
-          className="flex min-h-11 items-center gap-3 text-admin-body"
-          htmlFor={`${idPrefix}-isEnabled`}
-        >
-          <input
-            className="size-4 accent-primary"
+        <Field orientation="horizontal">
+          <FieldContent>
+            <FieldLabel className="text-admin-body" htmlFor={`${idPrefix}-isEnabled`}>
+              Visível na página
+            </FieldLabel>
+          </FieldContent>
+          <Switch
             defaultChecked={sectionData?.isEnabled ?? true}
             id={`${idPrefix}-isEnabled`}
             name="isEnabled"
-            type="checkbox"
+            value="on"
           />
-          Visível na página
-        </label>
+        </Field>
         <Button
           className="min-h-11 justify-self-start rounded-none px-5 text-admin-label uppercase tracking-[0.16em]"
           disabled={isSaving}
@@ -382,6 +401,7 @@ export function ProjectSectionForm({
             <AlertDescription className="text-admin-help leading-5">{saveMessage}</AlertDescription>
           </Alert>
         ) : null}
+          </FieldGroup>
         </form>
       </CardContent>
     </Card>
@@ -411,25 +431,30 @@ function SectionTypeSelect({
   const id = `${idPrefix}-type`;
 
   return (
-    <div className="grid min-w-0 gap-2">
-      <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
+    <Field>
+      <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
         Tipo de bloco
-      </label>
-      <select
-        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-        id={id}
+      </FieldLabel>
+      <Select
+        items={types.map((type) => ({ label: sectionTypeLabels[type], value: type }))}
         name="type"
-        onChange={(event) => onChange(event.target.value as ProjectSectionType)}
-        required
+        onValueChange={(value) => onChange(value as ProjectSectionType)}
         value={currentType}
       >
-        {types.map((type) => (
-          <option key={type} value={type}>
-            {sectionTypeLabels[type]}
-          </option>
-        ))}
-      </select>
-    </div>
+        <SelectTrigger className="min-h-12 w-full rounded-none text-admin-control" id={id}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent alignItemWithTrigger={false}>
+          <SelectGroup>
+            {types.map((type) => (
+              <SelectItem key={type} value={type}>
+                {sectionTypeLabels[type]}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </Field>
   );
 }
 
@@ -447,19 +472,19 @@ function TextField({
   const id = `${idPrefix}-${name}`;
 
   return (
-    <div className="grid min-w-0 gap-2">
-      <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
+    <Field>
+      <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
-      </label>
-      <input
+      </FieldLabel>
+      <Input
         autoComplete="off"
-        className="min-h-12 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        className="min-h-12 rounded-none text-admin-control"
         defaultValue={defaultValue}
         id={id}
         name={name}
         type="text"
       />
-    </div>
+    </Field>
   );
 }
 
@@ -479,19 +504,19 @@ function TextArea({
   const id = `${idPrefix}-${name}`;
 
   return (
-    <div className="grid gap-2">
-      <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
+    <Field>
+      <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
-      </label>
-      <textarea
+      </FieldLabel>
+      <Textarea
         autoComplete="off"
-        className="border border-input bg-background px-3 py-3 text-admin-control leading-6 text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        className="rounded-none text-admin-control leading-6"
         defaultValue={defaultValue}
         id={id}
         name={name}
         rows={rows}
       />
-    </div>
+    </Field>
   );
 }
 
@@ -524,25 +549,39 @@ function MediaSelect({
     return true;
   });
   const id = `${idPrefix}-${name}`;
+  const selectItems = [
+    { label: "Nenhum arquivo selecionado", value: "" },
+    ...filteredAssets.map((asset) => ({
+      label: `${getMediaDisplayName(asset)} - ${asset.mimeType}`,
+      value: asset.id,
+    })),
+  ];
 
   return (
-    <div className="grid min-w-0 gap-2">
-      <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
+    <Field>
+      <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
-      </label>
-      <select
-        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-        defaultValue={currentId ?? ""}
-        id={id}
-        name={name}
-      >
-        <option value="">Nenhum arquivo selecionado</option>
-        {filteredAssets.map((asset) => (
-          <option key={asset.id} value={asset.id}>
-            {getMediaDisplayName(asset)} - {asset.mimeType}
-          </option>
-        ))}
-      </select>
-    </div>
+      </FieldLabel>
+      <Select defaultValue={currentId ?? ""} items={selectItems} name={name}>
+        <SelectTrigger className="min-h-12 w-full rounded-none text-admin-control" id={id}>
+          <SelectValue>
+            {(value: string | null) => {
+              const selectedAsset = selectItems.find((item) => item.value === value);
+
+              return selectedAsset?.label ?? "Nenhum arquivo selecionado";
+            }}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent alignItemWithTrigger={false}>
+          <SelectGroup>
+            {selectItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </Field>
   );
 }
