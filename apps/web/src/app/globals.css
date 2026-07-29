@@ -172,6 +172,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.project-arial-sans {
+  --font-open-sans: Arial, sans-serif;
+  --font-display: Arial, sans-serif;
+  --font-sans: Arial, sans-serif;
+
+  font-family: Arial, sans-serif;
+}
+
 .hero-scroll-range,
 .project-scroll-range {
   min-height: 100svh;

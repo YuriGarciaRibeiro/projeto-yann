@@ -40,7 +40,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
       videoMimeType={data.heroVideoAsset?.mimeType ?? null}
       videoSrc={data.heroVideoAsset?.url ?? null}
     >
-      <main className="overflow-x-clip bg-paper text-ink">
+      <main className="project-arial-sans overflow-x-clip bg-paper text-ink">
         <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-5 py-5 text-white sm:px-8 lg:px-8 xl:px-10">
           <div className="pointer-events-none flex items-center justify-between gap-6">
             <a
