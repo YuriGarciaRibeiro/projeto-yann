@@ -1,8 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { AdminProjectSection } from "@/lib/api/admin-projects";
 import {
@@ -172,8 +187,8 @@ export function ProjectSectionForm({
   }
 
   return (
-    <div className="border border-border p-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+    <Card className="rounded-none">
+      <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <h4 className="text-admin-label uppercase tracking-[0.14em]">
             {isEditing ? `Bloco ${visibleOrder}` : "Criar bloco"}
@@ -183,30 +198,62 @@ export function ProjectSectionForm({
               <SummaryItem label="Tipo" value={sectionTypeLabels[sectionData.type]} />
               <SummaryItem label="Título" value={blockTitle} />
               <SummaryItem label="Mídia" value={mediaLabel} />
-              <SummaryItem label="Status" value={sectionData.isEnabled ? "Visível" : "Oculto"} />
+              <SummaryItem
+                label="Status"
+                value={(
+                  <Badge variant={sectionData.isEnabled ? "default" : "secondary"}>
+                    {sectionData.isEnabled ? "Visível" : "Oculto"}
+                  </Badge>
+                )}
+              />
             </dl>
           ) : null}
         </div>
         {sectionData ? (
           <div className="grid gap-2 justify-items-start md:justify-items-end">
-            <button
-              className="min-h-11 border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring disabled:cursor-not-allowed disabled:border-input disabled:text-muted-foreground"
-              disabled={isDeleting}
-              onClick={() => void handleDeleteSection()}
-              type="button"
-            >
-              {isDeleting ? "Apagando" : "Apagar"}
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger
+                render={(
+                  <Button
+                    className="min-h-11 rounded-none px-4 text-admin-label uppercase tracking-[0.16em]"
+                    disabled={isDeleting}
+                    variant="outline"
+                  />
+                )}
+              >
+                {isDeleting ? "Apagando" : "Apagar"}
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Apagar este bloco?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    O bloco {blockTitle} será removido deste projeto. Essa ação não apaga arquivos da biblioteca.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={isDeleting}
+                    onClick={() => void handleDeleteSection()}
+                    type="button"
+                    variant="destructive"
+                  >
+                    Apagar bloco
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             {deleteMessage ? (
-              <p className="max-w-52 text-right text-admin-help leading-5 text-muted-foreground" role="status">
-                {deleteMessage}
-              </p>
+              <Alert className="max-w-72 rounded-none" role="status">
+                <AlertDescription className="text-admin-help leading-5">{deleteMessage}</AlertDescription>
+              </Alert>
             ) : null}
           </div>
         ) : null}
-      </div>
+      </CardHeader>
 
-      <form className="mt-5 grid gap-5" noValidate onSubmit={(event) => void handleSaveSection(event)}>
+      <CardContent>
+        <form className="mt-5 grid gap-5" noValidate onSubmit={(event) => void handleSaveSection(event)}>
         <input name="id" type="hidden" value={sectionData?.id ?? ""} />
         <input name="projectId" type="hidden" value={projectId} />
         <input name="sortOrder" type="hidden" value={submittedSortOrder} />
@@ -323,24 +370,25 @@ export function ProjectSectionForm({
           />
           Visível na página
         </label>
-        <button
-          className="min-h-11 justify-self-start border border-primary px-5 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring disabled:cursor-not-allowed disabled:border-input disabled:text-muted-foreground"
+        <Button
+          className="min-h-11 justify-self-start rounded-none px-5 text-admin-label uppercase tracking-[0.16em]"
           disabled={isSaving}
           type="submit"
         >
           {isSaving ? "Salvando" : isEditing ? "Salvar bloco" : "Criar bloco"}
-        </button>
+        </Button>
         {saveMessage ? (
-          <p className="text-admin-help leading-5 text-muted-foreground" role="status">
-            {saveMessage}
-          </p>
+          <Alert className="rounded-none" role="status">
+            <AlertDescription className="text-admin-help leading-5">{saveMessage}</AlertDescription>
+          </Alert>
         ) : null}
-      </form>
-    </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
-function SummaryItem({ label, value }: { label: string; value: string }) {
+function SummaryItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
       <dt className="text-admin-help uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>

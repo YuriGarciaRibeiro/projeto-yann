@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import { logoutAdminAction } from "../actions";
 import { AdminThemeToggle } from "./AdminThemeToggle";
 
@@ -70,20 +72,14 @@ export function AdminShell({ children, error, status }: AdminShellProps) {
 
       <div className="px-5 py-6 md:px-8 md:py-10 xl:px-12">
         {status ? (
-          <p
-            className="mb-6 border border-border bg-card px-4 py-3 text-admin-body text-card-foreground"
-            role="status"
-          >
-            {status}
-          </p>
+          <Alert className="mb-6 rounded-none" role="status">
+            <AlertDescription className="text-admin-body text-card-foreground">{status}</AlertDescription>
+          </Alert>
         ) : null}
         {error ? (
-          <p
-            className="mb-6 border border-destructive bg-destructive px-4 py-3 text-admin-body text-primary-foreground"
-            role="alert"
-          >
-            {error}
-          </p>
+          <Alert className="mb-6 rounded-none" variant="destructive">
+            <AlertDescription className="text-admin-body">{error}</AlertDescription>
+          </Alert>
         ) : null}
         <div className="mx-auto flex max-w-6xl flex-col gap-8">{children}</div>
       </div>

@@ -1,5 +1,18 @@
 import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { AdminProject, AdminProjectSection } from "@/lib/api/admin-projects";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 import { ProjectSectionForm } from "./ProjectSectionForm";
 
@@ -15,15 +28,15 @@ export function ProjectSectionsEditor({
   sections,
 }: ProjectSectionsEditorProps) {
   return (
-    <section className="border border-border border-t-0 bg-card p-5 text-card-foreground md:p-6">
-      <div>
-        <h3 className="text-admin-section-title font-normal tracking-[-0.02em]">Blocos da página</h3>
-        <p className="mt-2 max-w-2xl text-admin-body leading-6 text-muted-foreground">
+    <Card className="rounded-none border-t-0">
+      <CardHeader>
+        <CardTitle className="text-admin-section-title font-normal tracking-[-0.02em]">Blocos da página</CardTitle>
+        <CardDescription className="max-w-2xl text-admin-body leading-6">
           Monte a página do projeto com blocos em ordem. Novos blocos entram no final da página.
-        </p>
-      </div>
+        </CardDescription>
+      </CardHeader>
 
-      <div className="mt-6 flex flex-col gap-6">
+      <CardContent className="flex flex-col gap-6">
         <ProjectSectionForm
           mediaAssets={mediaAssets}
           projectId={project.id}
@@ -43,11 +56,16 @@ export function ProjectSectionsEditor({
             ))}
           </div>
         ) : (
-          <p className="border border-border px-4 py-3 text-admin-body text-muted-foreground">
-            Nenhum bloco foi adicionado a este projeto ainda.
-          </p>
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyTitle>Nenhum bloco adicionado ainda</EmptyTitle>
+              <EmptyDescription>
+                Crie o primeiro bloco para começar a montar a narrativa da página do projeto.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,9 +1,49 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { createPortal } from "react-dom";
+import { useRef, useState, type FormEvent } from "react";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { AdminMediaAsset } from "@/lib/api/admin-media";
 import type { MediaUsageScope } from "@/lib/api/project-types";
 
@@ -13,11 +53,6 @@ import {
   createSignedAdminVideoUploadAction,
   type VideoUploadProgressEvent,
 } from "../upload-actions";
-import {
-  applyUploadModalInert,
-  clearUploadModalInert,
-  restoreUploadModalFocus,
-} from "./upload-modal-dom";
 import { getLibraryItems } from "./media-library-items";
 
 type MediaUploadFieldProps = {
@@ -123,19 +158,8 @@ export function MediaUploadField({
   usageScope,
 }: MediaUploadFieldProps) {
   const router = useRouter();
-  const dialogRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
   const [message, setMessage] = useState("");
-  const [portalContainer] = useState<HTMLDivElement | null>(() => {
-    if (typeof document === "undefined") {
-      return null;
-    }
-
-    const container = document.createElement("div");
-    container.setAttribute("data-media-upload-portal", "");
-    return container;
-  });
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [deletingAssetId, setDeletingAssetId] = useState<string | null>(null);
   const [pendingDeleteAsset, setPendingDeleteAsset] = useState<PendingDeleteAsset | null>(null);
@@ -143,38 +167,6 @@ export function MediaUploadField({
   const isBusy = status === "signing" || status === "uploading" || status === "saving";
   const libraryItems = getLibraryItems(mediaAssets);
   const isMutating = isBusy || deletingAssetId !== null;
-  const isModalOpen = isBusy || pendingDeleteAsset !== null;
-
-  useEffect(() => {
-    if (!portalContainer || typeof document === "undefined") {
-      return;
-    }
-
-    document.body.appendChild(portalContainer);
-
-    return () => portalContainer.remove();
-  }, [portalContainer]);
-
-  useEffect(() => {
-    if (!isModalOpen || !portalContainer || typeof document === "undefined") {
-      return;
-    }
-
-    previousFocusRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-
-    const inertedChildren = applyUploadModalInert(Array.from(document.body.children), portalContainer);
-
-    dialogRef.current?.focus();
-
-    return () => {
-      const previousFocus = previousFocusRef.current;
-      previousFocusRef.current = null;
-
-      clearUploadModalInert(inertedChildren);
-      restoreUploadModalFocus(previousFocus);
-    };
-  }, [isModalOpen, portalContainer]);
 
   async function uploadFile(file: File) {
     const displayName = getDisplayNameFromFileName(file.name);
@@ -359,93 +351,19 @@ export function MediaUploadField({
     }
   }
 
-  const uploadDialog = isBusy && portalContainer
-    ? createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
-          <div
-            aria-labelledby="media-upload-progress-title"
-            aria-modal="true"
-            className="w-full max-w-md border border-border bg-card p-6 text-card-foreground shadow-2xl md:p-8"
-            ref={dialogRef}
-            role="dialog"
-            tabIndex={-1}
-          >
-            <p className="text-admin-help uppercase tracking-[0.18em] text-muted-foreground">Upload em andamento</p>
-            <h2
-              className="mt-3 text-admin-section-title font-normal tracking-[-0.03em] text-card-foreground"
-              id="media-upload-progress-title"
-            >
-              Processando envio
-            </h2>
-            <p className="mt-5 border border-border px-4 py-3 text-admin-body text-muted-foreground" role="status">
-              {message || "Preparando envio..."}
-            </p>
-            <p className="mt-4 text-admin-help leading-5 text-muted-foreground">
-              Não feche esta aba até o processamento terminar.
-            </p>
-          </div>
-        </div>,
-        portalContainer,
-      )
-    : null;
-
-  const deleteConfirmDialog = pendingDeleteAsset && portalContainer
-    ? createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
-          <div
-            aria-labelledby="media-delete-confirm-title"
-            aria-modal="true"
-            className="w-full max-w-md border border-border bg-card p-6 text-card-foreground md:p-8"
-            ref={dialogRef}
-            role="dialog"
-            tabIndex={-1}
-          >
-            <p className="text-admin-help uppercase tracking-[0.18em] text-muted-foreground">Confirmar exclusão</p>
-            <h2
-              className="mt-3 text-admin-section-title font-normal tracking-[-0.03em] text-card-foreground"
-              id="media-delete-confirm-title"
-            >
-              Apagar arquivo
-            </h2>
-            <p className="mt-5 text-admin-body leading-6 text-muted-foreground">
-              Apagar <span className="font-medium">{pendingDeleteAsset.displayName}</span> remove o arquivo da
-              biblioteca e do storage.
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <button
-                className="min-h-11 border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
-                onClick={() => setPendingDeleteAsset(null)}
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button
-                className="min-h-11 border border-primary bg-primary px-4 text-admin-label uppercase tracking-[0.16em] text-primary-foreground transition-colors hover:bg-background hover:text-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
-                onClick={() => void handleConfirmDeleteAsset()}
-                type="button"
-              >
-                Apagar
-              </button>
-            </div>
-          </div>
-        </div>,
-        portalContainer,
-      )
-    : null;
-
   return (
     <>
-    <section className="border border-border bg-card p-5 text-card-foreground md:p-6" id={usageScope === "site" ? "midias" : undefined}>
-      <div className="flex flex-col gap-5">
-        <div>
+    <Card className="rounded-none" id={usageScope === "site" ? "midias" : undefined}>
+      <CardHeader>
           <p className="text-admin-label uppercase tracking-[0.18em] text-muted-foreground">
             {usageScope === "site" ? "Arquivos do site" : "Arquivos deste projeto"}
           </p>
-          <h2 className="mt-2 text-admin-section-title font-normal tracking-[-0.02em]">{title}</h2>
-          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-muted-foreground">
+          <CardTitle className="text-admin-section-title font-normal tracking-[-0.02em]">{title}</CardTitle>
+          <CardDescription className="max-w-2xl text-admin-body leading-6">
             {description}
-          </p>
-        </div>
+          </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
         <form className="grid gap-5 md:grid-cols-[1fr_auto] md:items-end" onSubmit={handleSubmit}>
           <div className="grid gap-2">
             <label className="text-admin-label uppercase tracking-[0.14em]" htmlFor="media-upload-file">
@@ -461,68 +379,134 @@ export function MediaUploadField({
               type="file"
             />
           </div>
-          <button
-            className="min-h-12 border border-primary px-5 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring disabled:cursor-not-allowed disabled:border-input disabled:text-muted-foreground"
+          <Button
+            className="min-h-12 rounded-none px-5 text-admin-label uppercase tracking-[0.16em]"
             disabled={isMutating}
             type="submit"
           >
             {isBusy ? "Enviando" : "Enviar"}
-          </button>
+          </Button>
         </form>
         {message ? (
-          <p
-            className={
-              status === "error"
-                ? "border border-destructive bg-destructive px-4 py-3 text-admin-body text-primary-foreground"
-                : "border border-border px-4 py-3 text-admin-body text-muted-foreground"
-            }
+          <Alert
+            className="rounded-none"
             role={status === "error" ? "alert" : isBusy ? undefined : "status"}
+            variant={status === "error" ? "destructive" : "default"}
           >
-            {message}
-          </p>
+            <AlertDescription className="text-admin-body">
+              {message}
+            </AlertDescription>
+          </Alert>
         ) : null}
         <div className="flex flex-col gap-3">
           <h3 className="text-admin-label uppercase tracking-[0.14em]">Biblioteca</h3>
           {mediaAssets.length > 0 ? (
-            <ul className="divide-y divide-border border border-border text-admin-body">
-              {libraryItems.map((item) => (
-                <li className="grid gap-1 px-3 py-3 md:grid-cols-[1fr_auto] md:gap-4" key={item.id}>
-                  <div className="grid gap-1">
-                    <span className="font-medium">{item.displayName}</span>
-                    <span className="text-muted-foreground">
-                      {item.mimeType} / Usado em: {item.usageScope === "site" ? "Site" : "Projeto"}
-                    </span>
-                  </div>
-                  <button
-                    aria-label={`Apagar ${item.displayName}`}
-                    className="justify-self-start border border-border px-3 py-2 text-admin-label uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring disabled:cursor-not-allowed disabled:border-input disabled:text-muted-foreground md:justify-self-end"
-                    disabled={isMutating}
-                    onClick={() => handleDeleteAsset(item.assets.map((asset) => asset.id), item.displayName)}
-                    type="button"
-                  >
-                    {deletingAssetId === item.id ? "Apagando" : "Apagar"}
-                  </button>
-                  <a
-                    className="break-all text-muted-foreground underline underline-offset-4 md:col-span-2"
-                    href={item.url}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    Abrir arquivo: {item.url}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Arquivo</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Uso</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {libraryItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="min-w-56 whitespace-normal font-medium">{item.displayName}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{item.mimeType}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {item.usageScope === "site" ? "Site" : "Projeto"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap justify-start gap-2 md:justify-end">
+                        <Button
+                          className="rounded-none text-admin-label uppercase tracking-[0.14em]"
+                          disabled={isMutating}
+                          onClick={() => handleDeleteAsset(item.assets.map((asset) => asset.id), item.displayName)}
+                          type="button"
+                          variant="outline"
+                        >
+                          {deletingAssetId === item.id ? "Apagando" : "Apagar"}
+                        </Button>
+                        <a
+                          className={buttonVariants({
+                            className: "rounded-none text-admin-label uppercase tracking-[0.14em]",
+                            variant: "outline",
+                          })}
+                          href={item.url}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          Abrir
+                        </a>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
-            <p className="border border-border px-4 py-3 text-admin-body text-muted-foreground">
-              Nenhuma foto ou vídeo foi salvo ainda.
-            </p>
+            <Empty className="border">
+              <EmptyHeader>
+                <EmptyTitle>Nenhuma mídia salva ainda</EmptyTitle>
+                <EmptyDescription>
+                  Envie fotos ou vídeos para disponibilizar arquivos nos campos de mídia do admin.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           )}
         </div>
-      </div>
-    </section>
-    {uploadDialog}
-    {deleteConfirmDialog}
+      </CardContent>
+    </Card>
+    <Dialog open={isBusy}>
+      <DialogContent className="rounded-none" showCloseButton={false}>
+        <DialogHeader>
+          <p className="text-admin-help uppercase tracking-[0.18em] text-muted-foreground">Upload em andamento</p>
+          <DialogTitle className="text-admin-section-title font-normal tracking-[-0.03em]">
+            Processando envio
+          </DialogTitle>
+          <DialogDescription>
+            Não feche esta aba até o processamento terminar.
+          </DialogDescription>
+        </DialogHeader>
+        <Alert className="rounded-none" role="status">
+          <AlertDescription className="text-admin-body">
+            {message || "Preparando envio..."}
+          </AlertDescription>
+        </Alert>
+      </DialogContent>
+    </Dialog>
+    <AlertDialog
+      open={pendingDeleteAsset !== null}
+      onOpenChange={(open) => {
+        if (!open) {
+          setPendingDeleteAsset(null);
+        }
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Apagar arquivo?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Apagar {pendingDeleteAsset?.displayName ?? "este arquivo"} remove o arquivo da biblioteca e do storage.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isMutating}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={isMutating}
+            onClick={() => void handleConfirmDeleteAsset()}
+            type="button"
+            variant="destructive"
+          >
+            Apagar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }

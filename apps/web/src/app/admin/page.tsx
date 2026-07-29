@@ -2,6 +2,31 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ADMIN_ACCESS_TOKEN_COOKIE,
   verifyAdminAccessToken,
@@ -69,66 +94,98 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
 function ProjectList({ projects }: { projects: AdminProject[] }) {
   return (
-    <section className="border border-border bg-card p-5 text-card-foreground md:p-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h2 className="text-admin-section-title font-normal tracking-[-0.02em]">Lista de projetos</h2>
-          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-muted-foreground">
+    <Card className="rounded-none">
+      <CardHeader className="gap-4 md:grid-cols-[1fr_auto] md:items-end">
+        <div className="grid gap-2">
+          <CardTitle className="text-admin-section-title font-normal tracking-[-0.02em]">Lista de projetos</CardTitle>
+          <CardDescription className="max-w-2xl text-admin-body leading-6">
             Entre em um projeto para editar seus dados, arquivos e blocos da página.
-          </p>
+          </CardDescription>
         </div>
-        <Link
-          className="inline-flex min-h-11 items-center justify-center border border-primary px-5 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
-          href="/admin/projetos/novo"
-        >
-          Criar novo projeto
-        </Link>
-      </div>
+        <CardAction className="col-auto row-auto justify-self-start md:justify-self-end">
+          <Link
+            className={buttonVariants({
+              className: "min-h-11 rounded-none px-5 text-admin-label uppercase tracking-[0.16em]",
+            })}
+            href="/admin/projetos/novo"
+          >
+            Criar novo projeto
+          </Link>
+        </CardAction>
+      </CardHeader>
 
-      {projects.length > 0 ? (
-        <ul className="mt-6 divide-y divide-border border-y border-border">
-          {projects.map((project) => (
-            <li className="grid gap-4 py-5 md:grid-cols-[1fr_auto] md:items-center" key={project.id}>
-              <div>
-                <p className="font-display text-admin-card-title font-normal tracking-[-0.04em]">
-                  {project.title}
-                </p>
-                <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-admin-body text-muted-foreground">
-                  <div>
-                    <dt className="sr-only">Ano</dt>
-                    <dd>{project.year}</dd>
-                  </div>
-                  <div>
-                    <dt className="sr-only">Status</dt>
-                    <dd>{project.isPublished ? "Publicado" : "Rascunho"}</dd>
-                  </div>
-                </dl>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  className="inline-flex min-h-11 items-center border border-primary px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
-                  href={`/admin/projetos/${project.id}`}
-                >
-                  Editar
-                </Link>
-                {project.isPublished ? (
-                  <Link
-                    className="inline-flex min-h-11 items-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
-                    href={`/projetos/${project.slug}`}
-                    target="_blank"
-                  >
-                    Ver página
-                  </Link>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-6 border border-border px-4 py-3 text-admin-body text-muted-foreground">
-          Nenhum projeto criado ainda.
-        </p>
-      )}
-    </section>
+      <CardContent>
+        {projects.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Projeto</TableHead>
+                <TableHead>Ano</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {projects.map((project) => (
+                <TableRow key={project.id}>
+                  <TableCell className="min-w-56 whitespace-normal font-display text-admin-card-title font-normal tracking-[-0.04em]">
+                    {project.title}
+                  </TableCell>
+                  <TableCell>{project.year}</TableCell>
+                  <TableCell>
+                    <Badge variant={project.isPublished ? "default" : "secondary"}>
+                      {project.isPublished ? "Publicado" : "Rascunho"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap justify-start gap-2 md:justify-end">
+                      <Link
+                        className={buttonVariants({
+                          className: "min-h-10 rounded-none text-admin-label uppercase tracking-[0.16em]",
+                        })}
+                        href={`/admin/projetos/${project.id}`}
+                      >
+                        Editar
+                      </Link>
+                      {project.isPublished ? (
+                        <Link
+                          className={buttonVariants({
+                            className: "min-h-10 rounded-none text-admin-label uppercase tracking-[0.16em]",
+                            variant: "outline",
+                          })}
+                          href={`/projetos/${project.slug}`}
+                          target="_blank"
+                        >
+                          Ver página
+                        </Link>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyTitle>Nenhum projeto criado ainda</EmptyTitle>
+              <EmptyDescription>
+                Crie o primeiro projeto para começar a montar uma página pública com fotos, vídeos e blocos.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Link
+                className={buttonVariants({
+                  className: "rounded-none text-admin-label uppercase tracking-[0.16em]",
+                })}
+                href="/admin/projetos/novo"
+              >
+                Criar projeto
+              </Link>
+            </EmptyContent>
+          </Empty>
+        )}
+      </CardContent>
+    </Card>
   );
 }
