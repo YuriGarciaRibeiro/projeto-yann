@@ -2,8 +2,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 import { logoutAdminAction } from "../actions";
+import { AdminNavigation } from "./AdminNavigation";
 import { AdminThemeToggle } from "./AdminThemeToggle";
 
 type AdminShellProps = {
@@ -13,12 +16,6 @@ type AdminShellProps = {
 };
 
 export function AdminShell({ children, error, status }: AdminShellProps) {
-  const navItems = [
-    { href: "/admin", label: "Projetos" },
-    { href: "/admin/projetos/novo", label: "Novo projeto" },
-    { href: "/admin#midias", label: "Arquivos globais" },
-  ];
-
   return (
     <main className="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[17rem_1fr]">
       <aside className="border-b border-border bg-card px-5 py-5 text-card-foreground lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:justify-between lg:border-b-0 lg:border-r lg:px-6 lg:py-7">
@@ -35,37 +32,28 @@ export function AdminShell({ children, error, status }: AdminShellProps) {
             </p>
           </div>
 
-          <nav
-            aria-label="Navegação do admin"
-            className="mt-6 flex gap-2 overflow-x-auto pb-1 lg:grid lg:gap-2 lg:overflow-visible lg:pb-0"
-          >
-            {navItems.map((item) => (
-              <Link
-                className="inline-flex min-h-11 shrink-0 items-center border border-border px-4 text-admin-label uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-primary hover:text-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring lg:border-transparent lg:px-0"
-                href={item.href}
-                key={item.href}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <AdminNavigation />
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3 lg:grid">
+        <div className="mt-6 flex flex-col gap-3">
+          <Separator />
           <AdminThemeToggle />
           <Link
-            className="inline-flex min-h-11 items-center justify-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+            className={buttonVariants({
+              className: "min-h-11 rounded-none text-admin-label uppercase tracking-[0.16em]",
+              variant: "outline",
+            })}
             href="/"
           >
             Ver site
           </Link>
           <form action={logoutAdminAction}>
-            <button
-              className="min-h-11 w-full border border-primary px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+            <Button
+              className="min-h-11 w-full rounded-none text-admin-label uppercase tracking-[0.16em]"
               type="submit"
             >
               Sair
-            </button>
+            </Button>
           </form>
         </div>
       </aside>
