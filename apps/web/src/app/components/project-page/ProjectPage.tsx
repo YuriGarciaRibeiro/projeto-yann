@@ -40,11 +40,18 @@ export function ProjectPage({ data }: ProjectPageProps) {
       videoMimeType={data.heroVideoAsset?.mimeType ?? null}
       videoSrc={data.heroVideoAsset?.url ?? null}
     >
-      <main className="project-arial-sans overflow-x-clip bg-paper text-ink">
+      <a className="skip-link" href="#main-content">
+        Pular para o conteúdo principal
+      </a>
+      <main
+        className="project-arial-sans overflow-x-clip bg-paper text-ink"
+        id="main-content"
+        tabIndex={-1}
+      >
         <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-5 py-5 text-white sm:px-8 lg:px-8 xl:px-10">
           <div className="pointer-events-none flex items-center justify-between gap-6">
             <a
-              aria-label="Yann"
+              aria-label={`Voltar ao título do projeto ${data.project.title}`}
               className="pointer-events-auto block outline-offset-4 transition-opacity hover:opacity-65"
               href="#project-title"
             >
@@ -60,7 +67,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
           </div>
         </header>
         <ProjectHero data={data} />
-        <article aria-label={`Conteudo do projeto ${data.project.title}`}>
+        <article aria-label={`Conteúdo do projeto ${data.project.title}`}>
           {renderGroups.map((group) =>
             group.type === "parallax_sequence" ? (
               <ParallaxVideoSequence key={group.key} sectionRows={group.sections} />

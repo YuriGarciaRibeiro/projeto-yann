@@ -247,7 +247,7 @@ export function ScrollVideoParallax({
           <div className="absolute inset-0 grid place-items-center bg-charcoal px-6 text-center text-white">
             <div className="max-w-xs border-t border-white/18 pt-4">
               <p className="text-label font-medium uppercase tracking-[0.18em] text-white/45">
-                Midia indisponivel
+                Mídia indisponível
               </p>
               <p className="mt-3 text-caption leading-6 text-white/62">{alt}</p>
             </div>
@@ -268,7 +268,7 @@ export function ScrollVideoParallax({
       <div className="absolute inset-0">
         <video
           ref={videoRef}
-          aria-label={`Sequencia em video do projeto ${title}`}
+          aria-label={`Sequência em vídeo do projeto ${title}`}
           className={`h-full w-full object-cover transition-opacity duration-500 ${
             isVideoFrameReady ? "opacity-100" : "opacity-0"
           }`}

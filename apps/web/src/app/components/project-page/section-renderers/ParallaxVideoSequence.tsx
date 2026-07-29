@@ -107,7 +107,7 @@ export function ParallaxVideoSequence({ sectionRows }: ParallaxVideoSequenceProp
   if (!canEnhanceSequence) {
     return (
       <section
-        aria-label="Sequencia de videos do projeto"
+        aria-label="Sequência de vídeos do projeto"
         className="project-parallax-sequence bg-black text-white"
         data-header-theme="light"
         data-sequence-mode="fallback"

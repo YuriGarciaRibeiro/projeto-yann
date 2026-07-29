@@ -120,13 +120,13 @@ export function MediaPlaceholder({
 
   return (
     <div
-      aria-label={`${label} indisponivel`}
+      aria-label={`${label} indisponível`}
       className={`grid place-items-center ${isDark ? "bg-charcoal text-white" : "bg-line text-ink"} ${className}`}
       role="img"
     >
       <div className={`max-w-xs border-t pt-4 text-center ${isDark ? "border-white/18" : "border-black/18"}`}>
         <p className={`text-label font-medium uppercase tracking-[0.18em] ${isDark ? "text-white/72" : "text-graphite"}`}>
-          Midia indisponivel
+          Mídia indisponível
         </p>
         <p className={`mt-3 text-caption leading-6 ${isDark ? "text-white/62" : "text-graphite"}`}>
           {label}

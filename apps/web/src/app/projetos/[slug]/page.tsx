@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: ProjectRouteProps): Promise<M
 
   if (!project) {
     return {
-      title: "Projeto nao encontrado | Yann",
+      title: "Projeto não encontrado | Yann",
     };
   }
 

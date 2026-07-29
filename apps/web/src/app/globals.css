@@ -257,6 +257,36 @@ html {
   outline-offset: 4px;
 }
 
+.skip-link {
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.skip-link:focus-visible {
+  clip: auto;
+  background: var(--paper);
+  color: var(--ink);
+  height: auto;
+  left: 1rem;
+  margin: 0;
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+  overflow: visible;
+  padding: 0.875rem 1rem;
+  position: fixed;
+  top: 1rem;
+  white-space: normal;
+  width: auto;
+  z-index: 200;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

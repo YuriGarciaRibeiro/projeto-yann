@@ -157,7 +157,7 @@ export function ProjectPreloader({
             <div className="mx-auto mt-9 h-px w-44 overflow-hidden bg-white/18" aria-hidden="true">
               <div className="h-full w-1/2 animate-[project-preloader_1.35s_ease-in-out_infinite] bg-white" />
             </div>
-            <span className="sr-only">Carregando midia do projeto.</span>
+            <span className="sr-only">Carregando mídia do projeto.</span>
           </div>
         </div>
       ) : null}

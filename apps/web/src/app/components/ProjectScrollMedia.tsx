@@ -63,7 +63,7 @@ export function ProjectScrollMedia({
       >
         <div className="max-w-xs border-t border-white/18 pt-4 text-center">
           <p className="text-label font-medium uppercase tracking-[0.18em] text-white/45">
-            Midia indisponivel
+            Mídia indisponível
           </p>
           <p className="mt-3 text-caption leading-6 text-white/62">{alt}</p>
         </div>
