@@ -13,7 +13,9 @@ export type ContactCreditProject = {
 
 export type ContactCreditMediaAsset = {
   altText: string | null;
+  height: number | null;
   url: string;
+  width: number | null;
 } | null;
 
 type ProjectContactCreditFooterProps = {
@@ -63,8 +65,11 @@ export function ProjectContactCreditFooter({
               alt={mediaAsset.altText ?? ""}
               className="mt-8 aspect-[4/5] w-full max-w-[14rem] object-cover"
               placeholderClassName="mt-8 aspect-[4/5] w-full max-w-[14rem]"
+              height={mediaAsset.height}
+              sizes="(min-width: 1024px) 14rem, 100vw"
               src={mediaAsset.url}
               tone="dark"
+              width={mediaAsset.width}
             />
           ) : null}
           {body ? (

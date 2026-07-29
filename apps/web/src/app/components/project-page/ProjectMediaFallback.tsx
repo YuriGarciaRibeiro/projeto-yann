@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
+import NextImage from "next/image";
 import { useState } from "react";
 
 type MediaPlaceholderProps = {
@@ -14,8 +15,11 @@ type ProjectImageProps = {
   alt: string;
   className?: string;
   placeholderClassName?: string;
+  height?: number | null;
   src: string;
+  sizes?: string;
   tone?: "dark" | "light";
+  width?: number | null;
 };
 
 type ProjectVideoProps = {
@@ -30,9 +34,12 @@ type ProjectVideoProps = {
 export function ProjectImage({
   alt,
   className = "",
+  height,
   placeholderClassName,
+  sizes = "100vw",
   src,
   tone = "light",
+  width,
 }: ProjectImageProps) {
   const [failed, setFailed] = useState(false);
 
@@ -46,7 +53,32 @@ export function ProjectImage({
     );
   }
 
-  return <img alt={alt} className={className} onError={() => setFailed(true)} src={src} />;
+  if (typeof width === "number" && typeof height === "number") {
+    return (
+      <NextImage
+        alt={alt}
+        className={className}
+        decoding="async"
+        height={height}
+        loading="lazy"
+        onError={() => setFailed(true)}
+        sizes={sizes}
+        src={src}
+        width={width}
+      />
+    );
+  }
+
+  return (
+    <img
+      alt={alt}
+      className={className}
+      decoding="async"
+      loading="lazy"
+      onError={() => setFailed(true)}
+      src={src}
+    />
+  );
 }
 
 export function ProjectVideo({

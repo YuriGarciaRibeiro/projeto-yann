@@ -44,7 +44,9 @@ export function VideoBlockSection({ sectionRow }: VideoBlockSectionProps) {
             ) : posterMediaAsset ? (
               <PosterImage
                 alt={posterAlt}
+                height={posterMediaAsset.height}
                 src={posterMediaAsset.url}
+                width={posterMediaAsset.width}
               />
             ) : (
               <MediaPlaceholder
@@ -61,14 +63,17 @@ export function VideoBlockSection({ sectionRow }: VideoBlockSectionProps) {
   );
 }
 
-function PosterImage({ alt, src }: { alt: string; src: string }) {
+function PosterImage({ alt, height, src, width }: { alt: string; height: number | null; src: string; width: number | null }) {
   return (
     <ProjectImage
       alt={alt}
       className="h-full w-full object-cover"
       placeholderClassName="h-full w-full"
+      height={height}
+      sizes="100vw"
       src={src}
       tone="dark"
+      width={width}
     />
   );
 }

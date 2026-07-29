@@ -36,5 +36,12 @@ export function toContactProject(project: Project) {
 }
 
 export function toContactMediaAsset(mediaAsset: ContactMediaAsset) {
-  return mediaAsset ? { altText: mediaAsset.altText, url: mediaAsset.url } : null;
+  return mediaAsset
+    ? {
+        altText: mediaAsset.altText,
+        height: mediaAsset.height,
+        url: mediaAsset.url,
+        width: mediaAsset.width,
+      }
+    : null;
 }

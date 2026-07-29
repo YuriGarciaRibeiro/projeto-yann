@@ -23,7 +23,10 @@ export function ImageBlockSection({ sectionRow }: ImageBlockSectionProps) {
             alt={imageAlt}
             className="min-h-[42svh] w-full object-cover sm:min-h-[55svh]"
             placeholderClassName="min-h-[42svh] w-full sm:min-h-[55svh]"
+            height={primaryMediaAsset.height}
+            sizes="100vw"
             src={primaryMediaAsset.url}
+            width={primaryMediaAsset.width}
           />
         ) : (
           <MediaPlaceholder

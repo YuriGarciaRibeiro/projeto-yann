@@ -1,6 +1,7 @@
 "use client";
 
 import type { MotionValue } from "framer-motion";
+import NextImage from "next/image";
 import { useState } from "react";
 
 import { ScrollVideoParallax } from "./ScrollVideoParallax";
@@ -71,11 +72,8 @@ export function ProjectScrollMedia({
   }
 
   return (
-    <div
-      aria-label={alt}
-      className={`absolute inset-0 z-0 bg-black bg-cover bg-center ${className}`}
-      role="img"
-      style={{ backgroundImage: `url(${posterSrc})` }}
-    />
+    <div className={`absolute inset-0 z-0 bg-black ${className}`}>
+      <NextImage alt={alt} className="object-cover" fill priority sizes="100vw" src={posterSrc} />
+    </div>
   );
 }
