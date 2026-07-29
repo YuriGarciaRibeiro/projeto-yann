@@ -32,6 +32,7 @@ type ScrollVideoParallaxProps = {
 };
 
 const MIN_SEEK_INTERVAL_MS = 22;
+const NEAR_VIEWPORT_ROOT_MARGIN = "50% 0px";
 
 export function ScrollVideoParallax({
   alt,
@@ -144,7 +145,7 @@ export function ScrollVideoParallax({
       ([entry]) => {
         setIsNearViewport(entry.isIntersecting);
       },
-      { rootMargin: "125% 0px" },
+      { rootMargin: NEAR_VIEWPORT_ROOT_MARGIN },
     );
 
     observer.observe(target);

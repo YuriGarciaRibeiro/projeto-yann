@@ -149,7 +149,6 @@ export function ProjectPreloader({
               height={1598}
               priority
               src="/logo.png"
-              unoptimized
               width={3554}
             />
             <p className="mt-5 font-display text-preloader-title font-normal leading-[0.86] tracking-[-0.055em]">
