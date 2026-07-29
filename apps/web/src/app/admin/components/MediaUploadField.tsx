@@ -84,6 +84,8 @@ type PendingDeleteAsset = {
 
 type MediaTypeFilter = "all" | "images" | "videos";
 
+const LIBRARY_ITEMS_PER_PAGE = 10;
+
 const mediaTypeOptions = [
   { label: "Todos", value: "all" },
   { label: "Imagens", value: "images" },
@@ -140,6 +142,10 @@ function matchesMediaType(mimeType: string, type: MediaTypeFilter) {
   }
 
   return true;
+}
+
+function clampPage(page: number, totalPages: number) {
+  return Math.min(Math.max(page, 1), totalPages);
 }
 
 function getDisplayNameFromFileName(fileName: string) {
@@ -237,6 +243,7 @@ export function MediaUploadField({
   const [pendingDeleteAsset, setPendingDeleteAsset] = useState<PendingDeleteAsset | null>(null);
   const [libraryQuery, setLibraryQuery] = useState("");
   const [mediaTypeFilter, setMediaTypeFilter] = useState<MediaTypeFilter>("all");
+  const [libraryPage, setLibraryPage] = useState(1);
 
   const isBusy = status === "signing" || status === "uploading" || status === "saving";
   const libraryItems = getLibraryItems(mediaAssets);
@@ -251,7 +258,30 @@ export function MediaUploadField({
 
     return matchesQuery && matchesMediaType(item.mimeType, mediaTypeFilter);
   });
+  const totalLibraryPages = Math.max(1, Math.ceil(filteredLibraryItems.length / LIBRARY_ITEMS_PER_PAGE));
+  const currentLibraryPage = clampPage(libraryPage, totalLibraryPages);
+  const paginatedLibraryItems = filteredLibraryItems.slice(
+    (currentLibraryPage - 1) * LIBRARY_ITEMS_PER_PAGE,
+    currentLibraryPage * LIBRARY_ITEMS_PER_PAGE,
+  );
+  const visibleLibraryStart = filteredLibraryItems.length > 0
+    ? (currentLibraryPage - 1) * LIBRARY_ITEMS_PER_PAGE + 1
+    : 0;
+  const visibleLibraryEnd = Math.min(
+    currentLibraryPage * LIBRARY_ITEMS_PER_PAGE,
+    filteredLibraryItems.length,
+  );
   const isMutating = isBusy || deletingAssetId !== null;
+
+  function updateLibraryQuery(value: string) {
+    setLibraryQuery(value);
+    setLibraryPage(1);
+  }
+
+  function updateMediaTypeFilter(value: MediaTypeFilter) {
+    setMediaTypeFilter(value);
+    setLibraryPage(1);
+  }
 
   async function uploadFile(file: File) {
     const displayName = getDisplayNameFromFileName(file.name);
@@ -497,7 +527,7 @@ export function MediaUploadField({
                     autoComplete="off"
                     id={`${usageScope}-media-search`}
                     name="mediaSearch"
-                    onChange={(event) => setLibraryQuery(event.target.value)}
+                    onChange={(event) => updateLibraryQuery(event.target.value)}
                     placeholder="Sala principal…"
                     type="search"
                     value={libraryQuery}
@@ -510,7 +540,7 @@ export function MediaUploadField({
                   <Select
                     items={mediaTypeOptions}
                     name="mediaTypeFilter"
-                    onValueChange={(value) => setMediaTypeFilter(value as MediaTypeFilter)}
+                    onValueChange={(value) => updateMediaTypeFilter(value as MediaTypeFilter)}
                     value={mediaTypeFilter}
                   >
                     <SelectTrigger className="w-full" id={`${usageScope}-media-type`}>
@@ -542,7 +572,7 @@ export function MediaUploadField({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredLibraryItems.map((item) => {
+                    {paginatedLibraryItems.map((item) => {
                       const createdAt = getLibraryItemCreatedAt(item);
                       const sizeBytes = getLibraryItemSizeBytes(item);
 
@@ -614,6 +644,36 @@ export function MediaUploadField({
                   </EmptyHeader>
                 </Empty>
               )}
+              {filteredLibraryItems.length > LIBRARY_ITEMS_PER_PAGE ? (
+                <div className="flex flex-col gap-3 border-t pt-4 text-admin-help text-muted-foreground md:flex-row md:items-center md:justify-between">
+                  <p>
+                    Mostrando {visibleLibraryStart}-{visibleLibraryEnd} de {filteredLibraryItems.length} arquivos
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      disabled={currentLibraryPage === 1}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                      onClick={() => setLibraryPage((page) => clampPage(page - 1, totalLibraryPages))}
+                    >
+                      Anterior
+                    </Button>
+                    <span className="tabular-nums">
+                      Página {currentLibraryPage} de {totalLibraryPages}
+                    </span>
+                    <Button
+                      disabled={currentLibraryPage === totalLibraryPages}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                      onClick={() => setLibraryPage((page) => clampPage(page + 1, totalLibraryPages))}
+                    >
+                      Próxima
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
             </>
           ) : (
             <Empty className="border">
