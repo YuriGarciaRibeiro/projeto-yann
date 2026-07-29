@@ -45,17 +45,17 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
   const fieldErrors = state.fieldErrors;
 
   return (
-    <section className="border border-neutral-200 bg-white p-5 md:p-6">
+    <section className="border border-border bg-card p-5 text-card-foreground md:p-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <h2 className="text-admin-section-title font-normal tracking-[-0.02em]">{title}</h2>
-          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-neutral-600">
+          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-muted-foreground">
             Preencha as informações que aparecem na página pública do projeto.
           </p>
         </div>
         {project?.slug ? (
           <Link
-            className="inline-flex min-h-11 items-center justify-center border border-neutral-300 px-4 text-admin-label uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+            className="inline-flex min-h-11 items-center justify-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
             href={`/projetos/${project.slug}`}
             target="_blank"
           >
@@ -66,7 +66,7 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
       <form action={formAction} className="mt-6 grid gap-5" key={state.submissionKey} noValidate>
         <input name="id" type="hidden" value={project?.id ?? ""} />
         {state.formError ? (
-          <p className="border border-red-300 bg-red-50 px-3 py-2 text-admin-body leading-6 text-red-700">
+          <p className="border border-destructive bg-destructive/10 px-3 py-2 text-admin-body leading-6 text-destructive">
             {state.formError}
           </p>
         ) : null}
@@ -135,7 +135,7 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
           required
           rows={4}
         />
-        <fieldset className="grid gap-5 border border-neutral-200 p-4">
+        <fieldset className="grid gap-5 border border-border p-4">
           <legend className="px-1 text-admin-label uppercase tracking-[0.14em]">
             Arquiteto responsável
           </legend>
@@ -219,7 +219,7 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
         >
             <input name="isPublished" type="hidden" value="false" />
             <input
-              className="size-4 accent-neutral-950"
+              className="size-4 accent-primary"
               defaultChecked={values ? values.isPublished : (project?.isPublished ?? false)}
               id={`${idPrefix}-isPublished`}
               name="isPublished"
@@ -239,7 +239,7 @@ function SubmitButton() {
 
   return (
     <button
-      className="min-h-11 justify-self-start border border-neutral-950 px-5 text-admin-label uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-wait disabled:border-neutral-300 disabled:text-neutral-400"
+      className="min-h-11 justify-self-start border border-primary px-5 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring disabled:cursor-wait disabled:border-input disabled:text-muted-foreground"
       disabled={pending}
       type="submit"
     >
@@ -275,15 +275,15 @@ function TextField({
         {label}
       </label>
       <input
-        className="min-h-12 border border-neutral-300 bg-white px-3 text-admin-control outline-none focus:border-neutral-950"
+        className="min-h-12 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
         defaultValue={defaultValue}
         id={id}
         name={name}
         required={required}
         type={type}
       />
-      <p className="text-admin-help leading-5 text-neutral-500">{helpText ?? ""}</p>
-      {error ? <p className="text-admin-body leading-5 text-red-700">{error}</p> : null}
+      <p className="text-admin-help leading-5 text-muted-foreground">{helpText ?? ""}</p>
+      {error ? <p className="text-admin-body leading-5 text-destructive">{error}</p> : null}
     </div>
   );
 }
@@ -313,14 +313,14 @@ function TextArea({
         {label}
       </label>
       <textarea
-        className="border border-neutral-300 bg-white px-3 py-3 text-admin-control leading-6 outline-none focus:border-neutral-950"
+        className="border border-input bg-background px-3 py-3 text-admin-control leading-6 text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
         defaultValue={defaultValue}
         id={id}
         name={name}
         required={required}
         rows={rows}
       />
-      {error ? <p className="text-admin-body leading-5 text-red-700">{error}</p> : null}
+      {error ? <p className="text-admin-body leading-5 text-destructive">{error}</p> : null}
     </div>
   );
 }
@@ -363,7 +363,7 @@ function MediaSelect({
         {label}
       </label>
       <select
-        className="min-h-12 w-full min-w-0 border border-neutral-300 bg-white px-3 text-admin-control outline-none focus:border-neutral-950"
+        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
         defaultValue={currentId ?? ""}
         id={id}
         name={name}
@@ -375,7 +375,7 @@ function MediaSelect({
           </option>
         ))}
       </select>
-      {error ? <p className="text-admin-body leading-5 text-red-700">{error}</p> : null}
+      {error ? <p className="text-admin-body leading-5 text-destructive">{error}</p> : null}
     </div>
   );
 }

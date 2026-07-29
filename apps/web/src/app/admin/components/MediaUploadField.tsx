@@ -365,22 +365,22 @@ export function MediaUploadField({
           <div
             aria-labelledby="media-upload-progress-title"
             aria-modal="true"
-            className="w-full max-w-md border border-neutral-950 bg-white p-6 shadow-2xl md:p-8"
+            className="w-full max-w-md border border-border bg-card p-6 text-card-foreground shadow-2xl md:p-8"
             ref={dialogRef}
             role="dialog"
             tabIndex={-1}
           >
-            <p className="text-admin-help uppercase tracking-[0.18em] text-neutral-500">Upload em andamento</p>
+            <p className="text-admin-help uppercase tracking-[0.18em] text-muted-foreground">Upload em andamento</p>
             <h2
-              className="mt-3 text-admin-section-title font-normal tracking-[-0.03em] text-neutral-950"
+              className="mt-3 text-admin-section-title font-normal tracking-[-0.03em] text-card-foreground"
               id="media-upload-progress-title"
             >
               Processando envio
             </h2>
-            <p className="mt-5 border border-neutral-200 px-4 py-3 text-admin-body text-neutral-700" role="status">
+            <p className="mt-5 border border-border px-4 py-3 text-admin-body text-muted-foreground" role="status">
               {message || "Preparando envio..."}
             </p>
-            <p className="mt-4 text-admin-help leading-5 text-neutral-500">
+            <p className="mt-4 text-admin-help leading-5 text-muted-foreground">
               Não feche esta aba até o processamento terminar.
             </p>
           </div>
@@ -395,32 +395,32 @@ export function MediaUploadField({
           <div
             aria-labelledby="media-delete-confirm-title"
             aria-modal="true"
-            className="w-full max-w-md border border-neutral-950 bg-white p-6 md:p-8"
+            className="w-full max-w-md border border-border bg-card p-6 text-card-foreground md:p-8"
             ref={dialogRef}
             role="dialog"
             tabIndex={-1}
           >
-            <p className="text-admin-help uppercase tracking-[0.18em] text-neutral-500">Confirmar exclusão</p>
+            <p className="text-admin-help uppercase tracking-[0.18em] text-muted-foreground">Confirmar exclusão</p>
             <h2
-              className="mt-3 text-admin-section-title font-normal tracking-[-0.03em] text-neutral-950"
+              className="mt-3 text-admin-section-title font-normal tracking-[-0.03em] text-card-foreground"
               id="media-delete-confirm-title"
             >
               Apagar arquivo
             </h2>
-            <p className="mt-5 text-admin-body leading-6 text-neutral-700">
+            <p className="mt-5 text-admin-body leading-6 text-muted-foreground">
               Apagar <span className="font-medium">{pendingDeleteAsset.displayName}</span> remove o arquivo da
               biblioteca e do storage.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
-                className="min-h-11 border border-neutral-300 px-4 text-admin-label uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+                className="min-h-11 border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
                 onClick={() => setPendingDeleteAsset(null)}
                 type="button"
               >
                 Cancelar
               </button>
               <button
-                className="min-h-11 border border-neutral-950 bg-neutral-950 px-4 text-admin-label uppercase tracking-[0.16em] text-white hover:bg-white hover:text-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+                className="min-h-11 border border-primary bg-primary px-4 text-admin-label uppercase tracking-[0.16em] text-primary-foreground transition-colors hover:bg-background hover:text-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
                 onClick={() => void handleConfirmDeleteAsset()}
                 type="button"
               >
@@ -435,14 +435,14 @@ export function MediaUploadField({
 
   return (
     <>
-    <section className="border border-neutral-200 bg-white p-5 md:p-6" id={usageScope === "site" ? "midias" : undefined}>
-      <div className="space-y-5">
+    <section className="border border-border bg-card p-5 text-card-foreground md:p-6" id={usageScope === "site" ? "midias" : undefined}>
+      <div className="flex flex-col gap-5">
         <div>
-          <p className="text-admin-label uppercase tracking-[0.18em] text-neutral-500">
+          <p className="text-admin-label uppercase tracking-[0.18em] text-muted-foreground">
             {usageScope === "site" ? "Arquivos do site" : "Arquivos deste projeto"}
           </p>
           <h2 className="mt-2 text-admin-section-title font-normal tracking-[-0.02em]">{title}</h2>
-          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-neutral-600">
+          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-muted-foreground">
             {description}
           </p>
         </div>
@@ -453,7 +453,7 @@ export function MediaUploadField({
             </label>
             <input
               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
-              className="min-h-12 border border-neutral-300 bg-white px-3 py-2 text-admin-body outline-none file:mr-3 file:border-0 file:bg-neutral-950 file:px-3 file:py-2 file:text-admin-body file:text-white focus:border-neutral-950"
+              className="min-h-12 border border-input bg-background px-3 py-2 text-admin-body text-foreground outline-none transition-colors file:mr-3 file:border-0 file:bg-primary file:px-3 file:py-2 file:text-admin-body file:text-primary-foreground focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
               disabled={isMutating}
               id="media-upload-file"
               multiple
@@ -462,7 +462,7 @@ export function MediaUploadField({
             />
           </div>
           <button
-            className="min-h-12 border border-neutral-950 px-5 text-admin-label uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:text-neutral-400 disabled:hover:bg-white disabled:hover:text-neutral-400"
+            className="min-h-12 border border-primary px-5 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring disabled:cursor-not-allowed disabled:border-input disabled:text-muted-foreground"
             disabled={isMutating}
             type="submit"
           >
@@ -473,29 +473,29 @@ export function MediaUploadField({
           <p
             className={
               status === "error"
-                ? "border border-neutral-950 bg-neutral-950 px-4 py-3 text-admin-body text-white"
-                : "border border-neutral-300 px-4 py-3 text-admin-body text-neutral-700"
+                ? "border border-destructive bg-destructive px-4 py-3 text-admin-body text-primary-foreground"
+                : "border border-border px-4 py-3 text-admin-body text-muted-foreground"
             }
             role={status === "error" ? "alert" : isBusy ? undefined : "status"}
           >
             {message}
           </p>
         ) : null}
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           <h3 className="text-admin-label uppercase tracking-[0.14em]">Biblioteca</h3>
           {mediaAssets.length > 0 ? (
-            <ul className="divide-y divide-neutral-200 border border-neutral-200 text-admin-body">
+            <ul className="divide-y divide-border border border-border text-admin-body">
               {libraryItems.map((item) => (
                 <li className="grid gap-1 px-3 py-3 md:grid-cols-[1fr_auto] md:gap-4" key={item.id}>
                   <div className="grid gap-1">
                     <span className="font-medium">{item.displayName}</span>
-                    <span className="text-neutral-600">
+                    <span className="text-muted-foreground">
                       {item.mimeType} / Usado em: {item.usageScope === "site" ? "Site" : "Projeto"}
                     </span>
                   </div>
                   <button
                     aria-label={`Apagar ${item.displayName}`}
-                    className="justify-self-start border border-neutral-300 px-3 py-2 text-admin-label uppercase tracking-[0.14em] text-neutral-700 hover:border-neutral-950 hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 disabled:hover:bg-white disabled:hover:text-neutral-400 md:justify-self-end"
+                    className="justify-self-start border border-border px-3 py-2 text-admin-label uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring disabled:cursor-not-allowed disabled:border-input disabled:text-muted-foreground md:justify-self-end"
                     disabled={isMutating}
                     onClick={() => handleDeleteAsset(item.assets.map((asset) => asset.id), item.displayName)}
                     type="button"
@@ -503,7 +503,7 @@ export function MediaUploadField({
                     {deletingAssetId === item.id ? "Apagando" : "Apagar"}
                   </button>
                   <a
-                    className="break-all text-neutral-600 underline underline-offset-4 md:col-span-2"
+                    className="break-all text-muted-foreground underline underline-offset-4 md:col-span-2"
                     href={item.url}
                     rel="noreferrer"
                     target="_blank"
@@ -514,7 +514,7 @@ export function MediaUploadField({
               ))}
             </ul>
           ) : (
-            <p className="border border-neutral-200 px-4 py-3 text-admin-body text-neutral-600">
+            <p className="border border-border px-4 py-3 text-admin-body text-muted-foreground">
               Nenhuma foto ou vídeo foi salvo ainda.
             </p>
           )}

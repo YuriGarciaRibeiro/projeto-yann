@@ -37,19 +37,19 @@ export default async function NewProjectPage({ searchParams }: NewProjectPagePro
 
   return (
     <AdminShell error={params.error} status={params.status}>
-      <section className="space-y-6">
+      <section className="flex flex-col gap-6">
         <Link
-          className="inline-flex min-h-11 items-center border border-neutral-300 px-4 text-admin-label uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+          className="inline-flex min-h-11 items-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
           href="/admin"
         >
           Voltar para projetos
         </Link>
         <div>
-          <p className="text-admin-label uppercase tracking-[0.18em] text-neutral-500">Projetos</p>
+          <p className="text-admin-label uppercase tracking-[0.18em] text-muted-foreground">Projetos</p>
           <h2 className="mt-2 font-display text-admin-page-title font-normal tracking-[-0.04em]">
             Criar novo projeto
           </h2>
-          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-neutral-600">
+          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-muted-foreground">
             Primeiro crie a página do projeto. Depois você poderá enviar fotos, vídeos e montar os blocos.
           </p>
         </div>

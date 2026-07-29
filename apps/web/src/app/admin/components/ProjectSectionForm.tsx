@@ -172,14 +172,14 @@ export function ProjectSectionForm({
   }
 
   return (
-    <div className="border border-neutral-200 p-4">
+    <div className="border border-border p-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <h4 className="text-admin-label uppercase tracking-[0.14em]">
             {isEditing ? `Bloco ${visibleOrder}` : "Criar bloco"}
           </h4>
           {sectionData ? (
-            <dl className="mt-3 grid gap-2 text-admin-body text-neutral-600 md:grid-cols-4">
+            <dl className="mt-3 grid gap-2 text-admin-body text-muted-foreground md:grid-cols-4">
               <SummaryItem label="Tipo" value={sectionTypeLabels[sectionData.type]} />
               <SummaryItem label="Título" value={blockTitle} />
               <SummaryItem label="Mídia" value={mediaLabel} />
@@ -190,7 +190,7 @@ export function ProjectSectionForm({
         {sectionData ? (
           <div className="grid gap-2 justify-items-start md:justify-items-end">
             <button
-              className="min-h-11 border border-neutral-300 px-4 text-admin-label uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400"
+              className="min-h-11 border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring disabled:cursor-not-allowed disabled:border-input disabled:text-muted-foreground"
               disabled={isDeleting}
               onClick={() => void handleDeleteSection()}
               type="button"
@@ -198,7 +198,7 @@ export function ProjectSectionForm({
               {isDeleting ? "Apagando" : "Apagar"}
             </button>
             {deleteMessage ? (
-              <p className="max-w-52 text-right text-admin-help leading-5 text-neutral-500" role="status">
+              <p className="max-w-52 text-right text-admin-help leading-5 text-muted-foreground" role="status">
                 {deleteMessage}
               </p>
             ) : null}
@@ -291,7 +291,7 @@ export function ProjectSectionForm({
         ) : null}
 
         {fieldConfig.metadata ? (
-          <details className="border border-neutral-200 p-4">
+          <details className="border border-border p-4">
             <summary className="cursor-pointer text-admin-label uppercase tracking-[0.14em]">
               Configurações avançadas
             </summary>
@@ -303,7 +303,7 @@ export function ProjectSectionForm({
                 name="metadata"
                 rows={5}
               />
-              <p className="mt-2 text-admin-help leading-5 text-neutral-500">
+              <p className="mt-2 text-admin-help leading-5 text-muted-foreground">
                 Use um objeto JSON com chave e valor para os dados da ficha técnica.
               </p>
             </div>
@@ -315,7 +315,7 @@ export function ProjectSectionForm({
           htmlFor={`${idPrefix}-isEnabled`}
         >
           <input
-            className="size-4 accent-neutral-950"
+            className="size-4 accent-primary"
             defaultChecked={sectionData?.isEnabled ?? true}
             id={`${idPrefix}-isEnabled`}
             name="isEnabled"
@@ -324,14 +324,14 @@ export function ProjectSectionForm({
           Visível na página
         </label>
         <button
-          className="min-h-11 justify-self-start border border-neutral-950 px-5 text-admin-label uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950 disabled:cursor-not-allowed disabled:border-neutral-300 disabled:text-neutral-400 disabled:hover:bg-white"
+          className="min-h-11 justify-self-start border border-primary px-5 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring disabled:cursor-not-allowed disabled:border-input disabled:text-muted-foreground"
           disabled={isSaving}
           type="submit"
         >
           {isSaving ? "Salvando" : isEditing ? "Salvar bloco" : "Criar bloco"}
         </button>
         {saveMessage ? (
-          <p className="text-admin-help leading-5 text-neutral-500" role="status">
+          <p className="text-admin-help leading-5 text-muted-foreground" role="status">
             {saveMessage}
           </p>
         ) : null}
@@ -343,7 +343,7 @@ export function ProjectSectionForm({
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-admin-help uppercase tracking-[0.14em] text-neutral-400">{label}</dt>
+      <dt className="text-admin-help uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>
       <dd>{value}</dd>
     </div>
   );
@@ -368,7 +368,7 @@ function SectionTypeSelect({
         Tipo de bloco
       </label>
       <select
-        className="min-h-12 w-full min-w-0 border border-neutral-300 bg-white px-3 text-admin-control outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
         id={id}
         name="type"
         onChange={(event) => onChange(event.target.value as ProjectSectionType)}
@@ -404,7 +404,7 @@ function TextField({
         {label}
       </label>
       <input
-        className="min-h-12 border border-neutral-300 bg-white px-3 text-admin-control outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+        className="min-h-12 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
         defaultValue={defaultValue}
         id={id}
         name={name}
@@ -435,7 +435,7 @@ function TextArea({
         {label}
       </label>
       <textarea
-        className="border border-neutral-300 bg-white px-3 py-3 text-admin-control leading-6 outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+        className="border border-input bg-background px-3 py-3 text-admin-control leading-6 text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
         defaultValue={defaultValue}
         id={id}
         name={name}
@@ -481,7 +481,7 @@ function MediaSelect({
         {label}
       </label>
       <select
-        className="min-h-12 w-full min-w-0 border border-neutral-300 bg-white px-3 text-admin-control outline-none focus:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
         defaultValue={currentId ?? ""}
         id={id}
         name={name}

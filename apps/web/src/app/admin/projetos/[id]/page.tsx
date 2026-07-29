@@ -56,17 +56,17 @@ export default async function EditProjectPage({
 
   return (
     <AdminShell error={pageParams.error} status={pageParams.status}>
-      <section className="space-y-6">
+      <section className="flex flex-col gap-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Link
-            className="inline-flex min-h-11 items-center justify-center border border-neutral-300 px-4 text-admin-label uppercase tracking-[0.16em] hover:border-neutral-950 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+            className="inline-flex min-h-11 items-center justify-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
             href="/admin"
           >
             Voltar para projetos
           </Link>
           {project.slug ? (
             <Link
-              className="inline-flex min-h-11 items-center justify-center border border-neutral-950 px-4 text-admin-label uppercase tracking-[0.16em] hover:bg-neutral-950 hover:text-white focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-neutral-950"
+              className="inline-flex min-h-11 items-center justify-center border border-primary px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
               href={`/projetos/${project.slug}`}
               target="_blank"
             >
@@ -76,11 +76,11 @@ export default async function EditProjectPage({
         </div>
 
         <div>
-          <p className="text-admin-label uppercase tracking-[0.18em] text-neutral-500">Editar projeto</p>
+          <p className="text-admin-label uppercase tracking-[0.18em] text-muted-foreground">Editar projeto</p>
           <h2 className="mt-2 font-display text-admin-page-title font-normal tracking-[-0.04em]">
             {project.title}
           </h2>
-          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-neutral-600">
+          <p className="mt-2 max-w-2xl text-admin-body leading-6 text-muted-foreground">
             Edite os dados, arquivos e blocos desta página. Nenhum outro projeto aparece aqui.
           </p>
         </div>
