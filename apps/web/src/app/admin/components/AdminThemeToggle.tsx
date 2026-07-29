@@ -22,20 +22,24 @@ export function AdminThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button className="min-h-11 rounded-none text-admin-label uppercase tracking-[0.16em]" variant="outline" />}>
-        {theme === "dark" ? <MoonIcon data-icon="inline-start" /> : <SunIcon data-icon="inline-start" />}
+        {theme === "dark" ? (
+          <MoonIcon aria-hidden="true" data-icon="inline-start" />
+        ) : (
+          <SunIcon aria-hidden="true" data-icon="inline-start" />
+        )}
         Tema {theme === "dark" ? "dark" : "light"}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Tema do admin</DropdownMenuLabel>
           <ThemeMenuItem
-            icon={<MoonIcon data-icon="inline-start" />}
+            icon={<MoonIcon aria-hidden="true" data-icon="inline-start" />}
             isActive={theme === "dark"}
             label="Dark"
             onSelect={() => setTheme("dark")}
           />
           <ThemeMenuItem
-            icon={<SunIcon data-icon="inline-start" />}
+            icon={<SunIcon aria-hidden="true" data-icon="inline-start" />}
             isActive={theme === "light"}
             label="Light"
             onSelect={() => setTheme("light")}
@@ -65,7 +69,7 @@ function ThemeMenuItem({
     <DropdownMenuItem onClick={onSelect}>
       {icon}
       {label}
-      {isActive ? <CheckIcon className="ml-auto" /> : null}
+      {isActive ? <CheckIcon aria-hidden="true" className="ml-auto" /> : null}
     </DropdownMenuItem>
   );
 }

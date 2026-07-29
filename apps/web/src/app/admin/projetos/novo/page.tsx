@@ -39,7 +39,7 @@ export default async function NewProjectPage({ searchParams }: NewProjectPagePro
     <AdminShell error={params.error} status={params.status}>
       <section className="flex flex-col gap-6">
         <Link
-          className="inline-flex min-h-11 items-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+          className="inline-flex min-h-11 items-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
           href="/admin"
         >
           Voltar para projetos

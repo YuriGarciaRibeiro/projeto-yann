@@ -55,7 +55,7 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
         </div>
         {project?.slug ? (
           <Link
-            className="inline-flex min-h-11 items-center justify-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+            className="inline-flex min-h-11 items-center justify-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             href={`/projetos/${project.slug}`}
             target="_blank"
           >
@@ -66,7 +66,7 @@ export function ProjectForm({ mediaAssets, project }: ProjectFormProps) {
       <form action={formAction} className="mt-6 grid gap-5" key={state.submissionKey} noValidate>
         <input name="id" type="hidden" value={project?.id ?? ""} />
         {state.formError ? (
-          <p className="border border-destructive bg-destructive/10 px-3 py-2 text-admin-body leading-6 text-destructive">
+            <p className="border border-destructive bg-destructive/10 px-3 py-2 text-admin-body leading-6 text-destructive" role="alert">
             {state.formError}
           </p>
         ) : null}
@@ -239,11 +239,11 @@ function SubmitButton() {
 
   return (
     <button
-      className="min-h-11 justify-self-start border border-primary px-5 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring disabled:cursor-wait disabled:border-input disabled:text-muted-foreground"
+      className="min-h-11 justify-self-start border border-primary px-5 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-wait disabled:border-input disabled:text-muted-foreground"
       disabled={pending}
       type="submit"
     >
-      {pending ? "Salvando..." : "Salvar projeto"}
+      {pending ? "Salvando…" : "Salvar projeto"}
     </button>
   );
 }
@@ -275,7 +275,8 @@ function TextField({
         {label}
       </label>
       <input
-        className="min-h-12 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+        autoComplete="off"
+        className="min-h-12 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         defaultValue={defaultValue}
         id={id}
         name={name}
@@ -313,7 +314,8 @@ function TextArea({
         {label}
       </label>
       <textarea
-        className="border border-input bg-background px-3 py-3 text-admin-control leading-6 text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+        autoComplete="off"
+        className="border border-input bg-background px-3 py-3 text-admin-control leading-6 text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         defaultValue={defaultValue}
         id={id}
         name={name}
@@ -363,7 +365,7 @@ function MediaSelect({
         {label}
       </label>
       <select
-        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         defaultValue={currentId ?? ""}
         id={id}
         name={name}

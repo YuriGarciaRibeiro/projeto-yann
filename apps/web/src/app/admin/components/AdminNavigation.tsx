@@ -60,28 +60,33 @@ export function AdminNavigation() {
         <Sheet>
           <SheetTrigger render={<Button className="w-full justify-between rounded-none" variant="outline" />}>
             Menu do admin
-            <MenuIcon data-icon="inline-end" />
+            <MenuIcon aria-hidden="true" data-icon="inline-end" />
           </SheetTrigger>
-          <SheetContent className="w-[min(22rem,calc(100vw-2rem))]" side="left">
+          <SheetContent className="w-[min(22rem,calc(100vw-2rem))] overscroll-contain" side="left">
             <SheetHeader>
               <SheetTitle>Navegação do admin</SheetTitle>
               <SheetDescription>Escolha uma seção sem depender de hover.</SheetDescription>
             </SheetHeader>
             <Separator />
             <nav aria-label="Navegação mobile do admin" className="flex flex-col gap-2 px-4">
-              {adminNavItems.map((item) => (
-                <SheetClose
-                  key={item.href}
-                  render={
-                    <Link
-                      className={adminNavLinkClassName(isAdminNavActive(item.href, pathname, hash))}
-                      href={item.href}
-                    />
-                  }
-                >
-                  {item.label}
-                </SheetClose>
-              ))}
+              {adminNavItems.map((item) => {
+                const isActive = isAdminNavActive(item.href, pathname, hash);
+
+                return (
+                  <SheetClose
+                    key={item.href}
+                    render={
+                      <Link
+                        aria-current={isActive ? "page" : undefined}
+                        className={adminNavLinkClassName(isActive)}
+                        href={item.href}
+                      />
+                    }
+                  >
+                    {item.label}
+                  </SheetClose>
+                );
+              })}
             </nav>
           </SheetContent>
         </Sheet>

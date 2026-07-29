@@ -40,8 +40,14 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
         : null;
 
   return (
-    <main className="min-h-screen bg-background px-6 py-10 text-foreground md:px-10">
-      <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-xl flex-col justify-center">
+    <main className="min-h-screen overflow-x-hidden bg-background px-6 py-10 text-foreground md:px-10">
+      <a
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-background focus:px-4 focus:py-3 focus:text-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+        href="#admin-login"
+      >
+        Pular para o formulário
+      </a>
+      <section className="mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-xl flex-col justify-center" id="admin-login">
         <div className="mb-10 self-start">
           <AdminThemeToggle />
         </div>
@@ -70,10 +76,11 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
             </label>
             <input
               autoComplete="email"
-              className="min-h-12 w-full border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+              className="min-h-12 w-full border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
               id="email"
               name="email"
               required
+              spellCheck={false}
               type="email"
             />
           </div>
@@ -87,7 +94,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
             </label>
             <input
               autoComplete="current-password"
-              className="min-h-12 w-full border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+              className="min-h-12 w-full border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
               id="password"
               name="password"
               required
@@ -96,7 +103,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
           </div>
 
           <button
-            className="min-h-11 border border-primary px-5 text-admin-label uppercase tracking-[0.18em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+            className="min-h-11 border border-primary px-5 text-admin-label uppercase tracking-[0.18em] transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             type="submit"
           >
             Entrar

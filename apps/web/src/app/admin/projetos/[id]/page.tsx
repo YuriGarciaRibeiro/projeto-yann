@@ -59,14 +59,14 @@ export default async function EditProjectPage({
       <section className="flex flex-col gap-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Link
-            className="inline-flex min-h-11 items-center justify-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+            className="inline-flex min-h-11 items-center justify-center border border-border px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             href="/admin"
           >
             Voltar para projetos
           </Link>
           {project.slug ? (
             <Link
-              className="inline-flex min-h-11 items-center justify-center border border-primary px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+              className="inline-flex min-h-11 items-center justify-center border border-primary px-4 text-admin-label uppercase tracking-[0.16em] transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
               href={`/projetos/${project.slug}`}
               target="_blank"
             >

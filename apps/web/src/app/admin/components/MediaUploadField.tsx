@@ -173,7 +173,7 @@ export function MediaUploadField({
 
     if (file.type.startsWith("video/")) {
       setStatus("signing");
-      setMessage(`Preparando envio de ${file.name}...`);
+      setMessage(`Preparando envio de ${file.name}…`);
 
       const signedVideoUpload = await createSignedAdminVideoUploadAction({
         fileName: file.name,
@@ -186,7 +186,7 @@ export function MediaUploadField({
       }
 
       setStatus("uploading");
-      setMessage(`Enviando ${file.name} para o storage...`);
+      setMessage(`Enviando ${file.name} para o storage…`);
 
       const uploadResponse = await fetch(signedVideoUpload.uploadUrl, {
         body: file,
@@ -198,7 +198,7 @@ export function MediaUploadField({
         throw new Error(`O envio de ${file.name} falhou. Verifique as configurações do storage.`);
       }
 
-      setMessage(`Processando ${file.name}...`);
+      setMessage(`Processando ${file.name}…`);
 
       const response = await fetch("/admin/uploads/video/process", {
         body: JSON.stringify({
@@ -222,7 +222,7 @@ export function MediaUploadField({
     }
 
     setStatus("signing");
-    setMessage(`Preparando envio de ${file.name}...`);
+    setMessage(`Preparando envio de ${file.name}…`);
 
     const signedUpload = await createSignedAdminUploadAction({
       fileName: file.name,
@@ -235,7 +235,7 @@ export function MediaUploadField({
     }
 
     setStatus("uploading");
-    setMessage(`Enviando ${file.name}...`);
+    setMessage(`Enviando ${file.name}…`);
 
     const uploadResponse = await fetch(signedUpload.uploadUrl, {
       body: file,
@@ -248,7 +248,7 @@ export function MediaUploadField({
     }
 
     setStatus("saving");
-    setMessage(`Salvando ${file.name} na biblioteca...`);
+    setMessage(`Salvando ${file.name} na biblioteca…`);
 
     const result = await saveMediaAssetAction({
       altText: displayName,
@@ -331,7 +331,7 @@ export function MediaUploadField({
     setPendingDeleteAsset(null);
     setDeletingAssetId(asset.assetIds[0] ?? null);
     setStatus("idle");
-    setMessage(`Apagando ${asset.displayName}...`);
+    setMessage(`Apagando ${asset.displayName}…`);
 
     try {
       for (const assetId of asset.assetIds) {
@@ -353,7 +353,7 @@ export function MediaUploadField({
 
   return (
     <>
-    <Card className="rounded-none" id={usageScope === "site" ? "midias" : undefined}>
+    <Card className="scroll-mt-6 rounded-none" id={usageScope === "site" ? "midias" : undefined}>
       <CardHeader>
           <p className="text-admin-label uppercase tracking-[0.18em] text-muted-foreground">
             {usageScope === "site" ? "Arquivos do site" : "Arquivos deste projeto"}
@@ -371,7 +371,7 @@ export function MediaUploadField({
             </label>
             <input
               accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
-              className="min-h-12 border border-input bg-background px-3 py-2 text-admin-body text-foreground outline-none transition-colors file:mr-3 file:border-0 file:bg-primary file:px-3 file:py-2 file:text-admin-body file:text-primary-foreground focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+              className="min-h-12 border border-input bg-background px-3 py-2 text-admin-body text-foreground outline-none transition-colors file:mr-3 file:border-0 file:bg-primary file:px-3 file:py-2 file:text-admin-body file:text-primary-foreground focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
               disabled={isMutating}
               id="media-upload-file"
               multiple
@@ -384,13 +384,14 @@ export function MediaUploadField({
             disabled={isMutating}
             type="submit"
           >
-            {isBusy ? "Enviando" : "Enviar"}
+            {isBusy ? "Enviando…" : "Enviar"}
           </Button>
         </form>
         {message ? (
           <Alert
             className="rounded-none"
-            role={status === "error" ? "alert" : isBusy ? undefined : "status"}
+            aria-live="polite"
+            role={status === "error" ? "alert" : "status"}
             variant={status === "error" ? "destructive" : "default"}
           >
             <AlertDescription className="text-admin-body">
@@ -429,7 +430,7 @@ export function MediaUploadField({
                           type="button"
                           variant="outline"
                         >
-                          {deletingAssetId === item.id ? "Apagando" : "Apagar"}
+                          {deletingAssetId === item.id ? "Apagando…" : "Apagar"}
                         </Button>
                         <a
                           className={buttonVariants({
@@ -472,9 +473,9 @@ export function MediaUploadField({
             Não feche esta aba até o processamento terminar.
           </DialogDescription>
         </DialogHeader>
-        <Alert className="rounded-none" role="status">
+        <Alert aria-live="polite" className="rounded-none" role="status">
           <AlertDescription className="text-admin-body">
-            {message || "Preparando envio..."}
+            {message || "Preparando envio…"}
           </AlertDescription>
         </Alert>
       </DialogContent>

@@ -137,7 +137,7 @@ export function ProjectSectionForm({
 
     const form = event.currentTarget;
     setIsSaving(true);
-    setSaveMessage("Salvando bloco...");
+    setSaveMessage("Salvando bloco…");
 
     try {
       const result = await saveProjectSectionInlineAction(new FormData(form));
@@ -165,7 +165,7 @@ export function ProjectSectionForm({
     }
 
     setIsDeleting(true);
-    setDeleteMessage("Apagando bloco...");
+    setDeleteMessage("Apagando bloco…");
 
     try {
       const result = await deleteProjectSectionInlineAction({
@@ -221,7 +221,7 @@ export function ProjectSectionForm({
                   />
                 )}
               >
-                {isDeleting ? "Apagando" : "Apagar"}
+                {isDeleting ? "Apagando…" : "Apagar"}
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -244,7 +244,7 @@ export function ProjectSectionForm({
               </AlertDialogContent>
             </AlertDialog>
             {deleteMessage ? (
-              <Alert className="max-w-72 rounded-none" role="status">
+              <Alert aria-live="polite" className="max-w-72 rounded-none" role="status">
                 <AlertDescription className="text-admin-help leading-5">{deleteMessage}</AlertDescription>
               </Alert>
             ) : null}
@@ -375,10 +375,10 @@ export function ProjectSectionForm({
           disabled={isSaving}
           type="submit"
         >
-          {isSaving ? "Salvando" : isEditing ? "Salvar bloco" : "Criar bloco"}
+          {isSaving ? "Salvando…" : isEditing ? "Salvar bloco" : "Criar bloco"}
         </Button>
         {saveMessage ? (
-          <Alert className="rounded-none" role="status">
+          <Alert aria-live="polite" className="rounded-none" role="status">
             <AlertDescription className="text-admin-help leading-5">{saveMessage}</AlertDescription>
           </Alert>
         ) : null}
@@ -416,7 +416,7 @@ function SectionTypeSelect({
         Tipo de bloco
       </label>
       <select
-        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         id={id}
         name="type"
         onChange={(event) => onChange(event.target.value as ProjectSectionType)}
@@ -452,7 +452,8 @@ function TextField({
         {label}
       </label>
       <input
-        className="min-h-12 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+        autoComplete="off"
+        className="min-h-12 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         defaultValue={defaultValue}
         id={id}
         name={name}
@@ -483,7 +484,8 @@ function TextArea({
         {label}
       </label>
       <textarea
-        className="border border-input bg-background px-3 py-3 text-admin-control leading-6 text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+        autoComplete="off"
+        className="border border-input bg-background px-3 py-3 text-admin-control leading-6 text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         defaultValue={defaultValue}
         id={id}
         name={name}
@@ -529,7 +531,7 @@ function MediaSelect({
         {label}
       </label>
       <select
-        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus:border-ring focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+        className="min-h-12 w-full min-w-0 border border-input bg-background px-3 text-admin-control text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         defaultValue={currentId ?? ""}
         id={id}
         name={name}

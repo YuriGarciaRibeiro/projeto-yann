@@ -17,7 +17,13 @@ type AdminShellProps = {
 
 export function AdminShell({ children, error, status }: AdminShellProps) {
   return (
-    <main className="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[17rem_1fr]">
+    <main className="min-h-screen overflow-x-hidden bg-background text-foreground lg:grid lg:grid-cols-[17rem_1fr]">
+      <a
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-background focus:px-4 focus:py-3 focus:text-foreground focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-ring"
+        href="#admin-content"
+      >
+        Pular para o conteúdo
+      </a>
       <aside className="border-b border-border bg-card px-5 py-5 text-card-foreground lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:justify-between lg:border-b-0 lg:border-r lg:px-6 lg:py-7">
         <div>
           <div id="inicio">
@@ -58,7 +64,7 @@ export function AdminShell({ children, error, status }: AdminShellProps) {
         </div>
       </aside>
 
-      <div className="px-5 py-6 md:px-8 md:py-10 xl:px-12">
+      <div className="min-w-0 px-5 py-6 md:px-8 md:py-10 xl:px-12" id="admin-content">
         {status ? (
           <Alert className="mb-6 rounded-none" role="status">
             <AlertDescription className="text-admin-body text-card-foreground">{status}</AlertDescription>
