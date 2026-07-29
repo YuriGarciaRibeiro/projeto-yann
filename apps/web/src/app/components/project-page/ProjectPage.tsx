@@ -69,7 +69,7 @@ export function ProjectPage({ data }: ProjectPageProps) {
         <ProjectHero data={data} />
         <article aria-label={`Conteúdo do projeto ${data.project.title}`}>
           {renderGroups.map((group) =>
-            group.type === "parallax_sequence" ? (
+            group.type === "parallax_sequence" || group.type === "manual_parallax_group" ? (
               <ParallaxVideoSequence key={group.key} sectionRows={group.sections} />
             ) : (
               <ProjectSectionRenderer

@@ -8,6 +8,7 @@ export type VideoVariant = (typeof videoVariants)[number];
 
 export const projectSectionTypes = [
   "parallax_video",
+  "parallax_group",
   "video_block",
   "image_block",
   "text_block",

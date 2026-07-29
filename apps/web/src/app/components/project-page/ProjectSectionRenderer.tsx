@@ -23,6 +23,8 @@ export function ProjectSectionRenderer({
   switch (sectionRow.section.type) {
     case "parallax_video":
       return <ParallaxVideoSection overlapPrevious={overlapPrevious} sectionRow={sectionRow} />;
+    case "parallax_group":
+      return null;
     case "video_block":
       return <VideoBlockSection sectionRow={sectionRow} />;
     case "image_block":

@@ -31,12 +31,16 @@ export function buildProjectPreloadMedia({
   }
 
   for (const sectionRow of renderedSections) {
-    if (sectionRow.section.type !== "parallax_video" && sectionRow.section.type !== "video_block") {
-      continue;
+    if (sectionRow.section.type === "parallax_video" || sectionRow.section.type === "video_block") {
+      if (addMedia(sectionRow.primaryMediaAsset?.url, sectionRow.primaryMediaAsset?.mimeType)) {
+        break;
+      }
     }
 
-    if (addMedia(sectionRow.primaryMediaAsset?.url, sectionRow.primaryMediaAsset?.mimeType)) {
-      break;
+    for (const itemRow of sectionRow.parallaxGroupItems) {
+      if (addMedia(itemRow.primaryMediaAsset?.url, itemRow.primaryMediaAsset?.mimeType)) {
+        return preloadMedia;
+      }
     }
   }
 

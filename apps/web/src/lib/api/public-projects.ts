@@ -59,6 +59,26 @@ export type ProjectSection = {
   updatedAt: string;
 };
 
+export type ParallaxGroupItem = {
+  id: string;
+  sectionId: string;
+  sortOrder: number;
+  title: string | null;
+  body: string | null;
+  primaryMediaAssetId: string | null;
+  posterMediaAssetId: string | null;
+  caption: string | null;
+  isEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ParallaxGroupItemPayload = {
+  item: ParallaxGroupItem;
+  primaryMediaAsset: MediaAsset | null;
+  posterMediaAsset: MediaAsset | null;
+};
+
 export type PublishedProjectPageData = {
   project: Project;
   heroVideoAsset: MediaAsset | null;
@@ -68,6 +88,7 @@ export type PublishedProjectPageData = {
     section: ProjectSection;
     primaryMediaAsset: MediaAsset | null;
     posterMediaAsset: MediaAsset | null;
+    parallaxGroupItems: ParallaxGroupItemPayload[];
   }>;
 };
 

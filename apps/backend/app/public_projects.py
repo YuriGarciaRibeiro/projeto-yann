@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from typing import Iterator, List, Optional, Protocol
+from typing import Iterator, List, Mapping, Optional, Protocol
 
 import psycopg
 from fastapi import APIRouter, Depends, HTTPException
@@ -91,7 +91,6 @@ SECTION_COLUMNS = """
     created_at,
     updated_at
 """
-
 
 def _media_aliases(table_alias: str, prefix: str) -> str:
     return f"""
@@ -202,7 +201,35 @@ def map_section(row: dict[str, object]) -> dict[str, object]:
     }
 
 
-def map_project_payload(project_row: dict[str, object], section_rows: List[dict[str, object]]) -> dict[str, object]:
+def map_parallax_group_item(row: Mapping[str, object]) -> dict[str, object]:
+    return {
+        "id": row["id"],
+        "sectionId": row["section_id"],
+        "sortOrder": row["sort_order"],
+        "title": row["title"],
+        "body": row["body"],
+        "primaryMediaAssetId": row["primary_media_asset_id"],
+        "posterMediaAssetId": row["poster_media_asset_id"],
+        "caption": row["caption"],
+        "isEnabled": row["is_enabled"],
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def map_parallax_group_item_payload(row: Mapping[str, object]) -> dict[str, object]:
+    return {
+        "item": map_parallax_group_item(row),
+        "primaryMediaAsset": map_media_asset(_prefixed_media_row(dict(row), "item_primary_media_")),
+        "posterMediaAsset": map_media_asset(_prefixed_media_row(dict(row), "item_poster_media_")),
+    }
+
+
+def map_project_payload(
+    project_row: dict[str, object],
+    section_rows: List[dict[str, object]],
+    parallax_group_items: Optional[dict[str, List[dict[str, object]]]] = None,
+) -> dict[str, object]:
     return {
         "project": map_project(project_row),
         "heroVideoAsset": map_media_asset(_prefixed_media_row(project_row, "hero_video_")),
@@ -217,10 +244,54 @@ def map_project_payload(project_row: dict[str, object], section_rows: List[dict[
                 "posterMediaAsset": map_media_asset(
                     _prefixed_media_row(section_row, "section_poster_media_")
                 ),
+                "parallaxGroupItems": (parallax_group_items or {}).get(str(section_row["id"]), []),
             }
             for section_row in section_rows
         ],
     }
+
+
+def list_parallax_group_items(
+    cursor: psycopg.Cursor,
+    section_ids: List[object],
+) -> dict[str, List[dict[str, object]]]:
+    if not section_ids:
+        return {}
+
+    cursor.execute(
+        f"""
+        select
+            i.id,
+            i.section_id,
+            i.sort_order,
+            i.title,
+            i.body,
+            i.primary_media_asset_id,
+            i.poster_media_asset_id,
+            i.caption,
+            i.is_enabled,
+            i.created_at,
+            i.updated_at,
+            {_media_aliases("item_primary_media", "item_primary_media_")},
+            {_media_aliases("item_poster_media", "item_poster_media_")}
+        from project_parallax_group_items i
+        left join media_assets item_primary_media
+            on item_primary_media.id = i.primary_media_asset_id
+        left join media_assets item_poster_media
+            on item_poster_media.id = i.poster_media_asset_id
+        where i.section_id = any(%s)
+            and i.is_enabled = true
+        order by i.section_id asc, i.sort_order asc, i.created_at asc
+        """,
+        (section_ids,),
+    )
+
+    items_by_section: dict[str, List[dict[str, object]]] = {}
+    for row in cursor.fetchall():
+        section_id = str(row["section_id"])
+        items_by_section.setdefault(section_id, []).append(map_parallax_group_item_payload(row))
+
+    return items_by_section
 
 
 class PostgresPublicProjectRepository:
@@ -346,5 +417,7 @@ class PostgresPublicProjectRepository:
                 (project_row["id"],),
             )
             section_rows = cursor.fetchall()
+            group_section_ids = [row["id"] for row in section_rows if row["type"] == "parallax_group"]
+            parallax_group_items = list_parallax_group_items(cursor, group_section_ids)
 
-        return map_project_payload(project_row, section_rows)
+        return map_project_payload(project_row, section_rows, parallax_group_items)

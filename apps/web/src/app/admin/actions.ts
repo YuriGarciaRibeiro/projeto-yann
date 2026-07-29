@@ -137,6 +137,31 @@ function parseJsonObject(value: string) {
   return parsed as Record<string, unknown>;
 }
 
+function getParallaxGroupItems(formData: FormData) {
+  const itemIndexes = Array.from(
+    new Set(
+      Array.from(formData.keys())
+        .map((key) => /^parallaxGroupItems\[(\d+)\]\[title\]$/.exec(String(key))?.[1])
+        .filter(Boolean),
+    ),
+  );
+
+  return itemIndexes.map((index, itemPosition) => ({
+    id: nullableString(getString(formData, `parallaxGroupItems[${index}][id]`)) ?? undefined,
+    body: nullableString(getString(formData, `parallaxGroupItems[${index}][body]`)),
+    caption: nullableString(getString(formData, `parallaxGroupItems[${index}][caption]`)),
+    isEnabled: formData.get(`parallaxGroupItems[${index}][isEnabled]`) === "on",
+    posterMediaAssetId: null,
+    primaryMediaAssetId: nullableString(
+      getString(formData, `parallaxGroupItems[${index}][primaryMediaAssetId]`),
+    ),
+    sortOrder:
+      Number.parseInt(getString(formData, `parallaxGroupItems[${index}][sortOrder]`), 10) ||
+      (itemPosition + 1) * 10,
+    title: nullableString(getString(formData, `parallaxGroupItems[${index}][title]`)),
+  }));
+}
+
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
@@ -410,6 +435,7 @@ async function saveProjectSectionFromFormData(formData: FormData) {
     caption: nullableString(getString(formData, "caption")),
     isEnabled: formData.get("isEnabled") === "on",
     metadata: sectionMetadata,
+    parallaxGroupItems: type === "parallax_group" ? getParallaxGroupItems(formData) : undefined,
     posterMediaAssetId: nullableString(getString(formData, "posterMediaAssetId")),
     primaryMediaAssetId: nullableString(getString(formData, "primaryMediaAssetId")),
     projectId,

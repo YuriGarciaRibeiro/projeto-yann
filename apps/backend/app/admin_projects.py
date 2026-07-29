@@ -37,6 +37,17 @@ class ProjectUpsertRequest(BaseModel):
     fallbackImageAssetId: Optional[str] = None
 
 
+class ParallaxGroupItemUpsertRequest(BaseModel):
+    id: Optional[str] = None
+    sortOrder: Optional[int] = None
+    title: Optional[str] = None
+    body: Optional[str] = None
+    primaryMediaAssetId: Optional[str] = None
+    posterMediaAssetId: Optional[str] = None
+    caption: Optional[str] = None
+    isEnabled: Optional[bool] = True
+
+
 class ProjectSectionUpsertRequest(BaseModel):
     projectId: Optional[str] = None
     sortOrder: Optional[int] = None
@@ -48,6 +59,7 @@ class ProjectSectionUpsertRequest(BaseModel):
     caption: Optional[str] = None
     metadata: Optional[dict[str, object]] = None
     isEnabled: Optional[bool] = None
+    parallaxGroupItems: Optional[List[ParallaxGroupItemUpsertRequest]] = None
 
 
 class AdminProjectRepository(Protocol):
@@ -153,6 +165,7 @@ SECTION_INPUT_COLUMNS = {
 
 PROJECT_SECTION_TYPES = {
     "parallax_video",
+    "parallax_group",
     "video_block",
     "image_block",
     "text_block",
@@ -360,11 +373,39 @@ def map_admin_project_section_row(row: Mapping[str, object]) -> dict[str, object
     }
 
 
-def map_admin_project_section_payload(row: Mapping[str, object]) -> dict[str, object]:
+def map_parallax_group_item_row(row: Mapping[str, object]) -> dict[str, object]:
+    return {
+        "id": row["id"],
+        "sectionId": row["section_id"],
+        "sortOrder": row["sort_order"],
+        "title": row["title"],
+        "body": row["body"],
+        "primaryMediaAssetId": row["primary_media_asset_id"],
+        "posterMediaAssetId": row["poster_media_asset_id"],
+        "caption": row["caption"],
+        "isEnabled": row["is_enabled"],
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def map_parallax_group_item_payload(row: Mapping[str, object]) -> dict[str, object]:
+    return {
+        "item": map_parallax_group_item_row(row),
+        "primaryMediaAsset": map_media_asset_row(_prefixed_media_row(row, "item_primary_media_")),
+        "posterMediaAsset": map_media_asset_row(_prefixed_media_row(row, "item_poster_media_")),
+    }
+
+
+def map_admin_project_section_payload(
+    row: Mapping[str, object],
+    parallax_group_items: Optional[List[dict[str, object]]] = None,
+) -> dict[str, object]:
     return {
         "section": map_admin_project_section_row(row),
         "primaryMediaAsset": map_media_asset_row(_prefixed_media_row(row, "section_primary_media_")),
         "posterMediaAsset": map_media_asset_row(_prefixed_media_row(row, "section_poster_media_")),
+        "parallaxGroupItems": parallax_group_items or [],
     }
 
 
@@ -468,6 +509,29 @@ class PostgresAdminProjectRepository:
         if section_type not in PROJECT_SECTION_TYPES:
             raise ValueError(f"Unsupported project section type: {section_type}")
 
+        if section_type == "parallax_group":
+            items = input_data.get("parallaxGroupItems") or []
+            if not isinstance(items, list):
+                raise ValueError("Parallax group items must be a list.")
+            for item in items:
+                if not isinstance(item, Mapping):
+                    raise ValueError("Parallax group item must be an object.")
+                self.validate_scoped_asset(
+                    item.get("primaryMediaAssetId"),
+                    "video/",
+                    "Video do grupo parallax",
+                    project_id,
+                    "project",
+                    "scrub",
+                )
+                self.validate_scoped_asset(
+                    item.get("posterMediaAssetId"),
+                    "image/",
+                    "Imagem alternativa do grupo parallax",
+                    project_id,
+                    "project",
+                )
+
         if section_type in ("parallax_video", "video_block"):
             self.validate_scoped_asset(
                 _input_value(input_data, "primaryMediaAssetId"),
@@ -493,6 +557,90 @@ class PostgresAdminProjectRepository:
             project_id,
             "project",
         )
+
+    def _replace_parallax_group_items(
+        self,
+        cursor: psycopg.Cursor,
+        section_id: str,
+        items: object,
+    ) -> None:
+        cursor.execute("delete from project_parallax_group_items where section_id = %s", (section_id,))
+        if not isinstance(items, list):
+            return
+
+        for index, item in enumerate(items):
+            if not isinstance(item, Mapping):
+                continue
+            cursor.execute(
+                """
+                insert into project_parallax_group_items (
+                    section_id,
+                    sort_order,
+                    title,
+                    body,
+                    primary_media_asset_id,
+                    poster_media_asset_id,
+                    caption,
+                    is_enabled
+                )
+                values (%s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    section_id,
+                    int(item.get("sortOrder") or ((index + 1) * 10)),
+                    item.get("title"),
+                    item.get("body"),
+                    item.get("primaryMediaAssetId"),
+                    item.get("posterMediaAssetId"),
+                    item.get("caption"),
+                    bool(item.get("isEnabled", True)),
+                ),
+            )
+
+    def _list_parallax_group_items(
+        self,
+        cursor: psycopg.Cursor,
+        section_ids: List[object],
+        enabled_only: bool = False,
+    ) -> dict[str, List[dict[str, object]]]:
+        if not section_ids:
+            return {}
+
+        enabled_filter = "and i.is_enabled = true" if enabled_only else ""
+        cursor.execute(
+            f"""
+            select
+                i.id,
+                i.section_id,
+                i.sort_order,
+                i.title,
+                i.body,
+                i.primary_media_asset_id,
+                i.poster_media_asset_id,
+                i.caption,
+                i.is_enabled,
+                i.created_at,
+                i.updated_at,
+                {_media_aliases("item_primary_media", "item_primary_media_")},
+                {_media_aliases("item_poster_media", "item_poster_media_")}
+            from project_parallax_group_items i
+            left join media_assets item_primary_media
+                on item_primary_media.id = i.primary_media_asset_id
+            left join media_assets item_poster_media
+                on item_poster_media.id = i.poster_media_asset_id
+            where i.section_id = any(%s)
+            {enabled_filter}
+            order by i.section_id asc, i.sort_order asc, i.created_at asc
+            """,
+            (section_ids,),
+        )
+
+        items_by_section: dict[str, List[dict[str, object]]] = {}
+        for row in cursor.fetchall():
+            section_id = str(row["section_id"])
+            items_by_section.setdefault(section_id, []).append(map_parallax_group_item_payload(row))
+
+        return items_by_section
 
     def list_projects(self) -> List[dict[str, object]]:
         with self._connection() as connection, connection.cursor() as cursor:
@@ -608,8 +756,13 @@ class PostgresAdminProjectRepository:
                 (project_id,),
             )
             rows = cursor.fetchall()
+            group_section_ids = [row["id"] for row in rows if row["type"] == "parallax_group"]
+            group_items = self._list_parallax_group_items(cursor, group_section_ids)
 
-        return [map_admin_project_section_payload(row) for row in rows]
+        return [
+            map_admin_project_section_payload(row, group_items.get(str(row["id"]), []))
+            for row in rows
+        ]
 
     def create_project_section(self, project_id: str, input_data: Mapping[str, object]) -> dict[str, object]:
         self._validate_project_section_input(input_data, project_id)
@@ -628,6 +781,12 @@ class PostgresAdminProjectRepository:
                 tuple(values[column] for column in columns),
             )
             row = cursor.fetchone()
+            if row and values["type"] == "parallax_group":
+                self._replace_parallax_group_items(
+                    cursor,
+                    str(row["id"]),
+                    input_data.get("parallaxGroupItems"),
+                )
 
         return map_admin_project_section_row(row)
 
@@ -670,6 +829,17 @@ class PostgresAdminProjectRepository:
                 params,
             )
             row = cursor.fetchone()
+            if row and row["type"] == "parallax_group" and "parallaxGroupItems" in input_data:
+                self._replace_parallax_group_items(
+                    cursor,
+                    str(row["id"]),
+                    input_data.get("parallaxGroupItems"),
+                )
+            elif row and row["type"] != "parallax_group":
+                cursor.execute(
+                    "delete from project_parallax_group_items where section_id = %s",
+                    (row["id"],),
+                )
 
         return map_admin_project_section_row(row) if row else None
 

@@ -49,6 +49,37 @@ export type AdminProjectSectionRow = {
   updatedAt: string;
 };
 
+export type ParallaxGroupItem = {
+  id: string;
+  sectionId: string;
+  sortOrder: number;
+  title: string | null;
+  body: string | null;
+  primaryMediaAssetId: string | null;
+  posterMediaAssetId: string | null;
+  caption: string | null;
+  isEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ParallaxGroupItemPayload = {
+  item: ParallaxGroupItem;
+  primaryMediaAsset: MediaAsset | null;
+  posterMediaAsset: MediaAsset | null;
+};
+
+export type ParallaxGroupItemUpsertInput = {
+  id?: string;
+  sortOrder: number;
+  title: string | null;
+  body: string | null;
+  primaryMediaAssetId: string | null;
+  posterMediaAssetId: string | null;
+  caption: string | null;
+  isEnabled: boolean;
+};
+
 export type ProjectUpsertInput = {
   id?: string;
   slug: string;
@@ -82,12 +113,14 @@ export type ProjectSectionUpsertInput = {
   caption: string | null;
   metadata: Record<string, unknown>;
   isEnabled: boolean;
+  parallaxGroupItems?: ParallaxGroupItemUpsertInput[];
 };
 
 export type AdminProjectSection = {
   section: AdminProjectSectionRow;
   primaryMediaAsset: MediaAsset | null;
   posterMediaAsset: MediaAsset | null;
+  parallaxGroupItems: ParallaxGroupItemPayload[];
 };
 
 function getBackendPublicUrl(): string {

@@ -17,7 +17,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Field,
   FieldContent,
@@ -53,9 +61,21 @@ type ProjectSectionFormProps = {
   sectionCount?: number;
 };
 
+type ParallaxGroupItemFormValue = {
+  body: string;
+  caption: string;
+  clientId: string;
+  id: string;
+  isEnabled: boolean;
+  primaryMediaAssetId: string;
+  sortOrder: number;
+  title: string;
+};
+
 const sectionTypeLabels: Record<ProjectSectionType, string> = {
   contact_credit: "Contato / créditos",
   image_block: "Imagem",
+  parallax_group: "Grupo parallax",
   parallax_video: "Vídeo com rolagem",
   technical_info: "Ficha técnica",
   text_block: "Texto",
@@ -102,6 +122,9 @@ const sectionFieldConfig: Record<
     primaryMediaLabel: "Vídeo principal",
     text: true,
   },
+  parallax_group: {
+    text: false,
+  },
   technical_info: {
     metadata: true,
     text: true,
@@ -115,6 +138,39 @@ const sectionFieldConfig: Record<
     youtubeUrl: true,
   },
 };
+
+function createBlankParallaxGroupItem(
+  index: number,
+  clientId = `new-${index}`,
+): ParallaxGroupItemFormValue {
+  return {
+    body: "",
+    caption: "",
+    clientId,
+    id: "",
+    isEnabled: true,
+    primaryMediaAssetId: "",
+    sortOrder: (index + 1) * 10,
+    title: "",
+  };
+}
+
+function getInitialParallaxGroupItems(section?: AdminProjectSection): ParallaxGroupItemFormValue[] {
+  if (section?.parallaxGroupItems.length) {
+    return section.parallaxGroupItems.map(({ item }) => ({
+      body: item.body ?? "",
+      caption: item.caption ?? "",
+      clientId: item.id,
+      id: item.id,
+      isEnabled: item.isEnabled,
+      primaryMediaAssetId: item.primaryMediaAssetId ?? "",
+      sortOrder: item.sortOrder,
+      title: item.title ?? "",
+    }));
+  }
+
+  return [createBlankParallaxGroupItem(0)];
+}
 
 export function ProjectSectionForm({
   displayOrder,
@@ -135,7 +191,10 @@ export function ProjectSectionForm({
   const visibleOrder = displayOrder ?? sectionCount + 1;
   const submittedSortOrder = sectionData ? String(sectionData.sortOrder) : String(visibleOrder);
   const [selectedType, setSelectedType] = useState<ProjectSectionType>(
-    sectionData?.type ?? "text_block",
+    sectionData?.type ?? "parallax_group",
+  );
+  const [parallaxGroupItems, setParallaxGroupItems] = useState<ParallaxGroupItemFormValue[]>(
+    () => getInitialParallaxGroupItems(section),
   );
   const [saveMessage, setSaveMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -146,6 +205,43 @@ export function ProjectSectionForm({
     sectionData?.type === "video_block" && selectedType === "video_block"
       ? (sectionData.primaryMediaAssetId ?? "")
       : "";
+
+  function addParallaxGroupItem() {
+    setParallaxGroupItems((items) => [
+      ...items,
+      createBlankParallaxGroupItem(items.length, `new-${Date.now()}-${items.length}`),
+    ]);
+  }
+
+  function removeParallaxGroupItem(index: number) {
+    setParallaxGroupItems((items) => items.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  function moveParallaxGroupItem(index: number, direction: -1 | 1) {
+    setParallaxGroupItems((items) => {
+      const nextIndex = index + direction;
+      if (nextIndex < 0 || nextIndex >= items.length) {
+        return items;
+      }
+
+      const nextItems = [...items];
+      const [movedItem] = nextItems.splice(index, 1);
+      nextItems.splice(nextIndex, 0, movedItem);
+      return nextItems;
+    });
+  }
+
+  function updateParallaxGroupItem(
+    index: number,
+    field: keyof Omit<ParallaxGroupItemFormValue, "clientId">,
+    value: string | boolean,
+  ) {
+    setParallaxGroupItems((items) =>
+      items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item,
+      ),
+    );
+  }
 
   async function handleSaveSection(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -167,7 +263,8 @@ export function ProjectSectionForm({
       setSaveMessage("Bloco salvo.");
       if (!isEditing) {
         form.reset();
-        setSelectedType("text_block");
+        setSelectedType("parallax_group");
+        setParallaxGroupItems([createBlankParallaxGroupItem(0)]);
       }
       router.refresh();
     } catch (error) {
@@ -289,7 +386,12 @@ export function ProjectSectionForm({
             onChange={setSelectedType}
             types={isEditing ? projectSectionTypes : creatableProjectSectionTypes}
           />
-          <TextField defaultValue={sectionData?.title ?? ""} idPrefix={idPrefix} label="Título" name="title" />
+          <TextField
+            defaultValue={sectionData?.title ?? ""}
+            idPrefix={idPrefix}
+            label={selectedType === "parallax_group" ? "Nome administrativo do grupo" : "Título"}
+            name="title"
+          />
         </FieldGroup>
 
         {fieldConfig.text ? (
@@ -356,6 +458,18 @@ export function ProjectSectionForm({
           </FieldGroup>
         ) : null}
 
+        {selectedType === "parallax_group" ? (
+          <ParallaxGroupItemsEditor
+            assets={mediaAssets}
+            idPrefix={idPrefix}
+            items={parallaxGroupItems}
+            onAdd={addParallaxGroupItem}
+            onMove={moveParallaxGroupItem}
+            onRemove={removeParallaxGroupItem}
+            onUpdate={updateParallaxGroupItem}
+          />
+        ) : null}
+
         {fieldConfig.metadata ? (
           <details className="border border-border p-4">
             <summary className="cursor-pointer text-admin-label uppercase tracking-[0.14em]">
@@ -414,6 +528,163 @@ function SummaryItem({ label, value }: { label: string; value: ReactNode }) {
       <dt className="text-admin-help uppercase tracking-[0.14em] text-muted-foreground">{label}</dt>
       <dd>{value}</dd>
     </div>
+  );
+}
+
+function ParallaxGroupItemsEditor({
+  assets,
+  idPrefix,
+  items,
+  onAdd,
+  onMove,
+  onRemove,
+  onUpdate,
+}: {
+  assets: AdminMediaAsset[];
+  idPrefix: string;
+  items: ParallaxGroupItemFormValue[];
+  onAdd: () => void;
+  onMove: (index: number, direction: -1 | 1) => void;
+  onRemove: (index: number) => void;
+  onUpdate: (
+    index: number,
+    field: keyof Omit<ParallaxGroupItemFormValue, "clientId">,
+    value: string | boolean,
+  ) => void;
+}) {
+  return (
+    <Card size="sm" className="bg-muted/30">
+      <CardHeader>
+        <CardTitle className="text-admin-label uppercase tracking-[0.14em]">
+          Vídeos do grupo
+        </CardTitle>
+        <CardDescription className="text-admin-help leading-5">
+          Cada item usa um vídeo otimizado para rolagem. O fallback visual vem do próprio vídeo.
+        </CardDescription>
+        <CardAction>
+          <Button size="sm" type="button" variant="outline" onClick={onAdd}>
+            Adicionar vídeo ao grupo
+          </Button>
+        </CardAction>
+      </CardHeader>
+
+      <CardContent>
+        <FieldGroup className="gap-4">
+          {items.length === 0 ? (
+            <p className="text-admin-help text-muted-foreground">
+              Este grupo está vazio e não será exibido na página pública.
+            </p>
+          ) : null}
+
+          {items.map((item, index) => {
+            const itemIdPrefix = `${idPrefix}-parallax-group-${item.clientId}`;
+            const fieldPrefix = `parallaxGroupItems[${index}]`;
+
+            return (
+              <Card size="sm" className="bg-background" key={item.clientId}>
+                <CardHeader>
+                  <CardTitle className="text-admin-label uppercase tracking-[0.14em]">
+                    Vídeo {index + 1}
+                  </CardTitle>
+                  <CardDescription className="text-admin-help leading-5">
+                    Item interno do grupo parallax
+                  </CardDescription>
+                  <CardAction className="flex flex-wrap justify-end gap-1">
+                    <Button
+                      disabled={index === 0}
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                      onClick={() => onMove(index, -1)}
+                    >
+                      Subir
+                    </Button>
+                    <Button
+                      disabled={index === items.length - 1}
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                      onClick={() => onMove(index, 1)}
+                    >
+                      Descer
+                    </Button>
+                    <Button
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                      onClick={() => onRemove(index)}
+                    >
+                      Remover
+                    </Button>
+                  </CardAction>
+                </CardHeader>
+
+                <CardContent>
+                  <FieldGroup className="gap-4">
+                    <input name={`${fieldPrefix}[id]`} type="hidden" value={item.id} />
+                    <input name={`${fieldPrefix}[sortOrder]`} type="hidden" value={(index + 1) * 10} />
+
+                    <FieldGroup className="grid gap-4 md:grid-cols-2">
+                      <ControlledTextField
+                        idPrefix={itemIdPrefix}
+                        label="Título"
+                        name={`${fieldPrefix}[title]`}
+                        value={item.title}
+                        onChange={(value) => onUpdate(index, "title", value)}
+                      />
+                      <ControlledTextField
+                        idPrefix={itemIdPrefix}
+                        label="Legenda"
+                        name={`${fieldPrefix}[caption]`}
+                        value={item.caption}
+                        onChange={(value) => onUpdate(index, "caption", value)}
+                      />
+                    </FieldGroup>
+
+                    <ControlledTextArea
+                      idPrefix={itemIdPrefix}
+                      label="Texto"
+                      name={`${fieldPrefix}[body]`}
+                      rows={4}
+                      value={item.body}
+                      onChange={(value) => onUpdate(index, "body", value)}
+                    />
+
+                    <MediaSelect
+                      assets={assets}
+                      currentId={item.primaryMediaAssetId}
+                      idPrefix={itemIdPrefix}
+                      label="Vídeo interno"
+                      name={`${fieldPrefix}[primaryMediaAssetId]`}
+                      typePrefix="video/"
+                      videoVariant="scrub"
+                      onChange={(value) => onUpdate(index, "primaryMediaAssetId", value)}
+                    />
+                  </FieldGroup>
+                </CardContent>
+
+                <CardFooter className="justify-between bg-muted/30">
+                  <Field orientation="horizontal" className="w-full">
+                    <FieldContent>
+                      <FieldLabel className="text-admin-body" htmlFor={`${itemIdPrefix}-isEnabled`}>
+                        Visível na página
+                      </FieldLabel>
+                    </FieldContent>
+                    <Switch
+                      checked={item.isEnabled}
+                      id={`${itemIdPrefix}-isEnabled`}
+                      name={`${fieldPrefix}[isEnabled]`}
+                      value="on"
+                      onCheckedChange={(checked) => onUpdate(index, "isEnabled", checked)}
+                    />
+                  </Field>
+                </CardFooter>
+              </Card>
+            );
+          })}
+        </FieldGroup>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -520,12 +791,79 @@ function TextArea({
   );
 }
 
+function ControlledTextField({
+  idPrefix,
+  label,
+  name,
+  onChange,
+  value,
+}: {
+  idPrefix: string;
+  label: string;
+  name: string;
+  onChange: (value: string) => void;
+  value: string;
+}) {
+  const id = `${idPrefix}-${name}`;
+
+  return (
+    <Field>
+      <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
+        {label}
+      </FieldLabel>
+      <Input
+        autoComplete="off"
+        id={id}
+        name={name}
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.currentTarget.value)}
+      />
+    </Field>
+  );
+}
+
+function ControlledTextArea({
+  idPrefix,
+  label,
+  name,
+  onChange,
+  rows = 4,
+  value,
+}: {
+  idPrefix: string;
+  label: string;
+  name: string;
+  onChange: (value: string) => void;
+  rows?: number;
+  value: string;
+}) {
+  const id = `${idPrefix}-${name}`;
+
+  return (
+    <Field>
+      <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
+        {label}
+      </FieldLabel>
+      <Textarea
+        autoComplete="off"
+        id={id}
+        name={name}
+        rows={rows}
+        value={value}
+        onChange={(event) => onChange(event.currentTarget.value)}
+      />
+    </Field>
+  );
+}
+
 function MediaSelect({
   assets,
   currentId,
   idPrefix,
   label,
   name,
+  onChange,
   typePrefix,
   videoVariant,
 }: {
@@ -534,6 +872,7 @@ function MediaSelect({
   idPrefix: string;
   label: string;
   name: string;
+  onChange?: (value: string) => void;
   typePrefix?: string;
   videoVariant?: AdminMediaAsset["videoVariant"];
 }) {
@@ -562,7 +901,13 @@ function MediaSelect({
       <FieldLabel className="text-admin-label uppercase tracking-[0.14em]" htmlFor={id}>
         {label}
       </FieldLabel>
-      <Select defaultValue={currentId ?? ""} items={selectItems} name={name}>
+      <Select
+        defaultValue={onChange ? undefined : (currentId ?? "")}
+        items={selectItems}
+        name={name}
+        value={onChange ? (currentId ?? "") : undefined}
+        onValueChange={onChange ? (value) => onChange(value ?? "") : undefined}
+      >
         <SelectTrigger className="w-full" id={id}>
           <SelectValue>
             {(value: string | null) => {
