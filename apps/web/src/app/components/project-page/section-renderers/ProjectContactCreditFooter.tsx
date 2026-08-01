@@ -33,11 +33,13 @@ export function ProjectContactCreditFooter({
   title,
   titleId,
 }: ProjectContactCreditFooterProps) {
+  const productionCreditHref = "https://www.instagram.com/yann_archviz/";
+  const showProductionCreditAtEnd = !mediaAsset;
   const contacts = [
     { href: emailHref(project.clientArchitectEmail), label: "Email", value: project.clientArchitectEmail },
     { href: phoneHref(project.clientArchitectPhone), label: "Telefone", value: project.clientArchitectPhone },
     { href: project.clientArchitectWebsite, label: "Website", value: project.clientArchitectWebsite },
-    { href: project.clientArchitectInstagram, label: "Instagram", value: project.clientArchitectInstagram },
+    { href: instagramHref(project.clientArchitectInstagram), label: "Instagram", value: project.clientArchitectInstagram },
   ].filter((contact) => contact.value);
 
   return (
@@ -46,20 +48,27 @@ export function ProjectContactCreditFooter({
       className="bg-ink px-5 py-16 text-white sm:px-8 sm:py-28 lg:px-16"
       data-header-theme="light"
     >
-      <div className="mx-auto grid max-w-[1440px] gap-12 border-t border-white/18 pt-8 lg:grid-cols-12 lg:items-center">
-        <div className="lg:col-span-5">
-          <p className="text-label font-medium uppercase tracking-[0.16em] text-white/62">
-            Arquiteto(a)
-          </p>
+      <div className="mx-auto grid max-w-[1440px] gap-12 border-t border-white/18 pt-8 lg:grid-cols-12 lg:items-stretch">
+        <div className="lg:col-span-5 lg:flex lg:flex-col">
           <h2
             className="mt-5 font-display text-section-title font-normal leading-[1] tracking-[-0.045em]"
             id={titleId}
           >
             {title ?? project.clientArchitectName ?? project.title}
           </h2>
-          <p className="mt-4 text-label uppercase tracking-[0.18em] text-white">
-            Produzido por Yann | Archviz Studio
-          </p>
+          {!showProductionCreditAtEnd ? (
+            <p className="mt-4 text-label uppercase tracking-[0.18em] text-white/40">
+              <span className="text-white/38">Produzido por </span>
+              <a
+                className="text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:underline"
+                href={productionCreditHref}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Yann | Archviz Studio
+              </a>
+            </p>
+          ) : null}
           {mediaAsset ? (
             <ProjectImage
               alt={mediaAsset.altText ?? ""}
@@ -75,6 +84,19 @@ export function ProjectContactCreditFooter({
           {body ? (
             <p className="mt-6 max-w-xl whitespace-pre-line text-body leading-7 text-white/68">
               {body}
+            </p>
+          ) : null}
+          {showProductionCreditAtEnd ? (
+            <p className="mt-10 text-label uppercase tracking-[0.18em] text-white/40 lg:mt-auto">
+              <span className="text-white/38">Produzido por </span>
+              <a
+                className="text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:underline"
+                href={productionCreditHref}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Yann | Archviz Studio
+              </a>
             </p>
           ) : null}
         </div>
@@ -121,6 +143,19 @@ function emailHref(value: string | null) {
 
 function phoneHref(value: string | null) {
   return value ? `tel:${value.replace(/[^+\d]/g, "")}` : null;
+}
+
+function instagramHref(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  if (value.includes("://")) {
+    return value;
+  }
+
+  const handle = value.replace(/^@/, "").replace(/\/+$/, "");
+  return handle ? `https://www.instagram.com/${handle}/` : null;
 }
 
 function formatContactValue(value: string) {

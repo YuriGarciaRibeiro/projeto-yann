@@ -214,7 +214,7 @@ body {
   transform: translateY(1px);
 }
 
-@media (prefers-reduced-motion: no-preference) {
+@media (prefers-reduced-motion: no-preference) and (pointer: fine) {
   .hero-scroll-range:has(.scrub-media),
   .project-scroll-range:has(.scrub-media) {
     min-height: var(--scrub-scroll-height, var(--project-mobile-scrub-scroll-height, 280svh));
@@ -226,7 +226,7 @@ body {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
   .hero-scroll-stage,
   .project-scroll-stage {
     position: relative;

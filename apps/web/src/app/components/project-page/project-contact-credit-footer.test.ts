@@ -8,24 +8,24 @@ const footerSource = readFileSync(
 
 assert.match(
   footerSource,
-  /<p className="text-label font-medium uppercase tracking-\[0\.16em\] text-white\/45">\s*Arquiteto\(a\)\s*<\/p>/,
-  "contact credit footer should label the credit area as Arquiteto(a)",
+  /<h2\s+className="mt-5 font-display text-section-title font-normal leading-\[1\] tracking-\[-0\.045em\]"/,
+  "contact credit footer should keep the architect name as the primary headline",
 );
 
 assert.doesNotMatch(
   footerSource,
-  /<ContactRow label="Arquiteto\(a\)" value=\{project\.clientArchitectName\} \/>/,
-  "contact credit footer should not repeat Arquiteto(a) inside the contact table",
+  /Arquiteto\(a\)/,
+  "contact credit footer should not render the Arquiteto(a) label anymore",
 );
 
 assert.match(
   footerSource,
-  /<\/h2>\s*<p className="mt-4 text-label uppercase tracking-\[0\.18em\] text-white">\s*Produzido por Yann \| Archviz Studio\s*<\/p>/,
-  "production credit should appear directly below the architect name in white",
+  /const showProductionCreditAtEnd = !mediaAsset;[\s\S]*!showProductionCreditAtEnd \? \([\s\S]*<p className="mt-4 text-label uppercase tracking-\[0\.18em\] text-white\/40">[\s\S]*Yann \| Archviz Studio[\s\S]*<p className="mt-10 text-label uppercase tracking-\[0\.18em\] text-white\/40">[\s\S]*Yann \| Archviz Studio[\s\S]*instagram\.com\/yann_archviz\//,
+  "production credit should stay below the name when there is media and move to the end when there is no media",
 );
 
 assert.doesNotMatch(
   footerSource,
-  /<p className="mt-12 text-label uppercase tracking-\[0\.18em\] text-white\/40">\s*Produzido por Yann \| Archviz Studio\s*<\/p>/,
-  "production credit should not remain below the contact table in muted text",
+  /<div className="mx-auto mt-12 flex max-w-\[1440px\] border-t border-white\/10 pt-6 lg:mt-16">/,
+  "production credit should not remain in a separate lower footer row",
 );
