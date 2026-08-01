@@ -50,14 +50,21 @@ import {
   projectSectionTypes,
 } from "@/lib/api/project-types";
 
-import { deleteProjectSectionInlineAction, saveProjectSectionInlineAction } from "../actions";
+import {
+  deleteProjectSectionInlineAction,
+  moveProjectSectionInlineAction,
+  saveProjectSectionInlineAction,
+} from "../actions";
 
 type ProjectSectionFormProps = {
+  canMoveDown?: boolean;
+  canMoveUp?: boolean;
   displayOrder?: number;
   mediaAssets: AdminMediaAsset[];
   projectId: string;
   section?: AdminProjectSection;
   sectionCount?: number;
+  sectionOrder?: string[];
 };
 
 type ParallaxGroupItemFormValue = {
@@ -172,11 +179,14 @@ function getInitialParallaxGroupItems(section?: AdminProjectSection): ParallaxGr
 }
 
 export function ProjectSectionForm({
+  canMoveDown = false,
+  canMoveUp = false,
   displayOrder,
   mediaAssets,
   projectId,
   section,
   sectionCount = 0,
+  sectionOrder = [],
 }: ProjectSectionFormProps) {
   const router = useRouter();
   const sectionData = section?.section;
@@ -199,6 +209,8 @@ export function ProjectSectionForm({
   const [isSaving, setIsSaving] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [moveMessage, setMoveMessage] = useState("");
+  const [movingDirection, setMovingDirection] = useState<-1 | 1 | null>(null);
   const fieldConfig = sectionFieldConfig[selectedType];
   const hiddenPrimaryMediaAssetId =
     sectionData?.type === "video_block" && selectedType === "video_block"
@@ -300,6 +312,35 @@ export function ProjectSectionForm({
     }
   }
 
+  async function handleMoveSection(direction: -1 | 1) {
+    if (!sectionData || movingDirection) {
+      return;
+    }
+
+    setMovingDirection(direction);
+    setMoveMessage(direction === -1 ? "Movendo bloco para cima…" : "Movendo bloco para baixo…");
+
+    try {
+      const result = await moveProjectSectionInlineAction({
+        direction,
+        projectId,
+        sectionId: sectionData.id,
+        sectionIds: sectionOrder,
+      });
+
+      if (!result.ok) {
+        throw new Error(result.error ?? "Não foi possível mover o bloco.");
+      }
+
+      setMoveMessage("Ordem atualizada.");
+      router.refresh();
+    } catch (error) {
+      setMoveMessage(error instanceof Error ? error.message : "Não foi possível mover o bloco.");
+    } finally {
+      setMovingDirection(null);
+    }
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -325,6 +366,26 @@ export function ProjectSectionForm({
         </div>
         {sectionData ? (
           <div className="grid gap-2 justify-items-start md:justify-items-end">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                disabled={!canMoveUp || movingDirection !== null}
+                size="sm"
+                type="button"
+                variant="outline"
+                onClick={() => void handleMoveSection(-1)}
+              >
+                {movingDirection === -1 ? "Subindo…" : "Subir"}
+              </Button>
+              <Button
+                disabled={!canMoveDown || movingDirection !== null}
+                size="sm"
+                type="button"
+                variant="outline"
+                onClick={() => void handleMoveSection(1)}
+              >
+                {movingDirection === 1 ? "Descendo…" : "Descer"}
+              </Button>
+            </div>
             <AlertDialog>
               <AlertDialogTrigger
                 render={(
@@ -359,6 +420,11 @@ export function ProjectSectionForm({
             {deleteMessage ? (
               <Alert aria-live="polite" className="max-w-72" role="status">
                 <AlertDescription className="text-admin-help leading-5">{deleteMessage}</AlertDescription>
+              </Alert>
+            ) : null}
+            {moveMessage ? (
+              <Alert aria-live="polite" className="max-w-72" role="status">
+                <AlertDescription className="text-admin-help leading-5">{moveMessage}</AlertDescription>
               </Alert>
             ) : null}
           </div>

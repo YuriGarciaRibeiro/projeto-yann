@@ -14,6 +14,7 @@ import {
   deleteAdminProjectSection,
   getAdminProjectById,
   type ProjectUpsertInput,
+  updateAdminProjectSectionSortOrder,
   upsertAdminProject,
   upsertAdminProjectSection,
 } from "@/lib/api/admin-projects";
@@ -515,6 +516,59 @@ export async function deleteProjectSectionInlineAction(input: {
     return {
       ok: false,
       error: error instanceof Error ? error.message : "Não foi possível apagar o bloco.",
+    };
+  }
+}
+
+export async function moveProjectSectionInlineAction(input: {
+  direction: -1 | 1;
+  projectId: string;
+  sectionId: string;
+  sectionIds: string[];
+}): Promise<{ ok: boolean; error?: string }> {
+  await requireAdminSession();
+
+  try {
+    const projectId = input.projectId.trim();
+    const sectionId = input.sectionId.trim();
+    const sectionIds = input.sectionIds.map((id) => id.trim()).filter(Boolean);
+    const currentIndex = sectionIds.indexOf(sectionId);
+    const nextIndex = currentIndex + input.direction;
+
+    if (!projectId || !sectionId) {
+      throw new Error("Bloco não encontrado.");
+    }
+
+    if (input.direction !== -1 && input.direction !== 1) {
+      throw new Error("Escolha uma direção válida para mover o bloco.");
+    }
+
+    if (currentIndex === -1 || nextIndex < 0 || nextIndex >= sectionIds.length) {
+      throw new Error("Não foi possível mover o bloco nessa direção.");
+    }
+
+    const reorderedSectionIds = [...sectionIds];
+    const [movedSectionId] = reorderedSectionIds.splice(currentIndex, 1);
+    reorderedSectionIds.splice(nextIndex, 0, movedSectionId);
+
+    await Promise.all(
+      reorderedSectionIds.map((reorderedSectionId, index) =>
+        updateAdminProjectSectionSortOrder({
+          projectId,
+          sectionId: reorderedSectionId,
+          sortOrder: (index + 1) * 10,
+        }),
+      ),
+    );
+
+    revalidatePath(ADMIN_PATH);
+    revalidatePath(`/admin/projetos/${projectId}`);
+    revalidatePath("/");
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Não foi possível mover o bloco.",
     };
   }
 }

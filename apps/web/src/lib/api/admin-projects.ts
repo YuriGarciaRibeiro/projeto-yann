@@ -252,6 +252,29 @@ export async function upsertAdminProjectSection(
   );
 }
 
+export async function updateAdminProjectSectionSortOrder(input: {
+  projectId: string;
+  sectionId: string;
+  sortOrder: number;
+}): Promise<AdminProjectSectionRow> {
+  const response = await fetchAdminProjectApi(
+    `/admin/project-sections/${encodeURIComponent(input.sectionId)}`,
+    {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: input.projectId,
+        sortOrder: input.sortOrder,
+      }),
+    },
+  );
+
+  return readAdminProjectResponse<AdminProjectSectionRow>(
+    response,
+    `Failed to update admin project section order "${input.sectionId}"`,
+  );
+}
+
 export async function deleteAdminProjectSection(
   sectionId: string,
   projectId: string,

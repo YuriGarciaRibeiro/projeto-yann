@@ -27,6 +27,8 @@ export function ProjectSectionsEditor({
   project,
   sections,
 }: ProjectSectionsEditorProps) {
+  const sectionOrder = sections.map((row) => row.section.id);
+
   return (
     <Card className="border-t-0">
       <CardHeader>
@@ -49,9 +51,12 @@ export function ProjectSectionsEditor({
               <ProjectSectionForm
                 key={row.section.id}
                 displayOrder={index + 1}
+                canMoveDown={index < sections.length - 1}
+                canMoveUp={index > 0}
                 mediaAssets={mediaAssets}
                 projectId={project.id}
                 section={row}
+                sectionOrder={sectionOrder}
               />
             ))}
           </div>
