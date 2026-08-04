@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Open_Sans } from "next/font/google";
+import { Libertinus_Serif } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SmoothScrollProvider } from "./components/SmoothScrollProvider";
 import "./globals.css";
 
-const openSans = Open_Sans({
-  variable: "--font-open-sans",
+const libertinusSerif = Libertinus_Serif({
+  variable: "--font-libertinus-serif",
+  weight: ["400", "600", "700"],
   subsets: ["latin"],
 });
 
@@ -23,7 +24,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${openSans.variable} h-full antialiased`}
+      className={`${libertinusSerif.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <TooltipProvider>
