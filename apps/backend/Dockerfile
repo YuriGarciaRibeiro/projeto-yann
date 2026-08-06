@@ -11,6 +11,7 @@ COPY apps/backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY apps/backend ./
+COPY apps/web/drizzle /app/apps/web/drizzle
 
 EXPOSE 8000
 

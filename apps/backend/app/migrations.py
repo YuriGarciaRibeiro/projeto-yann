@@ -1,6 +1,11 @@
+from pathlib import Path
+
 import psycopg
 
 from app.config import get_settings
+
+
+LEGACY_DRIZZLE_DIR = Path(__file__).resolve().parents[2] / "web" / "drizzle"
 
 
 SCHEMA_MIGRATIONS = (
@@ -27,7 +32,37 @@ SCHEMA_MIGRATIONS = (
 )
 
 
+def table_exists(connection: psycopg.Connection, table_name: str) -> bool:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name = %s
+            );
+            """,
+            (table_name,),
+        )
+        row = cursor.fetchone()
+    return bool(row and row[0])
+
+
+def apply_legacy_drizzle_migrations(connection: psycopg.Connection) -> None:
+    for migration_path in sorted(LEGACY_DRIZZLE_DIR.glob("*.sql")):
+        statements = migration_path.read_text(encoding="utf-8").split("--> statement-breakpoint")
+        with connection.cursor() as cursor:
+            for statement in statements:
+                statement = statement.strip()
+                if statement:
+                    cursor.execute(statement)
+        connection.commit()
+
+
 def apply_schema_migrations(connection: psycopg.Connection) -> None:
+    if not table_exists(connection, "projects"):
+        apply_legacy_drizzle_migrations(connection)
+
     with connection.cursor() as cursor:
         for query in SCHEMA_MIGRATIONS:
             cursor.execute(query)
