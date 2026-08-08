@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   title: "Páginas de Projeto",
   description:
     "Plataforma para publicar páginas de projeto com fotos, vídeos e blocos editoriais.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
