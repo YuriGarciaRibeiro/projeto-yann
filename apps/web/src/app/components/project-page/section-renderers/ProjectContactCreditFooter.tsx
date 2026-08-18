@@ -1,7 +1,5 @@
 "use client";
 
-import { ProjectImage } from "../ProjectMediaFallback";
-
 export type ContactCreditProject = {
   clientArchitectEmail: string | null;
   clientArchitectInstagram: string | null;
@@ -28,13 +26,11 @@ type ProjectContactCreditFooterProps = {
 
 export function ProjectContactCreditFooter({
   body,
-  mediaAsset,
   project,
   title,
   titleId,
 }: ProjectContactCreditFooterProps) {
   const productionCreditHref = "https://www.instagram.com/yann_archviz/";
-  const showProductionCreditAtEnd = !mediaAsset;
   const contacts = [
     { href: emailHref(project.clientArchitectEmail), label: "Email", value: project.clientArchitectEmail },
     { href: phoneHref(project.clientArchitectPhone), label: "Telefone", value: project.clientArchitectPhone },
@@ -56,49 +52,22 @@ export function ProjectContactCreditFooter({
           >
             {title ?? project.clientArchitectName ?? project.title}
           </h2>
-          {!showProductionCreditAtEnd ? (
-            <p className="mt-4 text-label uppercase tracking-[0.18em] text-white/40">
-              <span className="text-white/38">Produzido por </span>
-              <a
-                className="text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:underline"
-                href={productionCreditHref}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Yann | Archviz Studio
-              </a>
-            </p>
-          ) : null}
-          {mediaAsset ? (
-            <ProjectImage
-              alt={mediaAsset.altText ?? ""}
-              className="mt-8 aspect-[4/5] w-full max-w-[14rem] object-cover"
-              placeholderClassName="mt-8 aspect-[4/5] w-full max-w-[14rem]"
-              height={mediaAsset.height}
-              sizes="(min-width: 1024px) 14rem, 100vw"
-              src={mediaAsset.url}
-              tone="dark"
-              width={mediaAsset.width}
-            />
-          ) : null}
           {body ? (
             <p className="mt-6 max-w-xl whitespace-pre-line text-body leading-7 text-white/68">
               {body}
             </p>
           ) : null}
-          {showProductionCreditAtEnd ? (
-            <p className="mt-10 text-label uppercase tracking-[0.18em] text-white/40 lg:mt-auto">
-              <span className="text-white/38">Produzido por </span>
-              <a
-                className="text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:underline"
-                href={productionCreditHref}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Yann | Archviz Studio
-              </a>
-            </p>
-          ) : null}
+          <p className="mt-10 text-label uppercase tracking-[0.18em] text-white/40 lg:mt-auto">
+            <span className="text-white/38">Produzido por </span>
+            <a
+              className="text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:underline"
+              href={productionCreditHref}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Yann | Archviz Studio
+            </a>
+          </p>
         </div>
 
         <div className="lg:col-span-5 lg:col-start-8">
