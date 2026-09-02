@@ -57,17 +57,6 @@ export function ProjectContactCreditFooter({
               {body}
             </p>
           ) : null}
-          <p className="mt-10 text-label uppercase tracking-[0.18em] text-white/40 lg:mt-auto">
-            <span className="text-white/38">Produzido por </span>
-            <a
-              className="text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:underline"
-              href={productionCreditHref}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              Yann | Archviz Studio
-            </a>
-          </p>
         </div>
 
         <div className="lg:col-span-5 lg:col-start-8">
@@ -81,6 +70,17 @@ export function ProjectContactCreditFooter({
               />
             ))}
           </dl>
+          <p className="mt-10 text-label uppercase tracking-[0.18em] text-white/40">
+            <span className="text-white/38">Produzido por </span>
+            <a
+              className="text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:underline"
+              href={productionCreditHref}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Yann | Archviz Studio
+            </a>
+          </p>
         </div>
       </div>
     </footer>
