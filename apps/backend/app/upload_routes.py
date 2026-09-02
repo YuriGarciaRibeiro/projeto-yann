@@ -24,6 +24,7 @@ media_router = APIRouter(tags=["media"])
 OUTPUT_MIME_TYPE = "video/mp4"
 UPLOAD_CHUNK_SIZE = 1024 * 1024
 RANGE_HEADER_PATTERN = re.compile(r"^bytes=(\d+-\d*|\d*-\d+)$")
+FFMPEG_VIDEO_THREADS = "2"
 logger = logging.getLogger(__name__)
 
 
@@ -83,13 +84,15 @@ def write_body_to_file(body: Any, output_path: str) -> int:
 
 def run_ffmpeg(args: Iterable[str]) -> None:
     completed_process = subprocess.run(
-        ["ffmpeg", *args],
+        ["ffmpeg", "-nostdin", "-hide_banner", "-nostats", *args],
         stderr=subprocess.PIPE,
         stdout=subprocess.DEVNULL,
         check=False,
     )
     if completed_process.returncode != 0:
         error_message = completed_process.stderr.decode("utf-8", errors="replace").strip()
+        if completed_process.returncode < 0:
+            error_message = f"FFmpeg encerrado pelo sinal {-completed_process.returncode}.\n{error_message}".strip()
         raise RuntimeError(error_message or "FFmpeg nao conseguiu processar o video.")
 
 
@@ -173,7 +176,7 @@ def create_scrub_video(input_path: str, output_path: str) -> None:
             "-c:v",
             "libx264",
             "-preset",
-            "slow",
+            "medium",
             "-crf",
             "22",
             "-maxrate",
@@ -182,6 +185,8 @@ def create_scrub_video(input_path: str, output_path: str) -> None:
             "9000k",
             "-pix_fmt",
             "yuv420p",
+            "-threads",
+            FFMPEG_VIDEO_THREADS,
             "-movflags",
             "+faststart",
             "-g",
@@ -206,11 +211,13 @@ def create_standard_video(input_path: str, output_path: str) -> None:
             "-c:v",
             "libx264",
             "-preset",
-            "slow",
+            "medium",
             "-crf",
             "20",
             "-pix_fmt",
             "yuv420p",
+            "-threads",
+            FFMPEG_VIDEO_THREADS,
             "-c:a",
             "aac",
             "-b:a",
